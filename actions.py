@@ -1,34 +1,54 @@
 # create new task
 def add_task(tasks, task):
     """ Add task to set of tasks """
-    tasks.add(task)
-    print(f"\nTask '{task}' has been successfully added.")
+    # lowercase version is key, user formatted is value
+    task_lower = task.lower()
+    tasks[task_lower] = task
 
-# edit task
-def edit_task(tasks, task):
-    """ Edit task """
-    if task in tasks:
-        new_task_name = input("\nPlease enter new task name: ")
-        tasks.remove(task)
-        tasks.add(new_task_name)
-        print(f"\n'{task}' was successfully changed to '{new_task_name}'.")
-    else: 
-        print("\nTask name was not found.")
-
+    # Make sure it was succesfuly added
+    if task_lower in tasks and tasks[task_lower] == task:
+        return True
+    else:
+        return False
 
 # delete task
 def delete_task(tasks, task):
     """ Delete task """
-    if task in tasks:
-        tasks.remove(task)
-        print(f"\nTask '{task}' has been successfully deleted.")
+    removed_task = tasks.pop(task, None)
 
-    else: 
-        print("Task name was not found.")
+    if removed_task:
+        return True
+    else:
+        return False
+    
+
+
+# edit task
+def edit_task(tasks, task):
+    """ Edit task """
+    
+    # Remove task 
+    task_lower = task.lower()
+    deleted = delete_task(tasks, task_lower)
+
+    if not deleted:
+        print("\nTask '{task}' was not found.")
+        return False
+
+    # Add new task    
+    new_task_name = input("\nPlease enter new task name: ")
+    added = add_task(tasks, new_task_name)
+
+    if not added:
+        print("\nTask was not successfully edited.")
+        return False
+
+    print(f"\n'{task}' was successfully changed to '{new_task_name}'.")
+
 
 # print tasks
 def show_tasks(tasks):
     """ Show all tasks """
     print("\nCurrent tasks:")
-    for i, task in enumerate(tasks):
+    for i, task in enumerate(tasks.values()):
         print(f"{i+1}. {task}")
