@@ -1,54 +1,56 @@
 # create new task
 def add_task(tasks, task):
     """ Add task to set of tasks """
-    # lowercase version is key, user formatted is value
-    task_lower = task.lower()
-    tasks[task_lower] = task
 
-    # Make sure it was succesfuly added
-    if task_lower in tasks and tasks[task_lower] == task:
-        return True
-    else:
-        return False
+    # Create new task dict
+    new_task = {'name': task, 'name_lower': task.lower()}
+
+    # Add dict to list
+    tasks.append(new_task)
+
+    return True
 
 # delete task
 def delete_task(tasks, task):
     """ Delete task """
-    removed_task = tasks.pop(task, None)
 
-    if removed_task:
-        return True
-    else:
+    # check it exists and save map
+    found = False
+    for curr_task in tasks:       
+        if curr_task['name_lower'] == task.lower():
+            target_task = curr_task
+            found = True
+
+    # Notify if wan't found
+    if found == False:
         return False
-    
 
+    # Remove if it was found
+    tasks.remove(target_task)   
+    return True         
 
 # edit task
 def edit_task(tasks, task):
     """ Edit task """
     
-    # Remove task 
-    task_lower = task.lower()
-    deleted = delete_task(tasks, task_lower)
+    # check it exists 
+    for curr_task in tasks:
+        if curr_task['name_lower'] == task.lower():
+            # Get new task name
+            new_task_name = input("\nPlease enter new task name: ")
 
-    if not deleted:
-        print("\nTask '{task}' was not found.")
-        return False
+            # Edit data
+            curr_task['name'] = new_task_name
+            curr_task['name_lower'] = new_task_name.lower()
+            return True
 
-    # Add new task    
-    new_task_name = input("\nPlease enter new task name: ")
-    added = add_task(tasks, new_task_name)
-
-    if not added:
-        print("\nTask was not successfully edited.")
-        return False
-
-    print(f"\n'{task}' was successfully changed to '{new_task_name}'.")
-
+   # Return false if wasn't found
+    return False
 
 # print tasks
 def show_tasks(tasks):
     """ Show all tasks """
+
     print("\nCurrent tasks:")
-    for i, task in enumerate(tasks.values()):
-        print(f"{i+1}. {task}")
+    for i, task in enumerate(tasks):
+        print(f"{i+1}. {task['name']}")
