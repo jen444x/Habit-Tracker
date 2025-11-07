@@ -1,11 +1,13 @@
+from task import Task
+
 # create new task
-def add_task(tasks, task):
+def add_task(tasks, task, description=""):
     """ Add task to set of tasks """
+    
+    # Create a new task object
+    new_task = Task(task, description)
 
-    # Create new task dict
-    new_task = {'name': task, 'name_lower': task.lower()}
-
-    # Add dict to list
+    # Add object to list
     tasks.append(new_task)
 
     return True
@@ -15,9 +17,9 @@ def lookup(tasks, task):
     """ Find Task """
     # check it exists and save map
     task_lowered = task.lower()
-    for curr_task in tasks:       
-        if curr_task['name_lower'] == task_lowered:
-            return curr_task
+    for task_instance in tasks:       
+        if task_instance.name_lowered == task_lowered:
+            return task_instance
 
     return None
 
@@ -49,8 +51,8 @@ def edit_task(tasks, task):
     new_task_name = input("\nPlease enter new task name: ")
     
     # Edit data
-    target_task['name'] = new_task_name
-    target_task['name_lower'] = new_task_name.lower()
+    target_task.name = new_task_name
+    target_task.name_lowered = new_task_name.lower()
 
     return True
 
@@ -60,4 +62,4 @@ def show_tasks(tasks):
 
     print("\nCurrent tasks:")
     for i, task in enumerate(tasks):
-        print(f"{i+1}. {task['name']}")
+        print(f"{i+1}. {task.name}")
