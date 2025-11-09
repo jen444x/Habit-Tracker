@@ -1,5 +1,3 @@
-import json
-
 from task import Task
 
 def valid_day(day, month, year):
@@ -273,46 +271,3 @@ def show_tasks(tasks):
         if task.due_date:
             print(f"   Due: {task.due_date}")
 
-def to_dict(task):
-    """Get class instance as dictionary then string"""
-
-    """ Every Python object has a __dict__ attribute that stores its attributes 
-    in a dictionary form. By accessing this attribute, you can quickly convert 
-    the object's data into a dictionary, which can then be serialized into a 
-    JSON string using json.dumps(). This method works well for simple objects 
-    but doesn’t give you control over how the object is represented in JSON."""
-
-
-    # return dict attribute
-    return task.__dict__
-
-# Upload tasks to file
-def store_tasks(tasks):
-    """ Save tasks to file """
-
-    # Get list of dicts
-    tasks_dict = list(map(to_dict, tasks))
-
-    # turn into json
-    tasks_json = json.dumps(tasks_dict, indent=4)
-
-    with open('user_tasks.json', 'w') as f:
-        # write to file
-        f.write(tasks_json)
-    
-
-# Download tasks from file
-def get_tasks(tasks):
-    """ Add stored tasks to list """
-    with open('user_tasks.json', 'r') as f:
-        # Read file
-        contents = f.read()
-        
-    # Turn into py object
-    obj = json.loads(contents)
-        
-    for o in obj:
-        # Create new class instances
-        task = Task(o['name'], o['description'], o['due_date'])
-        # Add to list
-        tasks.append(task)
