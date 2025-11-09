@@ -1,7 +1,7 @@
 [
     {
-        "name": "hello",
-        "name_lowered": "hello",
+        "name": "hi",
+        "name_lowered": "hi",
         "description": "",
         "due_date": ""
     },
@@ -15,6 +15,6 @@
         "name": "hey",
         "name_lowered": "hey",
         "description": "idk",
-        "due_date": ""
+        "due_date": "12/12/2027"
     }
 ]

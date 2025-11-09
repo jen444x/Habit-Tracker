@@ -61,36 +61,47 @@ class TaskManager:
     def edit_task(self, task):
         """ Edit task """
         # See what they want to edit
-        print("\nOptions:\n" \
+        options = ("\nOptions:\n" \
         "a - Name\n" \
         "b - Description\n" \
         "c - Due date\n\n" \
-        "d - Return\n" \
+        "q - Return\n" \
             )
         
-        attribute_to_edit = input("What would you like to edit: ").lower().strip()
+        print(options)
         
-        if attribute_to_edit == "d":
-            return False
+        user_input = input("What would you like to edit: ").lower().strip()
+
+        target_task = None
+        while user_input != 'q':
+            # Check if its a valid input
+            valid_inputs = {'a', 'b', 'c'}
+            if user_input not in valid_inputs:
+                print("Invalid input")
+                return False
+
+            # check it exists, if not notify user
+            if not target_task:
+                target_task = lookup(self.task_list, task)
+                if not target_task:
+                    print("\nTask was not found.")
+                    return False
         
-        options = {'a', 'b', 'c'}
-        if attribute_to_edit not in options:
-            print("Invalid input")
-            return False
-        
-        # check it exists, if not notify user
-        target_task = lookup(self.task_list, task)
-        if not target_task:
-            print("\nTask was not found.")
-            return False
-        
-        # if it does exist, ask user what to edit
-        if attribute_to_edit == "a":
-            edit_name(target_task)
-        elif attribute_to_edit == "b":
-            edit_description(target_task)
-        elif attribute_to_edit == "c":
-            edit_due_date(target_task)
+            # if it does exist, ask user what to edit
+            if user_input == "a":
+                edit_name(target_task)
+            elif user_input == "b":
+                edit_description(target_task)
+            elif user_input == "c":
+                edit_due_date(target_task)
+
+            # Ask user if they want to edit more
+            ask_again = input("Did you want to make any more changes? (y/n): ").lower().strip()
+            if ask_again == 'y':
+                print(options)
+                user_input = input("What would you like to edit: ").lower().strip()
+            else:
+                return True 
 
         return True
     

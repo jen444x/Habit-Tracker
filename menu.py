@@ -13,7 +13,7 @@ tasks = tm.task_list
 # Loop until user exits
 while True:
     print(
-        f"Options:\n\n"
+        f"Options:\n"
         "A - Add task\n"
         "E - Edit task\n"
         "D - Delete task\n"
