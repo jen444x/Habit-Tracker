@@ -6,15 +6,9 @@
         "due_date": "12/12/2027"
     },
     {
-        "name": "Goodbye",
-        "name_lowered": "goodbye",
-        "description": "",
-        "due_date": ""
-    },
-    {
-        "name": "hey",
-        "name_lowered": "hey",
-        "description": "",
-        "due_date": "12/11/2025"
+        "name": "bye",
+        "name_lowered": "bye",
+        "description": "say bye",
+        "due_date": "12/11/2029"
     }
 ]

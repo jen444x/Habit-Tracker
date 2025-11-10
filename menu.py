@@ -39,21 +39,12 @@ while True:
     elif user_input == "e":
         to_edit = input("\nPlease enter the name of the task you would like to" \
         " edit: \n")
-
-        edited = tm.edit_task(to_edit)
-        
-        if not edited:
-            print("\nTask was not edited.")
+        tm.edit_task(to_edit)
 
     elif user_input == "d":
         to_delete = input("\nPlease enter the name of the task you would like to" \
         " delete: ")
-        deleted = tm.delete_task(to_delete)
-
-        if deleted:
-            print(f"\nTask '{to_delete}' was successfully deleted.")
-        else:
-            print("\nTask was not found.")
+        tm.delete_task(to_delete)
 
     elif user_input == "s":
         tm.show_tasks()

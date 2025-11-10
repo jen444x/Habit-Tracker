@@ -61,10 +61,17 @@ class TaskManager:
         # Find reference with dictionary
         return self.tasks_dict[task.lower()]
 
-
     # edit task
-    def edit_task(self, task):
+    def edit_task(self, t_name):
         """ Edit task """
+
+        # check it exists 
+        try:
+            target_task = self.lookup(t_name)
+        except KeyError:
+            print("\nTask was not found.")
+            return 
+
         # See what they want to edit
         options = ("\nOptions:\n" \
         "a - Name\n" \
@@ -77,20 +84,12 @@ class TaskManager:
         
         user_input = input("What would you like to edit: ").lower().strip()
 
-        target_task = None
         while user_input != 'q':
             # Check if its a valid input
             valid_inputs = {'a', 'b', 'c'}
             if user_input not in valid_inputs:
                 print("Invalid input")
-                return False
-
-            # check it exists, if not notify user
-            if not target_task:
-                target_task = self.lookup(self.tasks_list, task)
-                if not target_task:
-                    print("\nTask was not found.")
-                    return False
+                return 
         
             # if it does exist, ask user what to edit
             if user_input == "a":
@@ -107,9 +106,7 @@ class TaskManager:
                 print(options)
                 user_input = input("What would you like to edit: ").lower().strip()
             else:
-                return True 
-
-        return True
+                return 
     
     # print tasks
     def show_tasks(self):
@@ -139,21 +136,21 @@ class TaskManager:
                 print(f"   Due: {task.due_date}")
 
     # delete task
-    def delete_task(self, task):
+    def delete_task(self, t_name):
         """ Delete task """
 
         # check it exists and save dict
-        target_task = self.lookup(task)
-
-        if not target_task:
-            return False
+        try:
+            target_task = self.lookup(t_name)
+        except KeyError:
+            print("\nTask was not found.")
+            return 
         
-        # Remove from list
-        self.tasks_list.remove(target_task)   
-        # Remove reference
-        del target_task
+        # Remove from list and map
+        self.tasks_list.remove(target_task)  
+        del self.tasks_dict[t_name.lower()]
 
-        return True 
+        print(f"\nTask '{t_name}' was successfully deleted.")
 
     def save_data(self):
         """ Saves data in file """
