@@ -30,15 +30,6 @@ def is_valid_date(date_):
         return False
     
     return date_obj
-    
-    
-
-# d = ''
-# while d != 'q':
-#     d = input("date: ")
-#     is_valid_date(d)
-    
-
 
 # get due date
 def get_user_due_date():
@@ -56,5 +47,26 @@ def get_user_due_date():
     
     return valid_date
 
+def tasks_due_on(tasks, due_on):
+    today = date.today()
+    due = []
 
+    # Look through tasks date
+    for task in tasks:
+        # Skip if due date is not provided
+        if not task.due_date:
+            continue
+
+        if due_on == 'today' and task.due_date == today:
+            due.append(task)
+        elif due_on == 'overdue' and task.due_date < today:
+            due.append(task)
+        elif due_on == 'future' and task.due_date > today:
+            due.append(task)
+
+    return due
+
+        
+
+# tasks_due_today()
 

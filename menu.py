@@ -51,34 +51,30 @@ while True:
 
         view = input("How would you like your tasks listed: ").lower().strip()
         if view == 'a':
-            tm.show_tasks()
+            tm.show_all_tasks()
         elif view == 'o':
             to_show = input("\nPlease enter the name of the task you would like to" \
             " see: ")
             tm.show_task(to_show)
-        # elif view == 'd':
-        #     print(f"Options:\n"
-        #     "a - Due today\n"
-        #     "o - Overdue\n"
-        #     "f - Future due\n\n"
-        #     "q - Return \n"
-        #     )
+        elif view == 'd':
+            print(f"Options:\n"
+            "t - Due today\n"
+            "o - Overdue\n"
+            "f - Future due\n\n"
+            "q - Return \n"
+            )
 
-        #     due = input("What tasks would you like to see: ").lower().strip()
-        #     if due == 'a':
-        #         tm.show_tasks()
-        #     # elif due == 'o':
-        #     #     to_show = input("\nPlease enter the name of the task you would like to" \
-        #     #     " see: ")
-        #     #     tm.show_task(to_show)
-        #     # elif due == 'f':
-        #     #     to_show = input("\nPlease enter the name of the task you would like to" \
-        #     #     " see: ")
-        #     #     tm.show_task(to_show)
-        #     elif due == 'q':
-        #         pass
-        #     else:
-        #         print("Invalid input")
+            due = input("What tasks would you like to see: ").lower().strip()
+            if due == 't':
+                tm.show_tasks_on_date('today')
+            elif due == 'o':
+                tm.show_tasks_on_date('overdue')
+            elif due == 'f':
+                tm.show_tasks_on_date('future')
+            elif due == 'q':
+                pass
+            else:
+                print("Invalid input")
 
 
             

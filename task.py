@@ -18,7 +18,8 @@ class Task:
     def get_dict(self):
         """ Prepare dict to save into file """
         # Save date in ISO 8601 format so json can stringify it
-        self.due_date = self.due_date.isoformat()
+        if self.due_date:
+            self.due_date = self.due_date.isoformat()
         return self.__dict__
     
     # edit name

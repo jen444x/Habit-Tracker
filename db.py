@@ -34,8 +34,6 @@ def store_tasks(tasks):
     # Get list of dicts
     tasks_dict = list(map(Task.get_dict, tasks))
 
-    print(tasks_dict)
-
     # turn into json
     tasks_json = json.dumps(tasks_dict, indent=4)
 

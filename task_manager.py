@@ -1,6 +1,6 @@
 from task import Task
 from db import get_tasks, store_tasks
-from date import get_user_due_date
+from date import get_user_due_date, tasks_due_on
 
 class TaskManager:
     """ Models task manager """
@@ -140,11 +140,11 @@ class TaskManager:
         if task.due_date:
             print(f"Due date: {task.due_date}")
     
-    def show_tasks(self):
+    def show_tasks(self, tasks):
         """ Show all tasks """
 
         print("\nCurrent tasks:")
-        for i, task in enumerate(self.tasks_list):
+        for i, task in enumerate(tasks):
             # print name
             print(f"{i+1}. {task.name}", end="")
             
@@ -166,9 +166,24 @@ class TaskManager:
             if task.due_date:
                 print(f"   Due: {task.due_date}")
 
-    # def show_some_tasks(self, date):
-    #     """ Show tasks based on dat """
-    #     pass
+    def show_all_tasks(self):
+        """ Shows all tasks """
+
+        self.show_tasks(self.tasks_list)
+
+    def show_tasks_on_date(self, date):
+        """ Show tasks based on date """
+
+        if date == 'today':
+            tasks = tasks_due_on(self.tasks_list, date)
+        elif date == 'overdue':
+            tasks = tasks_due_on(self.tasks_list, date)
+        elif date == 'future':
+            tasks = tasks_due_on(self.tasks_list, date)
+
+        # Print tasks
+        self.show_tasks(tasks)
+
 
     def delete_task(self, t_name):
         """ Delete task """
