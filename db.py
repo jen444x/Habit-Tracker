@@ -3,10 +3,9 @@ import json
 from task import Task
 
 # Download tasks from file
-def get_tasks(lst, dict):
+def get_tasks(lst, dict, filename):
     """ Add stored tasks to list """
 
-    filename = 'user_tasks.json'
     try:
         with open(filename, 'r') as f:
             # Read file
@@ -16,8 +15,12 @@ def get_tasks(lst, dict):
         return
 
     # Turn into py object
-    tasks = json.loads(contents)
-        
+    try:
+        tasks = json.loads(contents)
+    except json.decoder.JSONDecodeError:
+        # No data or similar issue. We wont load date in this case
+        return
+
     for task in tasks:
         # Create new class instances
         task_instance = Task(**task)
@@ -40,3 +43,5 @@ def store_tasks(tasks):
     with open('user_tasks.json', 'w') as f:
         # write to file
         f.write(tasks_json)
+
+get_tasks([], {}, 'test_file.json')

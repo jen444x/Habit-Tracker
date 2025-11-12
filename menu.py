@@ -1,12 +1,12 @@
 from task_manager import TaskManager
-
+from date import get_user_due_date, tasks_due_on
 # Intro
 linesplit = "--------------------------------"
 intro = "Welcome to your task manager"
 print(f"\n{linesplit}\n{intro.upper()}\n{linesplit}")
 
 # Initialize task manager
-tm = TaskManager()
+tm = TaskManager('user_tasks.json')
 dict = tm.tasks_dict
 
 # Loop until user exits
@@ -21,14 +21,37 @@ while True:
     user_input = input("Choice: ").lower().strip()
     
     if user_input == "a":   
-        new_task = input("\nPlease enter new task: ")
+        name = input("\nPlease enter new task: ")
 
-        added = tm.add_task(new_task)
+        description = ""
+        due_date = ""
 
-        if added:
-            print(f"\nTask '{new_task}' has been successfully added.")
+        # Option to add aditional information
+        print("\nOptional information:\n" \
+        "a - Description\n" \
+        "b - Due date\n" \
+        "c - Description and due date\n" \
+        "d - None\n")
+
+        user_input = input("\nWhat information would you like to include: ").lower().strip()
+        print()
+
+        if user_input == 'a':
+            description = input("Please enter description: ")
+        elif user_input == 'b':
+            due_date = get_user_due_date()
+        elif user_input == 'c':
+            description = input("Please enter description: ")
+            due_date = get_user_due_date()
+        elif user_input == 'd':
+            pass
         else:
-            print(f"\nTask '{new_task}' was not successfully added.")
+            print("\nInvalid input.")
+            print(f"Task '{name}' was not successfully added.")
+            continue
+
+        tm.add_task(name, description, due_date)
+        print(f"\nTask '{name}' has been successfully added.")
 
     elif user_input == "e":
         to_edit = input("\nPlease enter the name of the task you would like to" \

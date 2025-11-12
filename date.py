@@ -19,15 +19,22 @@ def is_valid_date(date_):
             if not c.isdigit():
                 return False
             
+    return True
+
+
+def get_date_obj(date_str):
+    """Turn date str into obj"""
+
+    date_list = date_str.split('/')
+
     # turn each field into an int
     month, day, year = map(int, date_list)
-
-    # Check if values are in range
+    
     try:
         # create date object
         date_obj = date(year, month, day)
     except:
-        return False
+        return None
     
     return date_obj
 
@@ -37,15 +44,15 @@ def get_user_due_date():
 
     due_date = input("Please enter due date (MM/DD/YYYY): ")
 
-    valid_date = is_valid_date(due_date)
+    is_valid = is_valid_date(due_date)
 
-    while not valid_date:
+    while not is_valid:
         due_date = input("Due date was invalid. " \
         "Make sure to use the following format MM/DD/YY: ")
 
-        valid_date = is_valid_date(due_date)
-    
-    return valid_date
+        is_valid = is_valid_date(due_date)
+
+    return due_date
 
 def tasks_due_on(tasks, due_on):
     today = date.today()

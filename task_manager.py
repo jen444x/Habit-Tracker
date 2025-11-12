@@ -1,11 +1,11 @@
 from task import Task
 from db import get_tasks, store_tasks
-from date import get_user_due_date, tasks_due_on
+from date import tasks_due_on, get_date_obj
 
 class TaskManager:
     """ Models task manager """
 
-    def __init__(self):
+    def __init__(self, tasks_file):
         """ Initializes list and adds stored tasks """
 
         # List to hold order
@@ -14,45 +14,28 @@ class TaskManager:
         self.tasks_dict = {}
 
         # Add stored tasks in list and dict, if any
-        get_tasks(self.tasks_list, self.tasks_dict)
+        get_tasks(self.tasks_list, self.tasks_dict, tasks_file)
 
-    def add_task(self, task):
+    def add_task(self, name, description="", due_date=""):
         """ Create new task instance """
+        # Turn date into date obj if it's a str
+        if due_date and type(due_date) == str:
+            # Turn into date object
+            due_date = get_date_obj(due_date)
 
-        description = ""
-        due_date = ""
-
-        # Option to add aditional information
-        print("\nOptional information:\n" \
-        "a - Description\n" \
-        "b - Due date\n" \
-        "c - Description and due date\n" \
-        "d - None\n")
-
-        user_input = input("\nWhat information would you like to include: ").lower().strip()
-        print()
-
-        if user_input == 'a':
-            description = input("Please enter description: ")
-        elif user_input == 'b':
-            due_date = get_user_due_date()
-        elif user_input == 'c':
-            description = input("Please enter description: ")
-            due_date = get_user_due_date()
-        elif user_input == 'd':
-            pass
-        else:
-            print("\nInvalid input.", end="")
-            return False
-        
         # Create a new task object
-        new_task = Task(task, description, due_date)
+        new_task = Task(name, description, due_date)
 
         # Add object to list and dict
         self.tasks_list.append(new_task)
-        self.tasks_dict[(task).lower().strip()] = new_task
+        self.tasks_dict[name.lower().strip()] = new_task
 
-        return True
+    def get_all_task_dicts(self):
+        dict_list = []
+        for task in self.tasks_list:
+            dict_list.append(task.get_dict())
+
+        return dict_list
     
     # Find task
     def lookup(self, task):
