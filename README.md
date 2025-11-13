@@ -6,7 +6,7 @@ A command-line task manager built to practice Python fundamentals. Supports crea
 
 This is **v1** of my progressive Python learning series. Each version builds on the previous one with increased complexity:
 
-- **v2:** [Habit Tracker with Data Visualization](link-to-habit-tracker-repo) *(coming soon)*
+- **v2:** *(coming soon)*
 
 ## Features
 
