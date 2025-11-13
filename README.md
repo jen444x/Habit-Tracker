@@ -1,18 +1,49 @@
 # Task Manager
 
-A Python project to practice progressive development and learn new concepts
+A command-line task manager built to practice Python fundamentals. Supports creating, editing, completing, and organizing tasks with optional descriptions and due dates.
 
-## Learning Goals
+## Project Evolution
 
-This project will evolve through several stages:
+This is **v1** of my progressive Python learning series. Each version builds on the previous one with increased complexity:
 
-1. **Basic CLI** - Simple task manager in a single file
-2. **Functions & Classes** - Refactor into organized, reusable code
-3. **JSON Storage** - Persist tasks to a file
-4. **API Integration** - Connect to external services
-5. **Database** - Replace JSON with proper database storage
-6. **AI Features** - Add intelligent task suggestions/automation
+- **v2:** [Habit Tracker with Data Visualization](link-to-habit-tracker-repo) *(coming soon)*
 
-## Current Stage
+## Features
 
-Stage 1: Building the basic CLI version
+- **Add tasks** with optional descriptions and due dates
+- **Edit tasks** - modify name, description, or due date
+- **Mark tasks as complete**
+- **Delete tasks**
+- **View tasks** - see all tasks, individual tasks, or filter by date (today/overdue/future)
+- **Persistent storage** - tasks are saved to JSON file between sessions
+
+## What I Learned
+
+This project helped me practice:
+- Python classes and object-oriented programming
+- File I/O with JSON
+- Data structures (lists and dictionaries for efficient lookup)
+- Date/time handling with `datetime`
+- User input validation
+- Error handling 
+- Unit testing with pytest
+
+## Project Structure
+
+```
+task-manager/
+├── main.py              # Main program loop and user interface
+├── task_manager.py      # TaskManager class - manages all tasks
+├── task.py              # Task class - individual task model
+├── db.py                # Database functions (JSON read/write)
+├── date.py              # Date validation and utilities
+├── test_task.py         # Unit tests for Task class
+├── test_task_manager.py # Unit tests for TaskManager class
+└── user_tasks.json      # Stored tasks (auto-generated)
+```
+
+## Design Decisions
+
+- **Dual storage with list + dictionary:** List maintains task order while dictionary enables O(1) lookup by task name
+- **Date objects vs strings:** Dates are stored as datetime objects internally for comparison, converted to ISO format for JSON serialization
+- **Separate concerns:** Split into multiple files (Task model, TaskManager logic, database operations, date utilities) for better organization
