@@ -6,7 +6,7 @@ A command-line habit tracker that helps you build and maintain habits by trackin
 
 This is **v2** of my progressive Python learning series, building on concepts from previous projects:
 
-- **v1:** [Task Manager]([link-to-task-manager-repo](https://github.com/jen444x/task-manager)) - Python fundamentals and basic CRUD operations
+- **v1:** [Task Manager](https://github.com/jen444x/task-manager) - Python fundamentals and basic CRUD operations
 - **v3:** Mood & Habit Correlations _(planned)_ - Will add mood tracking to analyze how habits affect wellbeing
 
 ## 🎯 Design Goals
