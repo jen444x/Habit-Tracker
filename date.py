@@ -30,11 +30,10 @@ def get_date_obj(date_str):
     # turn each field into an int
     month, day, year = map(int, date_list)
     
-    try:
-        # create date object
-        date_obj = date(year, month, day)
-    except:
-        return None
+    
+    # create date object
+    date_obj = date(year, month, day)
+   
     
     return date_obj
 
@@ -53,25 +52,6 @@ def get_user_due_date():
         is_valid = is_valid_date(due_date)
 
     return due_date
-
-def tasks_due_on(tasks, due_on):
-    today = date.today()
-    due = []
-
-    # Look through tasks date
-    for task in tasks:
-        # Skip if due date is not provided
-        if not task.due_date:
-            continue
-
-        if due_on == 'today' and task.due_date == today:
-            due.append(task)
-        elif due_on == 'overdue' and task.due_date < today:
-            due.append(task)
-        elif due_on == 'future' and task.due_date > today:
-            due.append(task)
-
-    return due
 
         
 

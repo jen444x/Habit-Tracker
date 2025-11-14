@@ -1,66 +1,45 @@
+from datetime import date
 from datetime import datetime
+from task import Task
 
-class Habit:
-    """ Models a single habit"""
+class Habit(Task):
+    """Models a habit that will be repeated. Inherits form class task"""
+    
+    def __init__(self, name, description="", due_date="", completed = False, **kwargs):
+        """Initialize attributes of the parent class"""
+        super().__init__(name, description, due_date, completed)
 
-    def __init__(self, name, completed = False, description="", due_date=""):
-        self.name = name
-        self.completed = completed
-        self.description = description
-        # Make sure it's a datetime object
-        if due_date and type(due_date) == str:
+        if kwargs:
+            self.created_at = kwargs['created_at']
+            self.days_completed = kwargs['days_completed']
+
             # Turn into date object
-            due_date = datetime.fromisoformat(due_date).date()
-        self.due_date = due_date
-        # Will keep track of how many days this habit has been up
-        self.created_at = datetime.date.today()
-        self.days_completed = []
-        # This would be days it wasnt completed
-        # self.days_incompleted = []
-
-    def complete_habit(self):
-        """ Mark habit as completed """
-        self.completed = True
-
+            self.created_at = datetime.fromisoformat(self.created_at).date()
+        else:   
+            self.created_at = date.today()
+            self.days_completed = []
+    
+    def done_today(self):
+        """ Checks if habit has been completed today"""
+        if self.days_completed:
+            last_date = self.days_completed[-1]
+            last_date = datetime.fromisoformat(last_date).date()
+            if last_date == date.today():
+                return True
+        return False
 
     def get_dict(self):
         """ Prepare dict to save into file """
         # Save date in ISO 8601 format so json can stringify it
         if self.due_date:
             self.due_date = self.due_date.isoformat()
+        if self.created_at:
+            self.created_at = self.created_at.isoformat()
         return self.__dict__
-    
-    # edit name
-    def edit_name(self, new_habit_name):
-        """Edit habit name"""
-        old_name = self.name
-     
-        # Edit name attribute
-        self.name = new_habit_name
 
-        # notify user
-        print(f"\nHabit name was changed from '{old_name}' to '{new_habit_name}'.")  
+    def complete(self):
+        """ Mark habit as completed """
+        today = date.today()
+        if today not in self.days_completed:
+            self.days_completed.append(today)
 
-    # edit description
-    def edit_description(self, new_desc):
-        """Edit habit description"""
-
-        old_description = self.description
-    
-        # Edit data
-        self.description = new_desc 
-
-        # notify user
-        print(f"\nHabit description was changed from '{old_description}' to '{new_desc}'.")  
-
-    
-    def edit_due_date(self, new_due_date):
-        """Edit habit due_date"""
-
-        old_due_date = self.due_date
-        
-        # Edit data
-        self.due_date = new_due_date 
-
-        # notify user
-        print(f"\nHabit due date was changed from '{old_due_date}' to '{new_due_date}'.")

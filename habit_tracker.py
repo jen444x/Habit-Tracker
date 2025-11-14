@@ -1,8 +1,9 @@
+from datetime import datetime
 from habit import Habit
 from db import get_habits, store_habits
 from date import habits_due_on, get_date_obj
 
-class HabitManager:
+class HabitsTracker:
     """ Models habit tracker """
 
     def __init__(self, habits_file):
@@ -37,6 +38,19 @@ class HabitManager:
 
         return dict_list
     
+    def due_today(self):
+        """ Returns habits that are due today """
+        habits_due_today = []
+        for habit in self.habits_list:
+            if not habit.done_today():
+                habits_due_today.append(habit)
+            
+        return habits_due_today
+                
+
+
+
+    
     # Find habit
     def lookup(self, habit):
         """ Find Habit """
@@ -57,11 +71,11 @@ class HabitManager:
         del self.habits_dict[original_name]
 
     def edit_habit_description(self, target_habit, new_habit_desc):
-        """ Update habit description"""
+        """ Update habit name"""
         target_habit.edit_description(new_habit_desc)
 
     def edit_habit_due_date(self, target_habit, new_habit_date):
-        """ Update habit due date"""
+        """ Update habit name"""
         # Turn date into date obj if it's a str
         if type(new_habit_date) == str:
             # Turn into date object
@@ -86,14 +100,16 @@ class HabitManager:
         else:
             print("Incomplete")
 
+    def sort_by_due_date(self, habits):
+        pass
+
     
     def show_habits(self, habits):
         """ Show all habits """
 
-        print("\nCurrent habits:")
         for i, habit in enumerate(habits):
             # print name
-            print(f"{i+1}. {habit.name}", end="")
+            print(f"\t{i+1}. {habit.name}", end="")
             
             # print description if any
             if habit.description:
@@ -111,25 +127,12 @@ class HabitManager:
                     continue
 
             if habit.due_date:
-                print(f"   Due: {habit.due_date}")
+                print(f"\t   Due: {habit.due_date}")
 
     def show_all_habits(self):
         """ Shows all habits """
 
         self.show_habits(self.habits_list)
-
-    def show_habits_on_date(self, date):
-        """ Show habits based on date """
-
-        if date == 'today':
-            habits = habits_due_on(self.habits_list, date)
-        elif date == 'overdue':
-            habits = habits_due_on(self.habits_list, date)
-        elif date == 'future':
-            habits = habits_due_on(self.habits_list, date)
-
-        # Print habits
-        self.show_habits(habits)
 
 
     def delete_habit(self, h_name):
@@ -155,3 +158,7 @@ class HabitManager:
     def complete_habit(self, habit):
         """ Mark habit as completed """
         habit.complete_habit()
+
+    def uncomplete_habit(self, habit):
+        """ Mark habit as completed """
+        habit.uncomplete_habit()
