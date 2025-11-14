@@ -1,0 +1,157 @@
+from habit import Habit
+from db import get_habits, store_habits
+from date import habits_due_on, get_date_obj
+
+class HabitManager:
+    """ Models habit tracker """
+
+    def __init__(self, habits_file):
+        """ Initializes list and adds stored habits """
+
+        # List to hold order
+        self.habits_list = []
+        # Dictionary for fast lookup
+        self.habits_dict = {}
+
+        # Add stored habits in list and dict, if any
+        get_habits(self.habits_list, self.habits_dict, habits_file)
+
+    def add_habit(self, name, description="", due_date=""):
+        """ Create new habit instance """
+        # Turn date into date obj if it's a str
+        if due_date and type(due_date) == str:
+            # Turn into date object
+            due_date = get_date_obj(due_date)
+
+        # Create a new habit object
+        new_habit = Habit(name, description, due_date)
+
+        # Add object to list and dict
+        self.habits_list.append(new_habit)
+        self.habits_dict[name.lower().strip()] = new_habit
+
+    def get_all_habit_dicts(self):
+        dict_list = []
+        for habit in self.habits_list:
+            dict_list.append(habit.get_dict())
+
+        return dict_list
+    
+    # Find habit
+    def lookup(self, habit):
+        """ Find Habit """
+
+        # Find reference with dictionary
+        return self.habits_dict[habit.lower().strip()]
+
+    def edit_habit_name(self, target_habit, new_habit_name):
+        """ Update habit name"""
+        original_name = target_habit.name
+
+        target_habit.edit_name(new_habit_name)
+
+        # Create new key val pair with updated name
+        self.habits_dict[new_habit_name] = target_habit
+
+        # delete old one
+        del self.habits_dict[original_name]
+
+    def edit_habit_description(self, target_habit, new_habit_desc):
+        """ Update habit description"""
+        target_habit.edit_description(new_habit_desc)
+
+    def edit_habit_due_date(self, target_habit, new_habit_date):
+        """ Update habit due date"""
+        # Turn date into date obj if it's a str
+        if type(new_habit_date) == str:
+            # Turn into date object
+            new_habit_date = get_date_obj(new_habit_date)
+
+        target_habit.edit_due_date(new_habit_date)
+        
+    def show_habit(self, habit):
+        """ Show one habit """
+        # Print name
+        print(f"\nName: {habit.name}")
+        # Description
+        if habit.description:
+            print(f"Description: {habit.description}")
+        # Due date
+        if habit.due_date:
+            print(f"Due date: {habit.due_date}")
+        # Complete status
+        print(f"Status: ", end="")
+        if habit.completed:
+            print("Complete")
+        else:
+            print("Incomplete")
+
+    
+    def show_habits(self, habits):
+        """ Show all habits """
+
+        print("\nCurrent habits:")
+        for i, habit in enumerate(habits):
+            # print name
+            print(f"{i+1}. {habit.name}", end="")
+            
+            # print description if any
+            if habit.description:
+                print(f" - {habit.description}")
+            # if no description was added
+            else:
+                # if due date was added 
+                if habit.due_date:
+                    # new line to format 
+                    print()
+                # if due date was not added
+                else:
+                    # we dont need to check the rest
+                    print()
+                    continue
+
+            if habit.due_date:
+                print(f"   Due: {habit.due_date}")
+
+    def show_all_habits(self):
+        """ Shows all habits """
+
+        self.show_habits(self.habits_list)
+
+    def show_habits_on_date(self, date):
+        """ Show habits based on date """
+
+        if date == 'today':
+            habits = habits_due_on(self.habits_list, date)
+        elif date == 'overdue':
+            habits = habits_due_on(self.habits_list, date)
+        elif date == 'future':
+            habits = habits_due_on(self.habits_list, date)
+
+        # Print habits
+        self.show_habits(habits)
+
+
+    def delete_habit(self, h_name):
+        """ Delete habit """
+
+        # check it exists and save dict
+        try:
+            target_habit = self.lookup(h_name)
+        except KeyError:
+            print("\nHabit was not found.")
+            return 
+        
+        # Remove from list and map
+        self.habits_list.remove(target_habit)  
+        del self.habits_dict[h_name.lower().strip()]
+
+        print(f"\nHabit '{h_name}' was successfully deleted.")
+
+    def save_data(self):
+        """ Saves data in file """
+        store_habits(self.habits_list)
+
+    def complete_habit(self, habit):
+        """ Mark habit as completed """
+        habit.complete_habit()

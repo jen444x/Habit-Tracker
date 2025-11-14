@@ -1,7 +1,7 @@
 from datetime import datetime
 
-class Task:
-    """ Models a single task"""
+class Habit:
+    """ Models a single habit"""
 
     def __init__(self, name, completed = False, description="", due_date=""):
         self.name = name
@@ -12,9 +12,14 @@ class Task:
             # Turn into date object
             due_date = datetime.fromisoformat(due_date).date()
         self.due_date = due_date
+        # Will keep track of how many days this habit has been up
+        self.created_at = datetime.date.today()
+        self.days_completed = []
+        # This would be days it wasnt completed
+        # self.days_incompleted = []
 
-    def complete_task(self):
-        """ Mark task as completed """
+    def complete_habit(self):
+        """ Mark habit as completed """
         self.completed = True
 
 
@@ -26,19 +31,19 @@ class Task:
         return self.__dict__
     
     # edit name
-    def edit_name(self, new_task_name):
-        """Edit task name"""
+    def edit_name(self, new_habit_name):
+        """Edit habit name"""
         old_name = self.name
      
         # Edit name attribute
-        self.name = new_task_name
+        self.name = new_habit_name
 
         # notify user
-        print(f"\nTask name was changed from '{old_name}' to '{new_task_name}'.")  
+        print(f"\nHabit name was changed from '{old_name}' to '{new_habit_name}'.")  
 
     # edit description
     def edit_description(self, new_desc):
-        """Edit task description"""
+        """Edit habit description"""
 
         old_description = self.description
     
@@ -46,11 +51,11 @@ class Task:
         self.description = new_desc 
 
         # notify user
-        print(f"\nTask description was changed from '{old_description}' to '{new_desc}'.")  
+        print(f"\nHabit description was changed from '{old_description}' to '{new_desc}'.")  
 
     
     def edit_due_date(self, new_due_date):
-        """Edit task due_date"""
+        """Edit habit due_date"""
 
         old_due_date = self.due_date
         
@@ -58,5 +63,4 @@ class Task:
         self.due_date = new_due_date 
 
         # notify user
-        print(f"\nTask due date was changed from '{old_due_date}' to '{new_due_date}'.")  
-
+        print(f"\nHabit due date was changed from '{old_due_date}' to '{new_due_date}'.")
