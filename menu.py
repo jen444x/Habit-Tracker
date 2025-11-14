@@ -142,7 +142,7 @@ while True:
         "\ta - Show all habits\n"
         "\ts - Show single habit\n"
         "\tt - Show habits due today\n"
-        "\td - Show overdue habits\n\n"
+        "\to - Show overdue habits\n\n"
         "\tq - Return \n"
         )
 
@@ -162,9 +162,9 @@ while True:
             
             habits.show_habit(target_habit)
         elif view == 't':
-            habits.show_habits(habits_due_today)
-        # elif view == 'o':
-            # habits.show_habits_on_date('overdue')
+            habits.show_habits(habits.due_today(), "You don't have any more habits to do today")
+        elif view == 'o':
+            habits.show_habits(habits.overdue(), "Congrats, you have no overdue tasks!")
         elif view == 'q':
             pass
         else:

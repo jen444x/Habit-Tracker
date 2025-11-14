@@ -19,14 +19,11 @@ class Habit(Task):
             self.created_at = date.today()
             self.days_completed = []
     
-    def done_today(self):
-        """ Checks if habit has been completed today"""
+    def last_done(self):
+        """ Returns the date the habit was last completed """
         if self.days_completed:
-            last_date = self.days_completed[-1]
-            last_date = datetime.fromisoformat(last_date).date()
-            if last_date == date.today():
-                return True
-        return False
+            return self.days_completed[-1]
+        return None
 
     def get_dict(self):
         """ Prepare dict to save into file """

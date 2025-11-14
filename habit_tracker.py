@@ -1,7 +1,7 @@
 from datetime import datetime
 from habit import Habit
 from db import get_habits, store_habits
-from date import habits_due_on, get_date_obj
+from date import get_date_obj
 
 class HabitsTracker:
     """ Models habit tracker """
@@ -38,19 +38,39 @@ class HabitsTracker:
 
         return dict_list
     
-    def due_today(self):
+    def due_today(self, if_empty_str):
         """ Returns habits that are due today """
         habits_due_today = []
         for habit in self.habits_list:
-            if not habit.done_today():
-                habits_due_today.append(habit)
+            if habit.last_done():
+                last_date = datetime.fromisoformat(last_date).date()
+                if last_date == datetime.date.today():
+                    continue
+            # if it hasnt been done at all or the last date is not today
+            habits_due_today.append(habit)
+
+        if not habits_due_today:
+            print(if_empty_str)
             
         return habits_due_today
-                
-
-
-
     
+    def overdue(self, if_empty_str):
+        """ Returns overdue habits """
+        habits_overdue = []
+        for habit in self.habits_list:
+            if habit.last_done():
+                last_date = datetime.fromisoformat(last_date).date()
+                print(f"last_date: {last_date}")
+                print(f"datetime.date.today(): {datetime.date.today()}")
+                # Hasn't been done in 1 or more days
+                if last_date < datetime.date.today():
+                    habits_overdue.append(habit)
+
+        if not habits_overdue:
+            print(if_empty_str)
+            
+        return habits_overdue
+
     # Find habit
     def lookup(self, habit):
         """ Find Habit """
