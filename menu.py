@@ -1,5 +1,5 @@
 from habit_tracker import HabitsTracker
-from date import get_user_due_date, get_date_obj
+from date import get_user_due_date
 # Intro
 linesplit = "--------------------------------"
 intro = "Welcome to your habit tracker"
@@ -7,7 +7,7 @@ print(f"\n{linesplit}\n{intro.upper()}\n{linesplit}")
 
 # Initialize habit tracker
 habits = HabitsTracker('user_habits.json')
-dict = habits.habits_dict
+finished_habits = HabitsTracker('user_finished_habits.json')
 
 # Show habits due today
 habits_due_today = habits.due_today()
@@ -132,15 +132,24 @@ while True:
             
 
     elif user_input == "d":
-        to_delete = input("\nPlease enter the name of the habit you would like to" \
+        h_name = input("\nPlease enter the name of the habit you would like to" \
         " delete: ")
-        habits.delete_habit(to_delete)
+
+        # check it exists 
+        try:
+            target_habit = habits.lookup(h_name)
+        except KeyError:
+            print("\nHabit was not found.")
+            continue
+
+        habits.delete_habit(target_habit)
+        print(f"\nHabit '{h_name}' was successfully deleted.")
 
     elif user_input == "s":
         # Ask user how to list habits
         print(f"\nOptions:\n"
         "\ta - Show all habits\n"
-        "\ts - Show single habit\n"
+        "\ts - Show single habit stats\n"
         "\tt - Show habits due today\n"
         "\to - Show overdue habits\n\n"
         "\tq - Return \n"
@@ -171,8 +180,13 @@ while True:
             print("Invalid input")
 
     elif user_input == "q":
+        # Store habits with past due dates seperately
+        habits.move_finished_habits(finished_habits)   
+         
         # Store habits when program ends
-        habits.save_data()
+        habits.save_data('user_habits.json')
+        finished_habits.save_data('user_finished_habits.json')
+        
         break
         
     else:

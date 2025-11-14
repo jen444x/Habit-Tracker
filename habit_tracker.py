@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 from habit import Habit
 from db import get_habits, store_habits
 from date import get_date_obj
@@ -13,9 +13,28 @@ class HabitsTracker:
         self.habits_list = []
         # Dictionary for fast lookup
         self.habits_dict = {}
-
+        
         # Add stored habits in list and dict, if any
         get_habits(self.habits_list, self.habits_dict, habits_file)
+
+  
+    def move_finished_habits(self, finished_class):
+        """ Store habits whose due dates have passed in seperate class """
+
+        today = date.today()
+
+        for habit in self.habits_list:
+            print(habit.due_date)
+            if not habit.due_date:
+                continue
+            
+            if habit.due_date < today:
+                # Add to other class
+                finished_class.habits_list.append(habit)
+                finished_class.habits_dict[habit.name.lower().strip()] = habit
+
+                # Remove from this habit tracker
+                self.delete_habit(habit)
 
     def add_habit(self, name, description="", due_date=""):
         """ Create new habit instance """
@@ -38,18 +57,18 @@ class HabitsTracker:
 
         return dict_list
     
-    def due_today(self, if_empty_str):
+    def due_today(self, if_empty_str=""):
         """ Returns habits that are due today """
         habits_due_today = []
         for habit in self.habits_list:
             if habit.last_done():
-                last_date = datetime.fromisoformat(last_date).date()
-                if last_date == datetime.date.today():
+                last_date = date.fromisoformat(last_date).date()
+                if last_date == date.today():
                     continue
             # if it hasnt been done at all or the last date is not today
             habits_due_today.append(habit)
 
-        if not habits_due_today:
+        if not habits_due_today and if_empty_str:
             print(if_empty_str)
             
         return habits_due_today
@@ -59,14 +78,14 @@ class HabitsTracker:
         habits_overdue = []
         for habit in self.habits_list:
             if habit.last_done():
-                last_date = datetime.fromisoformat(last_date).date()
+                last_date = date.fromisoformat(last_date).date()
                 print(f"last_date: {last_date}")
-                print(f"datetime.date.today(): {datetime.date.today()}")
+                print(f"date.today(): {date.today()}")
                 # Hasn't been done in 1 or more days
-                if last_date < datetime.date.today():
+                if last_date < date.today():
                     habits_overdue.append(habit)
 
-        if not habits_overdue:
+        if not habits_overdue and if_empty_str:
             print(if_empty_str)
             
         return habits_overdue
@@ -155,25 +174,16 @@ class HabitsTracker:
         self.show_habits(self.habits_list)
 
 
-    def delete_habit(self, h_name):
+    def delete_habit(self, habit):
         """ Delete habit """
-
-        # check it exists and save dict
-        try:
-            target_habit = self.lookup(h_name)
-        except KeyError:
-            print("\nHabit was not found.")
-            return 
-        
         # Remove from list and map
-        self.habits_list.remove(target_habit)  
-        del self.habits_dict[h_name.lower().strip()]
+        name = habit.name
+        self.habits_list.remove(habit)  
+        del self.habits_dict[name.lower().strip()]
 
-        print(f"\nHabit '{h_name}' was successfully deleted.")
-
-    def save_data(self):
+    def save_data(self, file):
         """ Saves data in file """
-        store_habits(self.habits_list)
+        store_habits(self.habits_list, file)
 
     def complete_habit(self, habit):
         """ Mark habit as completed """

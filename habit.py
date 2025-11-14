@@ -18,7 +18,7 @@ class Habit(Task):
         else:   
             self.created_at = date.today()
             self.days_completed = []
-    
+
     def last_done(self):
         """ Returns the date the habit was last completed """
         if self.days_completed:

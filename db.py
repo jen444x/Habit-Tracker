@@ -15,23 +15,19 @@ def get_habits(lst, dict, filename):
         return
 
     # Turn into py object
-    try:
-        habits = json.loads(contents)
-    except json.decoder.JSONDecodeError:
-        # No data or similar issue. We wont load data in this case
-        return
+    habits = json.loads(contents)
 
     for habit in habits:
-        # Create new class instances
-        habit_instance = Habit(**habit)
-        
-        # Add to list
-        lst.append(habit_instance)
-        # Add to dict
-        dict[(habit_instance.name).lower().strip()] = habit_instance
+            # Create new class instances
+            habit_instance = Habit(**habit)
+            
+            # Add to list
+            lst.append(habit_instance)
+            # Add to dict
+            dict[(habit_instance.name).lower().strip()] = habit_instance
 
 # Upload habits to file
-def store_habits(habits):
+def store_habits(habits, file):
     """ Save habits to file """
 
     # Get list of dicts
@@ -40,6 +36,6 @@ def store_habits(habits):
     # turn into json
     habits_json = json.dumps(habits_dict, indent=4)
 
-    with open('user_habits.json', 'w') as f:
+    with open(file, 'w') as f:
         # write to file
         f.write(habits_json)
