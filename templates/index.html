@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!-- html is root element -->
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Habit Tracker</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/style.css') }}"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Delius&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <h1>Habit Tracker</h1>
+    <h2>Manage Habits</h2>
+    <ul>
+      <li>Create new habit</li>
+      <li>Edit a habit</li>
+      <li>Delete a habit</li>
+    </ul>
+
+    <!-- Use async here so it the following line doesn't have to wait -->
+    <script async src="{{ url_for('static', filename = 'main.js') }}"></script>
+
+    <form method="POST" action="/">
+      <label>Enter new habit: </label>
+      <input type="text" name="newhabit" />
+      <input type="submit" value="AddTask" />
+    </form>
+  </body>
+</html>
