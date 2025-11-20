@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 
 class Task:
     """ Models a single task"""
@@ -7,9 +7,9 @@ class Task:
         self.name = name
         self.description = description
         # Make sure it's a datetime object
-        if due_date and type(due_date) == str:
+        if due_date:
             # Turn into date object
-            due_date = datetime.fromisoformat(due_date).date()
+            due_date = date.fromisoformat(due_date).date()
         self.due_date = due_date
         self.completed = completed
 

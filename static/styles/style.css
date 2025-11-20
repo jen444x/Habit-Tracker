@@ -50,3 +50,15 @@ li {
 .done {
   text-decoration: line-through solid black 2px;
 }
+
+/* for forms */
+/* Force inputs to inherit the font */
+input {
+  font-family: inherit; /* Use parent's font (Delius) */
+  font-size: 1.4rem; /* 14px */
+}
+
+label {
+  font-size: 1.6rem; /* 16px - already inherits Delius */
+  color: #7bc4b8; /* Match your p, li color */
+}

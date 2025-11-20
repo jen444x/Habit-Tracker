@@ -19,9 +19,9 @@ def index():
         description = ""
         due_date = ""
         habits.add_habit(newhabit, description, due_date)
-        # save to files
-        habits.save_data('user_habits.json')
-    
+
     return render_template("index.html")
 # debug true so when i save changes, website changes
-app.run(debug=True)
+if __name__ == "__main__":
+    # app.run(debug=True)
+    app.run()

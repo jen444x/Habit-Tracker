@@ -1,3 +1,4 @@
+print("hi")
 import json
 
 from habit import Habit
@@ -13,6 +14,10 @@ def get_habits(lst, dict, filename):
     except FileNotFoundError:
         # If file does not exist, that means we haven't saved any habits
         return
+    
+    ############ do try except block instead
+    if not contents:
+         return
 
     # Turn into py object
     habits = json.loads(contents)
@@ -31,6 +36,8 @@ def store_habits(habits, file):
     """ Save habits to file """
 
     # Get list of dicts
+    for habit in habits:
+        print(f"habit before failure:\n{habit.__dict__}")
     habits_dict = list(map(Habit.get_dict, habits))
 
     # turn into json

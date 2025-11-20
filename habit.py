@@ -1,5 +1,4 @@
 from datetime import date
-from datetime import datetime
 from task import Task
 
 class Habit(Task):
@@ -14,8 +13,8 @@ class Habit(Task):
             self.days_completed = kwargs['days_completed']
 
             # Turn into date object
-            self.created_at = datetime.fromisoformat(self.created_at).date()
-        else:   
+            self.created_at = date.fromisoformat(self.created_at).date()
+        else:                  
             self.created_at = date.today()
             self.days_completed = []
 
@@ -27,12 +26,16 @@ class Habit(Task):
 
     def get_dict(self):
         """ Prepare dict to save into file """
-        # Save date in ISO 8601 format so json can stringify it
-        if self.due_date:
-            self.due_date = self.due_date.isoformat()
-        if self.created_at:
-            self.created_at = self.created_at.isoformat()
-        return self.__dict__
+        # Return dict
+        
+        return {
+            "name": self.name,
+            "description": self.description,
+            "due_date": self.due_date.isoformat() if self.due_date else "",
+            "completed": self.completed,
+            "created_at": self.created_at.isoformat() if self.created_at else "",
+            "days_completed": self.days_completed
+        }
 
     def complete(self):
         """ Mark habit as completed """
