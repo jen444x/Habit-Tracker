@@ -13,7 +13,7 @@ class Habit(Task):
             self.days_completed = kwargs['days_completed']
 
             # Turn into date object
-            self.created_at = date.fromisoformat(self.created_at).date()
+            self.created_at = date.fromisoformat(self.created_at)
         else:                  
             self.created_at = date.today()
             self.days_completed = []

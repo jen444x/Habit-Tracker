@@ -20,9 +20,17 @@
     <h1>Habit Tracker</h1>
     <h2>Manage Habits</h2>
     <ul>
-      <li>Create new habit</li>
+      {% if habits %} 
+        {% for habit in habits %}
+          <li>{{ habit.name }}</li>
+        {% endfor %}
+      {% else %}
+        <p>You have no habits!</p>
+      {% endif%}
+        
+      <!-- <li>Create new habit</li>
       <li>Edit a habit</li>
-      <li>Delete a habit</li>
+      <li>Delete a habit</li> -->
     </ul>
 
     <!-- Use async here so it the following line doesn't have to wait -->
