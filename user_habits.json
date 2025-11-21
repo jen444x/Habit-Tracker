@@ -30,5 +30,13 @@
         "completed": false,
         "created_at": "2025-11-19",
         "days_completed": []
+    },
+    {
+        "name": "",
+        "description": "",
+        "due_date": "",
+        "completed": false,
+        "created_at": "2025-11-20",
+        "days_completed": []
     }
 ]

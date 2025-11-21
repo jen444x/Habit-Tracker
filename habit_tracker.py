@@ -17,7 +17,10 @@ class HabitsTracker:
         # Add stored habits in list and dict, if any
         get_habits(self.habits_list, self.habits_dict, habits_file)
 
-  
+    """ Get dict of habit info """
+    def get_habit_dict(self, i):
+        return self.habits_list[i].get_dict()
+
     def move_finished_habits(self, finished_class):
         """ Store habits whose due dates have passed in seperate class """
 

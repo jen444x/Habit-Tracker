@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@layer base {
+  input[type="text"] {
+    background-color: white;
+  }
+
+  input[type="submit"] {
+    background-color: #6ba39a;
+    color: white;
+    padding: 0.3rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }
+}

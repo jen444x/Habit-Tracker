@@ -5,34 +5,32 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <title>Habit Tracker</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Delius&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
-
   </head>
   <body>
     <div class="container">
       <h1>Habit Tracker</h1>
       <h2>Manage Habits</h2>
       <ul>
-        {% if habits %} 
-          {% for i, habit in habits %}
-            <li data-index = "{{i}}" >{{ i }}. {{ habit.name }}</li><br>
-          {% endfor %}
+        {% if habit_data %} 
+            {% for key, val in habit_data.items()%} 
+              {% if val: %}
+                <li>{{ key }} : {{ val }}</li><br> 
+              {% endif %}
+            {% endfor %}  
         {% else %}
-          <p>You have no habits!</p>
-        {% endif%}
+          <p>ERROR</p> 
+        {% endif %} 
       </ul>
-      <form method="POST" action="/">
-      <label>Enter new habit: </label>
-      <input type="text" name="newhabit" />
-      <input type="submit" value="Submit"  />
-    </form>
     </div>
     <!-- Use async here so it the following line doesn't have to wait -->
     <script async src="{{ url_for('static', filename = 'main.js') }}"></script>
