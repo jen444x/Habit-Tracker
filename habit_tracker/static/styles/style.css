@@ -62,10 +62,10 @@ li {
 
 /* for forms */
 /* Force inputs to inherit the font */
-input {
-  font-family: inherit; /* Use parent's font (Delius) */
-  font-size: 1.4rem; /* 14px */
-}
+/* input {
+  font-family: inherit;  
+  font-size: 1.4rem;  
+} */
 
 label {
   font-size: 1.6rem; /* 16px - already inherits Delius */
