@@ -39,3 +39,41 @@ def register():
 
     return render_template('auth/register.html')
 
+@bp.route('/login', methods=('GET', 'POST'))
+def login():
+    if request.method == 'POST':
+        # Get data
+        username = request.form['username']
+        password = request.form['password']
+        db = get_db()
+        error = None
+
+        # Make sure fields were entered
+        if not username or not password:
+            error = "Both fields are required."
+
+        # Get row data
+        if error is None:
+            user = db.execute(
+                "SELECT * FROM user WHERE username = ?", (username)
+                ).fetchone()   # returns row from query
+            
+            # Check if user exists
+            if user is None:
+                error = 'One or more fields are incorrect.'
+        
+            # Check password 
+            if user and not check_password_hash(user['password'], password):
+                error = 'One or more fields are incorrect.'
+
+        if error is None:
+            # session is a dict that stores data across requests
+            session.clear()
+            session['user_id'] = user['id']
+            return redirect(url_for('index'))
+        
+        flash (error)
+
+    return render_template('auth/login.html')
+
+
