@@ -1,10 +1,17 @@
 @import "tailwindcss";
 
-@layer base {
-  input[type="text"] {
-    background-color: white;
-  }
+@theme {
+  --color-calm-600: #1a3a42;
+  --color-calm-500: #6ba39a;
+}
 
+@layer components {
+  .input-field {
+    @apply bg-white rounded px-3 py-1 border border-gray-300;
+  }
+}
+
+@layer base {
   input[type="submit"] {
     background-color: #6ba39a;
     color: white;
