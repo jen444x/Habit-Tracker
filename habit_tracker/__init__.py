@@ -5,13 +5,13 @@ from flask import Flask
 
 def create_app(test_config=None):
     # create and configure the app
-    # second param tells the app that the config files are relative to the instance 
-    # folder The instance folder is located outside the flaskr package and can hold 
-    # local data that shouldn’t be committed to version control, such as 
+    # second param tells the app that the config files are relative to the instance
+    # folder The instance folder is located outside the flaskr package and can hold
+    # local data that shouldn't be committed to version control, such as
     # configuration secrets and the database file.
     app = Flask(__name__, instance_relative_config=True)
-    # SECRET_KEY is used by Flask and extensions to keep data safe. It’s set to 
-    # 'dev' to provide a convenient value during development, but it should be 
+    # SECRET_KEY is used by Flask and extensions to keep data safe. It's set to
+    # 'dev' to provide a convenient value during development, but it should be
     # overridden with a random value when deploying.
     app.config.from_mapping(
         SECRET_KEY='dev',

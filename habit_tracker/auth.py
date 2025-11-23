@@ -6,12 +6,17 @@ from flask import (
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from habit_tracke.db import get_db
+from habit_tracker.db import get_db
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @bp.route('register', methods=('GET', 'POST'))
 def register():
+    """ 
+    Register user:
+    if successful redirects to login
+    if not shows error and stays on register
+    """
     if request.method =='POST': 
         # Get data
         username = request.form['username']
@@ -37,10 +42,15 @@ def register():
             
         flash(error)
 
-    return render_template('auth/register.html')
+    return render_template('auth/register.jinja')
 
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
+    """
+    Logs user in: Checks information is correct
+    if it is, saves id in session and redirects to index
+    if not, shows error and stays on login
+    """
     if request.method == 'POST':
         # Get data
         username = request.form['username']
@@ -74,11 +84,17 @@ def login():
         
         flash (error)
 
-    return render_template('auth/login.html')
+    return render_template('auth/login.jinja')
 
-# always run when a request is made to the bp url
+
 @bp.before_app_request
 def load_logged_in_user():
+    """ 
+    Runs before every request, not only those handled by bp
+    checks is userid is in session,
+    if it is, saves user data in g.user,
+    which lasts for the length of the request 
+    """
     user_id = session.get('user_id')
 
     if user_id is None:
@@ -93,10 +109,20 @@ def load_logged_in_user():
         
 @bp.route('/logout')
 def logout():
+    """
+    Log user out
+    Clears sesion and redirects to index
+    """
     session.clear
     return redirect(url_for('index'))
 
 def login_required(view):
+    """
+    Wrapper that checks if user is logged in
+    checks if g.user exists
+    if it doesnt redirects to login
+    if it does proceeds as normal
+    """
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
