@@ -1,0 +1,25 @@
+{% extends 'base.jinja' %}
+
+{% block header %}
+  <h1>{% block title %}Habits{% endblock %}</h1>
+  {% if g.user %}
+    <a class="action bg-calm-500 text-white p-4 rounded-xl cursor-pointer text-2xl" href="{{ url_for('dashboard.create') }}">Create New Habit</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  {% for habit in habits %}
+    <div class="habit">
+      <header>
+          <h1>{{ habit['title'] }}</h1>
+          <a class="action" href="{{ url_for('habit.update', id=habit['id']) }}">Edit</a>
+      </header>
+      <p class="body">{{ habit['body'] }}</p>
+    </div>
+    {% if not loop.last %}
+      <hr>
+    {% endif %}
+  {% endfor %}
+{% endblock %}
+
+

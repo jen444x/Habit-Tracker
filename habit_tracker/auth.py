@@ -102,7 +102,7 @@ def load_logged_in_user():
     else:
         db = get_db()
         user = db.execute(
-            'SELECT * FROM user WHERE id = ?', (user_id)
+            'SELECT * FROM user WHERE id = ?', (user_id,)
         ).fetchone()
 
         g.user = user

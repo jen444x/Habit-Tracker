@@ -1,0 +1,24 @@
+{% extends 'base.jinja' %}
+
+{% block header %}
+  <h1>{% block title %}New Habit{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col w-3/7 mx-auto bg-calm-600 gap-4 py-24 border-3 border-calm-500 rounded-xl shadow-lg/30">
+    <div class="flex justify-center bg-calm-600 my-8">
+      <form method="post" class=" flex flex-col gap-4 w-3/5">
+        <div class="flex flex-col self-center w-full gap-1 text-white">
+          <label for="title" class="text-2xl">Title</label>
+          <input name="title" id="title" value="{{ request.form['title'] }}" class="input-field" required>
+        </div>
+        <div class="flex flex-col self-center w-full gap-1 text-white">
+          <label for="body" class="text-2xl">Body</label>
+          <textarea name="body" id="body" class="input-field">{{ request.form['body'] }}</textarea>
+        </div>
+        <input type="submit" value="Save" class="mt-2 py-2 text-2xl">
+      </form>
+    </div>
+  </div>
+
+{% endblock %}

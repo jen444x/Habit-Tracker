@@ -22,8 +22,10 @@
     <nav class="bg-calm-600">
         <ul>
             {% if g.user %}
-                <li><span>{{ g.user['username'] }}</span>
-                <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
+              <div class="flex justify-between">
+                <li class="mx-8"><span>{{ g.user['username'] }}</span>
+                <li class="mx-8"><a href="{{ url_for('auth.logout') }}">Log Out</a>
+              </div>
             {% else %}
                 <li><a href="{{ url_for('auth.register') }}">Register</a>
                 <li><a href="{{ url_for('auth.login') }}">Log In</a>
