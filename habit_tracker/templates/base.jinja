@@ -18,8 +18,8 @@
       rel="stylesheet"
     />
   </head>
-  <body class="w-4/5 mx-auto">
-    <nav>
+  <body class="w-full">
+    <nav class="bg-calm-600">
         <ul>
             {% if g.user %}
                 <li><span>{{ g.user['username'] }}</span>
@@ -30,7 +30,7 @@
             {% endif %}
         </ul>
     </nav>
-    <section class="content">
+    <section class="content w-4/5 mx-auto">
         <header>
             {% block header %}{% endblock %}
         </header>
