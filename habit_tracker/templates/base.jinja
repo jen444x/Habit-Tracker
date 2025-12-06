@@ -19,26 +19,30 @@
     />
   </head>
   <body class="w-full">
-    <nav class="bg-calm-600">
-        <ul>
-            {% if g.user %}
-              <div class="flex justify-between">
-                <li class="mx-8"><span>{{ g.user['username'] }}</span>
-                <li class="mx-8"><a href="{{ url_for('auth.logout') }}">Log Out</a>
-              </div>
-            {% else %}
-                <li><a href="{{ url_for('auth.register') }}">Register</a>
-                <li><a href="{{ url_for('auth.login') }}">Log In</a>
-            {% endif %}
-        </ul>
+    <nav class="bg-calm-600 shadow-lg/30">
+        <div class="w-4/5 mx-auto">
+            <ul>
+              {% if g.user %}
+                <div class="flex justify-between py-4">
+                  <li class="text-white font-medium text-xl">Hello, {{ g.user['username'] }}</li>
+                  <li ><a href="{{ url_for('auth.logout') }}" class="bg-white text-calm-600 px-4 py-2 rounded-xl font-medium hover:bg-[#7bc4b8] hover:text-white cursor-pointer">Log Out</a></li>
+                </div>
+              {% else %}
+                <div class="py-4">
+                  <li><a href="{{ url_for('auth.register') }}" class="text-white font-medium text-xl hover:text-[#7bc4b8] cursor-pointer">Register</a></li>
+                  <li><a href="{{ url_for('auth.login') }}" class="text-white font-medium text-xl hover:text-[#7bc4b8] cursor-pointer">Log In</a></li>
+                </div>
+              {% endif %}
+            </ul>
+        </div>
     </nav>
     <section class="content w-4/5 mx-auto">
-        <header>
+        <header class="py-10 center">
             {% block header %}{% endblock %}
         </header>
-    
+
         {% for message in get_flashed_messages() %}
-            <div class="flash">{{ message }}</div>
+            <div class="bg-calm-500 text-white px-4 py-2 rounded-xl mb-4 shadow">{{ message }}</div>
         {% endfor %}
         {% block content %}{% endblock %}
     </section>

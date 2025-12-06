@@ -45,3 +45,45 @@ def create():
 
     return render_template('dashboard/create.jinja')
 
+def get_habit(id):
+    habit = get_db().execute(
+        'SELECT h.id, title, body, created, creator_id, username'
+        ' FROM habit h JOIN user u ON h.creator_id = u.id'
+        ' WHERE h.id = ?',
+        (id,)
+    ).fetchone()
+
+    if habit is None:
+        abort(404, f"Habit id {id} doesn't exist.")
+
+    if habit['creator_id'] != g.user['id']:
+        abort(403)
+
+    return habit
+
+@bp.route('/<int:id>/update', methods=('GET', 'POST'))
+@login_required
+def update(id):
+    habit = get_habit(id)
+
+    if request.method == 'POST':
+        title = request.form['title']
+        body = request.form['body']
+        error = None
+
+        if not title:
+            error = 'Title is required.'
+
+        if error is not None:
+            flash(error)
+        else:
+            db = get_db()
+            db.execute(
+                'UPDATE habit SET title = ?, body = ?'
+                ' WHERE id = ?',
+                (title, body, id)
+            )
+            db.commit()
+            return redirect(url_for('dashboard.index'))
+
+    return render_template('dashboard/update.jinja', habit=habit)

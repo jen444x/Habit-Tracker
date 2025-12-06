@@ -1,0 +1,40 @@
+{% extends 'base.jinja' %}
+
+{% block header %}
+  <h1 class="font-black text-3xl text-calm-600 text-center w-full">{% block title %}Edit "{{ habit['title'] }}"{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <div class="bg-white rounded-xl p-8 shadow-lg/30 border-3 border-calm-500 max-w-2xl mx-auto">
+    <form method="post" class="flex flex-col gap-6">
+      <div class="flex flex-col gap-2">
+        <label for="title" class="font-bold text-calm-600 text-lg">Title</label>
+        <input name="title" id="title"
+          value="{{ request.form['title'] or habit['title'] }}"
+          required
+          class="border-2 border-calm-300 rounded-lg px-4 py-3 focus:outline-none focus:border-calm-500 text-calm-600">
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="body" class="font-bold text-calm-600 text-lg">Description</label>
+        <textarea name="body" id="body" rows="5"
+          class="border-2 border-calm-300 rounded-lg px-4 py-3 focus:outline-none focus:border-calm-500 text-calm-600 resize-y">{{ request.form['body'] or habit['body'] }}</textarea>
+      </div>
+
+      <div class="flex gap-4 mt-2">
+        <input type="submit" value="Save Changes"
+          class="bg-calm-600 hover:bg-calm-500 text-white px-6 py-3 rounded-lg font-bold cursor-pointer flex-1 shadow-lg/30">
+        <a href="{{ url_for('dashboard.index') }}"
+          class="bg-gray-200 hover:bg-gray-300 text-calm-600 px-6 py-3 rounded-lg font-bold cursor-pointer text-center flex-1">
+          Cancel
+        </a>
+      </div>
+    </form>
+
+    <hr class="my-6 border-calm-200">
+    {# <form action="{{ url_for('dashboard.delete', id=habit['id']) }}" method="post">
+      <input class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-bold cursor-pointer w-full"
+        type="submit" value="Delete Habit" onclick="return confirm('Are you sure?');">
+    </form>  #}
+  </div>
+{% endblock %}

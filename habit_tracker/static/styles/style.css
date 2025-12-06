@@ -37,10 +37,11 @@ h2 {
 }
 
 p {
-  font-size: 16px;
-  line-height: 1.8;
+  /* font-size: 16px; */
+  /* line-height: 1.8; */
   /* Soft white with hint of blue - easy on eyes */
   color: #d4e8e6;
+  color: black;
 }
 
 li {
@@ -51,10 +52,6 @@ li {
   line-height: 2;
   /* Soft white with hint of blue - easy on eyes */
   color: #d4e8e6;
-}
-
-.done {
-  text-decoration: line-through solid black 2px;
 }
 
 /* for forms */
