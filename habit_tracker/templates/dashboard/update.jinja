@@ -32,9 +32,9 @@
     </form>
 
     <hr class="my-6 border-calm-200">
-    {# <form action="{{ url_for('dashboard.delete', id=habit['id']) }}" method="post">
+    <form action="{{ url_for('dashboard.delete', id=habit['id']) }}" method="post">
       <input class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-bold cursor-pointer w-full"
-        type="submit" value="Delete Habit" onclick="return confirm('Are you sure?');">
-    </form>  #}
+        type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+    </form> 
   </div>
 {% endblock %}
