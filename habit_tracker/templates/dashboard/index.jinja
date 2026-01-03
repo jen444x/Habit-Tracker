@@ -2,7 +2,7 @@
 
 {% block header %}
   <div class="w-full flex flex-col gap-6">
-    <h1>{% block title %}Habits{% endblock %}</h1>
+    <h1>{% block title %}Habit Tracker{% endblock %}</h1>
   </div>
 {% endblock %}
 
@@ -13,19 +13,44 @@
         + New Habit
       </a>
     </div>
-
-    <div class="flex flex-col gap-6 my-8">
+    {# List of habits #}
     {% for habit in habits %}
-      <div class="bg-white rounded-xl p-6 shadow-lg/30 border-3 border-calm-500">
-        <div class="flex justify-between gap-4 mb-4">
-          <h3 class="font-black text-3xl text-calm-600">{{ habit['title'] }}</h3>
-          <a class="text-calm-500 hover:text-calm-600 font-bold cursor-pointer text-xl mt-2" href="{{ url_for('dashboard.update', id=habit['id']) }}">Edit</a>
-        </div>
-        <p class="text-lg text-calm-600 font-sans font-light">{{ habit['body'] }}</p>
+    <div class="flex flex-col gap-6 my-8">
+      <div class="flex flex-row gap-4 items-center">
+        <a 
+        class="habit basis-5/6 flex justify-between bg-white hover:bg-calm-500 cursor-pointer rounded-xl px-12 py-6 shadow-lg/30 border-3 border-calm-500"
+        href="{{ url_for('dashboard.update', id=habit['id']) }}"
+        >
+          <div class="flex items-end gap-6 basis-64">
+            <h3 
+              class="font-black text-3xl text-calm-600">
+              {{habit['title'] }}
+            </h3>
+            <p 
+              class="text-lg text-gray-500 font-sans font-light truncate">
+              {{ habit['body'] }}
+            </p>
+          </div>
+        </a>
+        <form 
+        action="{{ url_for('dashboard.complete', id=habit['id']) }}"
+        method="post" 
+        class="basis-1/6"
+        >
+          <button 
+            class=" status-btn w-full text-3xl text-calm-600 bg-calm-500 hover:bg-calm-600 hover:text-white font-bold rounded-xl cursor-pointer px-12 py-7 shadow-lg/30">
+            Complete
+          </button>
+        </form>
       </div>
-    {% endfor %}
     </div>
+    {% endfor %}
   {% endif %}
 {% endblock %}
 
 
+{# <a 
+  class="text-calm-500 hover:text-calm-600 font-bold  text-xl mt-2" 
+  href="{{ url_for('dashboard.update', id=habit['id']) }}">
+  Edit
+</a> #}

@@ -36,13 +36,13 @@ h2 {
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-p {
+/* p {
   /* font-size: 16px; */
-  /* line-height: 1.8; */
-  /* Soft white with hint of blue - easy on eyes */
-  color: #d4e8e6;
-  color: black;
-}
+/* line-height: 1.8; */
+/* Soft white with hint of blue - easy on eyes */
+/* color: #d4e8e6; */
+/* color: black; */
+/*} */
 
 li {
   display: inline-block;

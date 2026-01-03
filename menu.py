@@ -1,12 +1,12 @@
-from habit_tracker import HabitsTracker
-from date import get_user_due_date
-# Intro
-linesplit = "--------------------------------"
-intro = "Welcome to your habit tracker"
-print(f"\n{linesplit}\n{intro.upper()}\n{linesplit}")
+# from habit_tracker import HabitsTracker
+# from date import get_user_due_date
+# # Intro
+# linesplit = "--------------------------------"
+# intro = "Welcome to your habit tracker"
+# print(f"\n{linesplit}\n{intro.upper()}\n{linesplit}")
 
 # Initialize habit tracker
-habits = HabitsTracker('user_habits.json')
+# habits = HabitsTracker('user_habits.json')
 finished_habits = HabitsTracker('user_finished_habits.json')
 
 # Show habits due today

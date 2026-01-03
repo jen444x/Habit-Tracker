@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS user;
 DROP TABLE IF EXISTS habit;
+DROP TABLE IF EXISTS habit_log;
 
 CREATE TABLE user(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,3 +16,13 @@ CREATE TABLE habit(
     body TEXT NOT NULL,
     FOREIGN KEY (creator_id) REFERENCES user(id)
 );
+
+CREATE TABLE habit_log(
+    -- id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    log_date DATE NOT NULL,
+    stat BOOLEAN,
+    habitid INTEGER NOT NULL,
+    PRIMARY KEY (habitid, log_date),
+    FOREIGN KEY (habitid) REFERENCES habit(id)
+);
+

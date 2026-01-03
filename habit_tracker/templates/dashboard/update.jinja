@@ -18,7 +18,9 @@
       <div class="flex flex-col gap-2">
         <label for="body" class="font-bold text-calm-600 text-lg">Description</label>
         <textarea name="body" id="body" rows="5"
-          class="border-2 border-calm-300 rounded-lg px-4 py-3 focus:outline-none focus:border-calm-500 text-calm-600 resize-y">{{ request.form['body'] or habit['body'] }}</textarea>
+          class="border-2 border-calm-300 rounded-lg px-4 py-3 focus:outline-none focus:border-calm-500 text-calm-600 resize-y">
+          {{ request.form['body'] or habit['body'] }}
+        </textarea>
       </div>
 
       <div class="flex gap-4 mt-2">

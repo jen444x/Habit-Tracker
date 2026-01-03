@@ -20,6 +20,15 @@ def index():
 
     return render_template('dashboard/index.jinja', habits=habits)
 
+@bp.route('/logs')
+def get_logs():
+    db = get_db()
+
+    rows = db.execute("SELECT * FROM habit_log").fetchall()
+    logs = [dict(row) for row in rows]
+
+    return logs
+
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
 def create():
@@ -35,12 +44,16 @@ def create():
             flash(error)
         else:
             db = get_db()
+            
+            # create habit
             db.execute(
                 'INSERT INTO habit (title, body, creator_id)'
                 ' VALUES (?, ?, ?)',
                 (title, body, g.user['id'])
             )
             db.commit()
+
+
             return redirect(url_for('dashboard.index'))
 
     return render_template('dashboard/create.jinja')
@@ -65,6 +78,7 @@ def get_habit(id):
 @login_required
 def update(id):
     habit = get_habit(id)
+    print(f"habit: {habit}")
 
     if request.method == 'POST':
         title = request.form['title']
@@ -86,7 +100,22 @@ def update(id):
             db.commit()
             return redirect(url_for('dashboard.index'))
 
-    return render_template('dashboard/update.jinja', habit=habit)
+    return render_template('dashboard/update.jinja', habit=habit) # Here its passed like a dict reference
+
+@bp.route('/<int:id>/complete', methods=('POST',))
+@login_required
+def complete(id):
+    # make sure it exists
+    get_habit(id)
+
+    db=get_db() 
+    # create a log for today
+    db.execute(
+        "INSERT INTO habit_log (log_date, stat, habitid) VALUES (DATE('now'), ?, ?)",
+        (True, id)
+    )
+    db.commit()
+    return redirect(url_for('dashboard.index'))
 
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required
@@ -96,4 +125,5 @@ def delete(id):
     db.execute('DELETE FROM habit WHERE id = ?', (id,))
     db.commit()
     return redirect(url_for('dashboard.index'))
+
 
