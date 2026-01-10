@@ -1,0 +1,24 @@
+{% extends 'base.jinja' %}
+
+{% block header %}  
+  <div class="py-10 center">
+    <h1>{% block title %}Florifer{% endblock %}</h1>
+  </div>
+{% endblock %}
+
+{% block content %}
+<div class="my-auto">
+  <div class="flex flex-col gap-4 w-3/5 mx-auto py-4">
+    <a
+      href="{{ url_for('auth.login') }}"
+      class="landing-btns text-white bg-calm-600 shadow-lg/30 rounded-md">
+      Log In
+    </a>
+    <a
+      href="{{ url_for('auth.register') }}"
+      class="landing-btns text-bg-calm-600">
+      Create an account
+    </a>
+  </div>
+</div>
+{% endblock %}
