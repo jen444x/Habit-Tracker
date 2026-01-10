@@ -1,0 +1,21 @@
+{% extends 'base.jinja' %}
+
+{% block body_class %}bg-calm-600{% endblock %} 
+
+{% block header %}
+  <h1 class="text-calm-700 text-center text-white">{% block title %}{{ form_title }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form method="post" class="w-full py-24 flex justify-center flex-col gap-4">
+    <div class="flex flex-col w-full gap-1 text-white">
+        <label for="username" class="text-xl text-center">Username</label>
+        <input class="input-field" name="username" id="username" required>
+    </div>
+    <div class="flex flex-col self-center w-full gap-1 text-white text-center">
+        <label for="password" class="text-xl">Password</label>
+        <input type="password" class="input-field" name="password" id="password" required>
+    </div>
+    <input type="submit" value="{{ button_text }}" class="bg-calm-700 mt-2 py-2 text-2xl">
+</form>
+{% endblock %}

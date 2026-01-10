@@ -10,15 +10,33 @@ bp = Blueprint('dashboard', __name__)
 
 @bp.route('/')
 def index():
+    # Show landing page for logged-out users
+    if g.user is None:
+        return render_template('auth/landing.jinja')
+
     db = get_db()
 
     habits = db.execute(
-        'SELECT h.id, title, body, created, creator_id, username'
-        ' FROM habit h JOIN user u ON h.creator_id = u.id'
+        'SELECT h.id, title, body, created, creator_id, username, hl.stat'
+        ' FROM habit h ' 
+        ' JOIN user u ON h.creator_id = u.id'
+        # left join so if doesnt have a log, returns null
+        ' LEFT JOIN habit_log hl on h.id = hl.habitid AND hl.log_date = DATE("now")' 
+        ' WHERE hl.stat IS NULL OR hl.stat = 0'
         ' ORDER BY created DESC'
     ).fetchall()
 
-    return render_template('dashboard/index.jinja', habits=habits)
+    habits_done = db.execute(
+        'SELECT h.id, title, body, created, creator_id, username, hl.stat'
+        ' FROM habit h ' 
+        ' JOIN user u ON h.creator_id = u.id'
+        # left join so if doesnt have a log, returns null
+        ' LEFT JOIN habit_log hl on h.id = hl.habitid AND hl.log_date = DATE("now")' 
+        ' WHERE hl.stat = 1'
+        ' ORDER BY created DESC'
+    ).fetchall()
+
+    return render_template('dashboard/index.jinja', habits=habits, habits_done=habits_done)
 
 @bp.route('/logs')
 def get_logs():

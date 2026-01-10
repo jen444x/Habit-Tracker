@@ -42,7 +42,7 @@ def register():
             
         flash(error)
 
-    return render_template('auth/register.jinja')
+    return render_template('auth/auth_form.jinja', form_title='Sign Up', button_text='Sign Up')
 
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
@@ -84,7 +84,7 @@ def login():
         
         flash (error)
 
-    return render_template('auth/login.jinja')
+    return render_template('auth/auth_form.jinja', form_title='Welcome Back', button_text='Log In')
 
 
 @bp.before_app_request
@@ -113,7 +113,7 @@ def logout():
     Log user out
     Clears sesion and redirects to index
     """
-    session.clear
+    session.clear()
     return redirect(url_for('index'))
 
 def login_required(view):

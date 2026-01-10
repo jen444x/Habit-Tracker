@@ -2,7 +2,7 @@ html {
   /* Light, airy outer background */
   background-color: #e8f1f5;
   /* background-color: #1a3a42; */
-  font-size: 10px;
+  font-size: 16px;
   font-family: "Delius", cursive;
   font-weight: 500;
   font-style: normal;
@@ -12,12 +12,9 @@ h1 {
   /* Light mint/teal - pops nicely on dark background */
   /* color: #a8dcd1; */
   /* color: #7bc4b8; */
-  color: #1a3a42;
-  font-size: 64px;
-  text-align: center;
+  /* color: #1a3a42; */
   letter-spacing: 2px;
   margin: 0;
-  padding: 20px 0;
   font-weight: bold;
   /* Darker shadow for light text */
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.639);
