@@ -22,8 +22,9 @@ def index():
         ' JOIN user u ON h.creator_id = u.id'
         # left join so if doesnt have a log, returns null
         ' LEFT JOIN habit_log hl on h.id = hl.habitid AND hl.log_date = DATE("now")' 
-        ' WHERE hl.stat IS NULL OR hl.stat = 0'
-        ' ORDER BY created DESC'
+        ' WHERE (hl.stat IS NULL OR hl.stat = 0) AND h.creator_id = ?'
+        ' ORDER BY created DESC',
+        (g.user['id'],)   
     ).fetchall()
 
     habits_done = db.execute(
@@ -32,8 +33,9 @@ def index():
         ' JOIN user u ON h.creator_id = u.id'
         # left join so if doesnt have a log, returns null
         ' LEFT JOIN habit_log hl on h.id = hl.habitid AND hl.log_date = DATE("now")' 
-        ' WHERE hl.stat = 1'
-        ' ORDER BY created DESC'
+        ' WHERE hl.stat = 1 AND h.creator_id = ?'
+        ' ORDER BY created DESC',
+        (g.user['id'],)   
     ).fetchall()
 
     return render_template('dashboard/index.jinja', habits=habits, habits_done=habits_done)

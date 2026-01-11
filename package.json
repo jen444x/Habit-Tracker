@@ -1,7 +1,7 @@
 {
   "scripts": {
     "tailwind": "tailwindcss --input habit_tracker/static/css/tw.css --output habit_tracker/static/css/tailwind.css --watch",
-    "browser-sync": "browser-sync start --proxy localhost:8000 --files 'habit_tracker/templates/**/*.jinja, habit_tracker/static/**/*'",
+    "browser-sync": "browser-sync start --proxy localhost:8000 --files 'habit_tracker/templates/**/*.jinja, habit_tracker/static/**/*' --no-ghost-mode",
     "dev": "npm run tailwind & npm run browser-sync"
   },
   "devDependencies": {

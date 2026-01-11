@@ -10,6 +10,7 @@
     --color-red-500: oklch(63.7% 0.237 25.331);
     --color-red-600: oklch(57.7% 0.245 27.325);
     --color-red-700: oklch(50.5% 0.213 27.518);
+    --color-gray-100: oklch(96.7% 0.003 264.542);
     --color-gray-200: oklch(92.8% 0.006 264.531);
     --color-gray-300: oklch(87.2% 0.01 258.338);
     --color-gray-400: oklch(70.7% 0.022 261.325);
@@ -218,6 +219,12 @@
       max-width: 96rem;
     }
   }
+  .m-2 {
+    margin: calc(var(--spacing) * 2);
+  }
+  .m-6 {
+    margin: calc(var(--spacing) * 6);
+  }
   .m-auto {
     margin: auto;
   }
@@ -230,8 +237,17 @@
   .my-6 {
     margin-block: calc(var(--spacing) * 6);
   }
+  .my-7 {
+    margin-block: calc(var(--spacing) * 7);
+  }
   .my-8 {
     margin-block: calc(var(--spacing) * 8);
+  }
+  .my-10 {
+    margin-block: calc(var(--spacing) * 10);
+  }
+  .my-12 {
+    margin-block: calc(var(--spacing) * 12);
   }
   .my-16 {
     margin-block: calc(var(--spacing) * 16);
@@ -242,8 +258,14 @@
   .mt-2 {
     margin-top: calc(var(--spacing) * 2);
   }
+  .mt-8 {
+    margin-top: calc(var(--spacing) * 8);
+  }
   .mb-4 {
     margin-bottom: calc(var(--spacing) * 4);
+  }
+  .mb-40 {
+    margin-bottom: calc(var(--spacing) * 40);
   }
   .block {
     display: block;
@@ -287,11 +309,32 @@
   .flex-1 {
     flex: 1;
   }
+  .basis-1\/2 {
+    flex-basis: calc(1/2 * 100%);
+  }
+  .basis-1\/3 {
+    flex-basis: calc(1/3 * 100%);
+  }
+  .basis-1\/4 {
+    flex-basis: calc(1/4 * 100%);
+  }
   .basis-1\/6 {
     flex-basis: calc(1/6 * 100%);
   }
+  .basis-1\/7 {
+    flex-basis: calc(1/7 * 100%);
+  }
+  .basis-3\/4 {
+    flex-basis: calc(3/4 * 100%);
+  }
   .basis-5\/6 {
     flex-basis: calc(5/6 * 100%);
+  }
+  .basis-5\/7 {
+    flex-basis: calc(5/7 * 100%);
+  }
+  .basis-6\/7 {
+    flex-basis: calc(6/7 * 100%);
   }
   .basis-64 {
     flex-basis: calc(var(--spacing) * 64);
@@ -338,11 +381,29 @@
   .gap-6 {
     gap: calc(var(--spacing) * 6);
   }
+  .gap-8 {
+    gap: calc(var(--spacing) * 8);
+  }
+  .gap-10 {
+    gap: calc(var(--spacing) * 10);
+  }
   .gap-16 {
     gap: calc(var(--spacing) * 16);
   }
+  .gap-20 {
+    gap: calc(var(--spacing) * 20);
+  }
+  .gap-30 {
+    gap: calc(var(--spacing) * 30);
+  }
+  .gap-100 {
+    gap: calc(var(--spacing) * 100);
+  }
   .self-center {
     align-self: center;
+  }
+  .justify-self-end {
+    justify-self: flex-end;
   }
   .truncate {
     overflow: hidden;
@@ -406,11 +467,20 @@
   .bg-white {
     background-color: var(--color-white);
   }
+  .p-2 {
+    padding: calc(var(--spacing) * 2);
+  }
+  .p-4 {
+    padding: calc(var(--spacing) * 4);
+  }
   .p-6 {
     padding: calc(var(--spacing) * 6);
   }
   .p-8 {
     padding: calc(var(--spacing) * 8);
+  }
+  .px-1 {
+    padding-inline: calc(var(--spacing) * 1);
   }
   .px-2 {
     padding-inline: calc(var(--spacing) * 2);
@@ -427,6 +497,12 @@
   .px-12 {
     padding-inline: calc(var(--spacing) * 12);
   }
+  .py-1 {
+    padding-block: calc(var(--spacing) * 1);
+  }
+  .py-1\.5 {
+    padding-block: calc(var(--spacing) * 1.5);
+  }
   .py-2 {
     padding-block: calc(var(--spacing) * 2);
   }
@@ -436,8 +512,17 @@
   .py-4 {
     padding-block: calc(var(--spacing) * 4);
   }
+  .py-5 {
+    padding-block: calc(var(--spacing) * 5);
+  }
+  .py-5\.5 {
+    padding-block: calc(var(--spacing) * 5.5);
+  }
   .py-6 {
     padding-block: calc(var(--spacing) * 6);
+  }
+  .py-7 {
+    padding-block: calc(var(--spacing) * 7);
   }
   .py-8 {
     padding-block: calc(var(--spacing) * 8);
@@ -532,6 +617,27 @@
       }
     }
   }
+  .hover\:bg-calm-700 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-calm-700);
+      }
+    }
+  }
+  .hover\:bg-gray-100 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-gray-100);
+      }
+    }
+  }
+  .hover\:bg-gray-200 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-gray-200);
+      }
+    }
+  }
   .hover\:bg-gray-300 {
     &:hover {
       @media (hover: hover) {
@@ -550,6 +656,13 @@
     &:hover {
       @media (hover: hover) {
         background-color: var(--color-red-700);
+      }
+    }
+  }
+  .hover\:text-black {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-black);
       }
     }
   }
