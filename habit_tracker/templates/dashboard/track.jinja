@@ -1,0 +1,48 @@
+{% extends 'base.jinja' %}
+
+{% block header %}
+  <h1>{% block title %}Visualize{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <div class="overflow-x-auto">
+    <table class="border-collapse">
+      {# Date headers #}
+      <thead>
+        <tr>
+          <th class="p-2"></th>
+          {% for date in dates %}
+            <th class="p-1 text-xs text-gray-500 font-normal">
+              {{ date.strftime('%d') }}
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+
+      {# Habit rows #}
+      <tbody>
+        {% for item in habit_data %}
+          <tr>
+            <td class="pr-4 py-2 text-sm font-medium text-calm-600 whitespace-nowrap">
+              {{ item.habit.title }}
+            </td>
+            {% for day in item.days %}
+              <td class="p-1">
+                <div
+                  class="w-6 h-6 rounded
+                    {% if day.stat %}
+                      bg-calm-500
+                    {% else %}
+                      bg-gray-200
+                    {% endif %}"
+                  title="{{ day.date }}">
+                </div>
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock %}

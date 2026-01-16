@@ -57,7 +57,7 @@
         >
             <h3 
               class="font-black text-xl font-bold text-calm-600">
-              {{habit['title'] }}
+              {{habit['title'] }} 
             </h3>
             <p 
               class="text-lg text-gray-500 font-sans font-light truncate">
@@ -78,4 +78,12 @@
   </div>
   {% endfor %}
   </div>
+
+  {# Visualize data #}
+  <hr class="my-5 border-t border-gray-700">
+  <a 
+  class="text-center bg-calm-400 hover:bg-calm-500 text-bg-calm-500 p-2 rounded font-bold cursor-pointer text-xl shadow-lg/30" 
+  href="{{ url_for('dashboard.track') }}">
+    Track habits
+  </a>
 {% endblock %}

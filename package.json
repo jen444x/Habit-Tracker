@@ -8,5 +8,9 @@
     "@tailwindcss/cli": "^4.1.17",
     "browser-sync": "^3.0.4",
     "tailwindcss": "^4.1.17"
+  },
+  "dependencies": {
+    "matplotlib": "^1.0.0",
+    "pandas": "^0.0.3"
   }
 }
