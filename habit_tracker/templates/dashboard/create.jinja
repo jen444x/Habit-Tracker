@@ -1,24 +1,36 @@
 {% extends 'base.jinja' %}
 
 {% block header %}
-  <h1>{% block title %}New Habit{% endblock %}</h1>
+  <h1 class="font-black text-3xl text-calm-600 text-center w-full">
+    {% block title %}New Habit{% endblock %}
+  </h1>
 {% endblock %}
 
 {% block content %}
-  <div class="flex flex-col w-3/7 mx-auto bg-calm-600 gap-4 py-24 border-3 border-calm-500 rounded-xl shadow-lg/30">
-    <div class="flex justify-center bg-calm-600 my-8">
-      <form method="post" class=" flex flex-col gap-4 w-3/5">
-        <div class="flex flex-col self-center w-full gap-1 text-white">
-          <label for="title" class="text-2xl">Title</label>
-          <input name="title" id="title" value="{{ request.form['title'] }}" class="input-field" required>
-        </div>
-        <div class="flex flex-col self-center w-full gap-1 text-white">
-          <label for="body" class="text-2xl">Body</label>
-          <textarea name="body" id="body" class="input-field">{{ request.form['body'] }}</textarea>
-        </div>
-        <input type="submit" value="Save" class="mt-2 py-2 text-2xl">
-      </form>
-    </div>
-  </div>
+  <div class="bg-white rounded-xl p-8 shadow-lg/30 border-3 border-calm-500 max-w-2xl mx-auto">
+    <form method="post" class="flex flex-col gap-6">
+      <div class="flex flex-col gap-2">
+        <label for="title" class="font-bold text-calm-600 text-lg">Title</label>
+        <input name="title" id="title"
+          value="{{ request.form['title'] }}"
+          required
+          class="border-2 border-calm-300 rounded-lg px-4 py-3 focus:outline-none focus:border-calm-500 text-calm-600">
+      </div>
 
+      <div class="flex flex-col gap-2">
+        <label for="body" class="font-bold text-calm-600 text-lg">Description</label>
+        <textarea name="body" id="body" rows="5"
+          class="border-2 border-calm-300 rounded-lg px-4 py-3 focus:outline-none focus:border-calm-500 text-calm-600 resize-y">{{ request.form['body'] }}</textarea>
+      </div>
+
+      <div class="flex gap-4 mt-2">
+        <input type="submit" value="Create Habit"
+          class="bg-calm-600 hover:bg-calm-500 text-white px-6 py-3 rounded-lg font-bold cursor-pointer flex-1 shadow-lg/30">
+        <a href="{{ url_for('dashboard.index') }}"
+          class="bg-gray-200 hover:bg-gray-300 text-calm-600 px-6 py-3 rounded-lg font-bold cursor-pointer text-center flex-1">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
 {% endblock %}

@@ -43,7 +43,7 @@
   </div>
   {% endfor %}
 
-  <hr class="my-7 border-t border-gray-400">
+  <hr class="my-4 border-t border-gray-400">
 
   {# List of habits done #}
   <div class=" flex flex-col gap-4">
@@ -65,13 +65,13 @@
             </p>
         </a>
         <form 
-        action="{{ url_for('dashboard.complete', id=habit['id']) }}"
+        action="{{ url_for('dashboard.undo_complete', id=habit['id']) }}"
         method="post" 
         class="basis-1/7"
         >
           <button 
               class="status-btn text-white text-xl bg-calm-500 hover:bg-calm-600 hover:bg-calm-700 rounded-xl cursor-pointer px-4 py-1.5 shadow-lg/30">
-            &#10004
+            Undo
           </button>
         </form>
     </div>

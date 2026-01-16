@@ -137,6 +137,19 @@ def complete(id):
     db.commit()
     return redirect(url_for('dashboard.index'))
 
+@bp.route('/<int:id>/undo_complete', methods=('POST',))
+@login_required
+def undo_complete(id):
+    db=get_db() 
+    # set log to false
+    db.execute(
+        'DELETE from habit_log ' \
+        'WHERE habitid = ? AND log_date = DATE("now")', 
+        (id,)
+    )
+    db.commit()
+    return redirect(url_for('dashboard.index'))
+
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required
 def delete(id):
