@@ -16,7 +16,7 @@ def register():
     Register user:
     if successful redirects to login
     if not shows error and stays on register
-    """
+    """ 
     if request.method =='POST': 
         # Get data
         username = request.form['username']
