@@ -20,14 +20,14 @@ load_dotenv()
 bp = Blueprint('chat', __name__, url_prefix='/chat')
 
 
-client = OpenAI()
+# client = OpenAI()
 
-response = client.responses.create(
-    model= "gpt-5-mini",
-    input= "Hi!",
-)
+# response = client.responses.create(
+#     model= "gpt-5-mini",
+#     input= "Hi!",
+# )
 
-print(response.output_text)
+# print(response.output_text)
 
 
 
