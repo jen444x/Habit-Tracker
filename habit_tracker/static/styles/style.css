@@ -40,8 +40,8 @@ h2 {
 /*} */
 
 li {
-  display: inline-block;
-  padding: 4px 20px 4px 8px;
+  /* display: inline-block; */
+  /* padding: 4px 20px 4px 8px; */
   cursor: pointer;
   font-size: 16px;
   line-height: 2;

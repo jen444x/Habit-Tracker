@@ -18,31 +18,40 @@
       rel="stylesheet"
     />
   </head>
-  <body class="{% block body_class %}{% endblock %}">
-    {# <nav class="bg-calm-600 shadow-lg/30">
-        <div class="w-4/5 mx-auto">
-            <ul>
-              {% if g.user %}
-                <div class="flex justify-between py-4">
-                  <li class="text-white font-medium text-xl">Hello, {{ g.user['username'] }}</li>
-                  <li ><a href="{{ url_for('auth.logout') }}" class="bg-white text-calm-600 px-4 py-2 rounded-xl font-medium hover:bg-[#7bc4b8] hover:text-white cursor-pointer">Log Out</a></li>
-                </div>
-              {% endif %}
-            </ul>
-        </div>
-    </nav> #}
-    {# <section class="content w-4/5 mx-auto"> #}
+  <body class="w-full h-dvh {% block body_class %}{% endblock %}">
     {% for message in get_flashed_messages() %}
       <div class="bg-calm-500 text-white px-4 py-2 rounded-xl mb-4 shadow">{{ message }}</div>
     {% endfor %}
 
-    <section class="w-full h-dvh flex flex-col px-8 py-8">
+    <section class="flex flex-col px-8 pt-8 pb-22">
       <header class="w-3/4 mx-auto" >
         {% block header %}{% endblock %}
       </header>
   
       {% block content %}{% endblock %}
     </section>
+
+    <nav class="fixed bottom-0 left-0 right-0 overscroll-none bg-calm-600 shadow-lg/30">
+      {% if g.user %}
+        <div class="flex justify-around items-stretch divide-x-1 m-3 text-center text-white">
+          <div class="flex-1">
+            <a 
+            href="{{ url_for('dashboard.index') }}" 
+            class= "text-xl font-medium">
+              Home
+            </a>
+          </div> 
+          <div class="flex-1 ">
+            <a 
+            href="{{ url_for('auth.logout') }}" 
+            class= "text-xl font-medium">
+              Log Out
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    </nav>
+
     <!-- Use async here so it the following line doesn't have to wait -->
     <script async src="{{ url_for('static', filename = 'main.js') }}"></script>
   </body>
