@@ -4,6 +4,8 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 
+from psycopg2 import errors 
+
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from habit_tracker.db import get_db
@@ -19,9 +21,10 @@ def register():
     """ 
     if request.method =='POST': 
         # Get data
-        username = request.form['username']
+        username = request.form['username'].lower()
         password = request.form['password']
         db = get_db()
+        cur = db.cursor()
         error = None
 
         # Make sure both fields were entered
@@ -30,12 +33,13 @@ def register():
 
         if error is None:
             try:
-                db.execute(
-                    "INSERT INTO user (username, password) VALUES (?, ?)",
+                cur.execute(
+                    "INSERT INTO users (username, password) VALUES (%s, %s)",
                     (username, generate_password_hash(password))
                 )
                 db.commit()
-            except db.IntegrityError:
+                cur.close()
+            except errors.UniqueViolation:
                 error = f"User {username} is already registered."
             else:
                 return redirect(url_for("auth.login"))
@@ -53,9 +57,10 @@ def login():
     """
     if request.method == 'POST':
         # Get data
-        username = request.form['username']
+        username = request.form['username'].lower()
         password = request.form['password']
         db = get_db()
+        cur = db.cursor()
         error = None
 
         # Make sure fields were entered
@@ -64,9 +69,13 @@ def login():
 
         # Get row data
         if error is None:
-            user = db.execute(
-                'SELECT * FROM user WHERE username = ?', (username,)
-            ).fetchone()
+            cur.execute(
+                'SELECT * FROM users WHERE username = %s', (username,)
+            )
+
+            user = cur.fetchone()
+
+            cur.close()
             
             # Check if user exists
             if user is None:
@@ -101,9 +110,13 @@ def load_logged_in_user():
         g.user = None
     else:
         db = get_db()
-        user = db.execute(
-            'SELECT * FROM user WHERE id = ?', (user_id,)
-        ).fetchone()
+        cur = db.cursor()
+        cur.execute(
+            'SELECT * FROM users WHERE id = %s', (user_id,)
+        )
+        user = cur.fetchone()
+
+        cur.close()
 
         g.user = user
         

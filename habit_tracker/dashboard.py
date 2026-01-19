@@ -17,39 +17,38 @@ def index():
         return render_template('auth/landing.jinja')
 
     db = get_db()
+    cur = db.cursor()
 
-    today = date.today().isoformat()                                                                                  
-    habits = db.execute(
-        'SELECT h.id, title, body, created, creator_id, username, hl.stat'
-        ' FROM habit h ' 
-        ' JOIN user u ON h.creator_id = u.id'
-        ' LEFT JOIN habit_log hl ON h.id = hl.habitid AND hl.log_date = ?' 
-        ' WHERE (hl.stat IS NULL OR hl.stat = 0) AND h.creator_id = ?'
-        ' ORDER BY created DESC',
-        (today, g.user['id'],)   
-    ).fetchall()
+    # today = date.today().isoformat()                                                                                  
+    cur.execute(
+        'SELECT h.id, h.title, h.body'
+        ' FROM habits h' 
+        ' LEFT JOIN habit_logs hl'
+        '   ON h.id = hl.habit_id'
+        '   AND hl.log_date = %s' 
+        ' WHERE h.creator_id = %s'
+        ' AND hl.habit_id IS NULL'
+        ' ORDER BY created_at DESC',
+        (date.today(), g.user['id'],)
+    )
 
-    habits_done = db.execute(
-        'SELECT h.id, title, body, created, creator_id, username, hl.stat'
-        ' FROM habit h ' 
-        ' JOIN user u ON h.creator_id = u.id'
-        # left join so if doesnt have a log, returns null
-        ' LEFT JOIN habit_log hl on h.id = hl.habitid AND hl.log_date = ?' 
-        ' WHERE hl.stat = 1 AND h.creator_id = ?'
-        ' ORDER BY created DESC',
-        (today, g.user['id'],)   
-    ).fetchall()
+    habits = cur.fetchall()
+
+    cur.execute(
+        'SELECT h.id, title, body'
+        ' FROM habits h' 
+        ' INNER JOIN habit_logs hl'
+        '   ON h.id = hl.habit_id'
+        '   AND hl.log_date = %s' 
+        ' WHERE h.creator_id = %s'
+        ' ORDER BY created_at DESC',
+        (date.today(), g.user['id'],)   
+    )
+    habits_done = cur.fetchall()
+
+    cur.close()
 
     return render_template('dashboard/index.jinja', habits=habits, habits_done=habits_done)
-
-@bp.route('/logs')
-def get_logs():
-    db = get_db()
-
-    rows = db.execute("SELECT * FROM habit_log").fetchall()
-    logs = [dict(row) for row in rows]
-
-    return logs
 
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
@@ -66,27 +65,35 @@ def create():
             flash(error)
         else:
             db = get_db()
+            cur = db.cursor()
             
             # create habit
-            db.execute(
-                'INSERT INTO habit (title, body, creator_id)'
-                ' VALUES (?, ?, ?)',
+            cur.execute(
+                'INSERT INTO habits (title, body, creator_id)'
+                ' VALUES (%s, %s, %s)',
                 (title, body, g.user['id'])
             )
             db.commit()
-
+            cur.close()
 
             return redirect(url_for('dashboard.index'))
 
     return render_template('dashboard/create.jinja')
 
 def get_habit(id):
-    habit = get_db().execute(
-        'SELECT h.id, title, body, created, creator_id, username'
-        ' FROM habit h JOIN user u ON h.creator_id = u.id'
-        ' WHERE h.id = ?',
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute(
+        'SELECT h.id, title, body, creator_id'
+        ' FROM habits h'
+        ' JOIN users u'
+        ' ON h.creator_id = u.id'
+        ' WHERE h.id = %s',
         (id,)
-    ).fetchone()
+    )
+    habit = cur.fetchone()
+    cur.close()
 
     if habit is None:
         abort(404, f"Habit id {id} doesn't exist.")
@@ -114,12 +121,15 @@ def update(id):
             flash(error)
         else:
             db = get_db()
-            db.execute(
-                'UPDATE habit SET title = ?, body = ?'
-                ' WHERE id = ?',
+            cur = db.cursor()
+            cur.execute(
+                'UPDATE habits'
+                ' SET title = %s, body = %s'
+                ' WHERE id = %s',
                 (title, body, id)
             )
             db.commit()
+            cur.close()
             return redirect(url_for('dashboard.index'))
 
     return render_template('dashboard/update.jinja', habit=habit) # Here its passed like a dict reference
@@ -130,16 +140,17 @@ def complete(id):
     # make sure it exists
     get_habit(id)
 
-    db=get_db() 
-    today = date.today().isoformat() 
-
+    db = get_db() 
+    cur = db.cursor()
+    # today = date.today().isoformat() 
 
     # try create a log for today
-    db.execute(
-        "INSERT INTO habit_log (log_date, stat, habitid) VALUES (?, ?, ?)",
-        (today, True, id)
+    cur.execute(
+        "INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)",
+        (date.today(), id)
     )
     db.commit()
+    cur.close()
 
     return redirect(url_for('dashboard.index'))
 
@@ -147,14 +158,16 @@ def complete(id):
 @login_required
 def undo_complete(id):
     db=get_db() 
+    cur = db.cursor()
     today = date.today().isoformat() 
     # set log to false
-    db.execute(
-        'DELETE FROM habit_log ' \
-        'WHERE habitid = ? AND log_date = ?', 
+    cur.execute(
+        'DELETE FROM habit_logs ' \
+        'WHERE habit_id = %s AND log_date = %s', 
         (id,today)
     )
     db.commit()
+    cur.close()
     return redirect(url_for('dashboard.index'))
 
 @bp.route('/<int:id>/delete', methods=('POST',))
@@ -162,6 +175,8 @@ def undo_complete(id):
 def delete(id):
     get_habit(id)
     db = get_db()
-    db.execute('DELETE FROM habit WHERE id = ?', (id,))
+    cur = db.cursor()
+    cur.execute('DELETE FROM habits WHERE id = %s', (id,))
     db.commit()
+    cur.close()
     return redirect(url_for('dashboard.index'))

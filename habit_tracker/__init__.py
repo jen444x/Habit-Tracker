@@ -13,10 +13,15 @@ def create_app(test_config=None):
     # SECRET_KEY is used by Flask and extensions to keep data safe. It's set to
     # 'dev' to provide a convenient value during development, but it should be
     # overridden with a random value when deploying.
-    app.config.from_mapping(
-        SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
-    )
+    app.config.from_mapping(                                                                                  
+        SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),                                                       
+        DB_NAME=os.environ.get('DB_NAME', 'habit_tracker'),                                                   
+        DB_USER=os.environ.get('DB_USER', 'jennifermiranda'),                                                 
+        DB_HOST=os.environ.get('DB_HOST', 'localhost'),                                                                                   
+        DB_PORT=os.environ.get('DB_PORT', '5432'),                                                
+        DB_PASSWORD=os.environ.get('DB_PASSWORD'),                                                            
+    )                                                                                                         
+      
 
     if test_config is None:
         # load the instance config, if it exists, when not testing

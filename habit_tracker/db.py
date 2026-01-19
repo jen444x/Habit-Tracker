@@ -1,16 +1,19 @@
-import sqlite3
-from datetime import datetime
+import psycopg2
+from psycopg2.extras import RealDictCursor  
 
 import click
 from flask import current_app, g
 
 def get_db():
-    if 'db' not in g:
-        g.db = sqlite3.connect(
-            current_app.config['DATABASE'],
-            detect_types=sqlite3.PARSE_DECLTYPES
+    if 'db' not in g:   # if theres not a db connection create one
+        g.db = psycopg2.connect(
+            database=current_app.config['DB_NAME'],                                                
+            user=current_app.config['DB_USER'],                                                    
+            host=current_app.config['DB_HOST'],                                                    
+            port=current_app.config['DB_PORT'],  
+            password=current_app.config['DB_PASSWORD'], 
+            cursor_factory=RealDictCursor  # converts tuples into dicts
         )
-        g.db.row_factory = sqlite3.Row
 
     return g.db
 
@@ -23,9 +26,13 @@ def close_db(e=None):
 
 def init_db():
     db = get_db()
-
-    with current_app.open_resource('schema.sql') as f:
-        db.executescript(f.read().decode('utf8'))
+    cur = db.cursor()                                                                      
+                                                                                             
+    with current_app.open_resource('schema.sql') as f:                                     
+        cur.execute(f.read().decode('utf8'))                                               
+                                                                                             
+    db.commit()                                                                            
+    cur.close()  
 
 
 @click.command('init-db')
@@ -34,10 +41,6 @@ def init_db_command():
     init_db()
     click.echo('Initialized the database.')
 
-
-sqlite3.register_converter(
-    "timestamp", lambda v: datetime.fromisoformat(v.decode())
-)
 
 def init_app(app):
     app.teardown_appcontext(close_db)
