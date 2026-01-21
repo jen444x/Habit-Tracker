@@ -1,6 +1,19 @@
 {% extends 'base.jinja' %}
 
+{% block view %}
+  <form action="{{ url_for('dashboard.toggle_view') }}" method="post" class="z-10">
+    <button>
+      {% if view['list_view'] %}
+        <span class="view-btn material-symbols-outlined ">grid_view </span>
+      {% else %}
+      <span class="view-btn material-symbols-outlined">format_list_bulleted</span>
+      {% endif %}
+    </button>
+  </form>
+{% endblock %}
+
 {% block header %}
+{# layout #}
   <h1>{% block title %}Due Today{% endblock %}</h1>
 {% endblock %}
 
@@ -12,7 +25,7 @@
 
   {# habits #}
   {% if view['list_view'] %}
-    <div class="mt-8 flex flex-col gap-4"></div>
+    <div class="mt-8 flex flex-col gap-4">
       {% for habit in habits %}
         {# Each habit  #}
         <div class="bg-white hover:bg-gray-100 cursor-pointer rounded-xl px-4 py-2 shadow-lg/30 border-3 border-calm-500">
@@ -35,7 +48,6 @@
             method="post" 
             class="basis-1/7"
             >
-              <input type="hidden" name="local_date">
               <button 
                   class="text-white text-xl bg-calm-500 hover:bg-calm-600 hover:bg-calm-700 rounded-xl cursor-pointer px-4 py-1.5 shadow-lg/30">
                 &#10004
@@ -50,43 +62,41 @@
     
     <div class="flex flex-col gap-4">
       {# List of habits done #}
-      <div class=" flex flex-col gap-4">
-        {% for habit in habits_done %}
-          {# Each habit   #}
-          <div class="bg-white hover:bg-gray-100 cursor-pointer rounded-xl px-4 py-2 shadow-lg/30 border-3 border-calm-500">
-            <div class="flex flex-row items-center">
-              <a 
-              class="habit basis-6/7 flex gap-6"
-              href="{{ url_for('dashboard.update', id=habit['id']) }}"
-              >
-                <h3 
-                  class="font-black text-xl font-bold text-calm-600">
-                  {{habit['title'] }} 
-                </h3>
-                <p 
-                  class="text-lg text-gray-500 font-sans font-light truncate">
-                  {{ habit['body'] }}
-                </p>
-              </a>
-              <form 
-              action="{{ url_for('dashboard.undo_complete', id=habit['id']) }}"
-              method="post" 
-              class="basis-1/7"
-              >
-                <button 
-                    class="text-white text-xl bg-calm-500 hover:bg-calm-600 hover:bg-calm-700 rounded-xl cursor-pointer px-4 py-1.5 shadow-lg/30">
-                  Undo
-                </button>
-              </form>
-            </div>
+      {% for habit in habits_done %}
+        {# Each habit   #}
+        <div class="bg-white hover:bg-gray-100 cursor-pointer rounded-xl px-4 py-2 shadow-lg/30 border-3 border-calm-500">
+          <div class="flex flex-row items-center">
+            <a 
+            class="habit basis-6/7 flex gap-6"
+            href="{{ url_for('dashboard.update', id=habit['id']) }}"
+            >
+              <h3 
+                class="font-black text-xl font-bold text-calm-600">
+                {{habit['title'] }} 
+              </h3>
+              <p 
+                class="text-lg text-gray-500 font-sans font-light truncate">
+                {{ habit['body'] }}
+              </p>
+            </a>
+            <form 
+            action="{{ url_for('dashboard.undo_complete', id=habit['id']) }}"
+            method="post" 
+            class="basis-1/7"
+            >
+              <button 
+                  class="text-white text-xl bg-calm-500 hover:bg-calm-600 hover:bg-calm-700 rounded-xl cursor-pointer px-4 py-1.5 shadow-lg/30">
+                Undo
+              </button>
+            </form>
           </div>
-        {% endfor %}
-      </div>
+        </div>
+      {% endfor %}
     </div>  
 
   {% else %}
     {# Grid view #}
-    <div class="overflow-x-auto">
+    <div class="mt-6 overflow-x-auto">
       <table class="border-collapse">
         {# Date headers #}
         <thead>

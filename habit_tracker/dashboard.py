@@ -67,9 +67,7 @@ def track():
                 completed = True
             else: completed = False
 
-            days.append({'date': d, 'completed': completed})
-            print(days)     
-            print()                                                           
+            days.append({'date': d, 'completed': completed})                                            
         habit_data.append({'habit': habit, 'days': days})   
     
     return habit_data, all_dates
@@ -127,7 +125,7 @@ def index():
     # Grid view        
     habit_data, all_dates = track()
 
-    return render_template('dashboard/track.jinja', habit_data=habit_data, dates=all_dates, view=view)
+    return render_template('dashboard/index.jinja', habit_data=habit_data, dates=all_dates, view=view)
 
 
 @bp.route('/create', methods=('GET', 'POST'))
@@ -240,7 +238,7 @@ def complete(id):
 def undo_complete(id):
     db=get_db() 
     cur = db.cursor()
-    today = date.today().isoformat() 
+    today = get_user_local_date()
     # set log to false
     cur.execute(
         'DELETE FROM habit_logs ' \
@@ -258,6 +256,20 @@ def delete(id):
     db = get_db()
     cur = db.cursor()
     cur.execute('DELETE FROM habits WHERE id = %s', (id,))
+    db.commit()
+    cur.close()
+    return redirect(url_for('dashboard.index'))
+
+@bp.route('/toggle_view', methods=("POST",))
+@login_required
+def toggle_view():
+    db = get_db()
+    cur = db.cursor()
+    cur.execute(
+        'UPDATE users' \
+        ' SET list_view = NOT list_view' \
+        ' WHERE id = %s', (g.user['id'],)
+    )
     db.commit()
     cur.close()
     return redirect(url_for('dashboard.index'))

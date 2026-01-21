@@ -6,7 +6,7 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,                                                                                                                                                
     username VARCHAR(50) UNIQUE NOT NULL,                                                                                                                                 
     password VARCHAR(255) NOT NULL,
-    list_view BOOLEAN DEFAULT TRUE   
+    list_view BOOLEAN DEFAULT TRUE,   
     timezone VARCHAR(50) DEFAULT 'UTC'                                                                                                                         
 );                                                                                                                                                                        
                                                                                                                                                                         
