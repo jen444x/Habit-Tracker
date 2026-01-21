@@ -8,20 +8,32 @@
     <!-- <title>Habit Tracker</title> -->
     <title>{% block title %}{% endblock %} - Habit Tracker</title>
 
+    {# styling #}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
 
+    {# fonts #}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Delius&display=swap"
       rel="stylesheet"
     />
+
+    {# icons #}
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
   </head>
   <body class="w-full h-dvh {% block body_class %}{% endblock %}">
     {% for message in get_flashed_messages() %}
       <div class="bg-calm-500 text-white px-4 py-2 rounded-xl mb-4 shadow">{{ message }}</div>
     {% endfor %}
+
+    {# Change view
+    {% if g.user %}
+      <span class="view-btn material-symbols-outlined ">grid_view </span>
+      <span class="view-btn material-symbols-outlined">format_list_bulleted</span>
+    {% endif %} #}
 
     <section class="flex flex-col px-8 pt-8 pb-22">
       <header class="w-3/4 mx-auto" >

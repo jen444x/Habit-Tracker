@@ -2,13 +2,77 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from werkzeug.exceptions import abort
-from datetime import date
 
+from zoneinfo import ZoneInfo                                                   
+from datetime import datetime, date, timedelta 
 
 from habit_tracker.auth import login_required
 from habit_tracker.db import get_db
 
 bp = Blueprint('dashboard', __name__)
+
+def get_user_local_date():                                                      
+      tz = ZoneInfo(g.user['timezone'])                                           
+      return datetime.now(tz).date()  
+
+def track():
+    db = get_db()
+    cur = db.cursor()
+
+    # Define date range
+    end_date = get_user_local_date()
+    start_date = end_date - timedelta(days=6)
+
+    # Get user habits
+    cur.execute(                                                                                          
+          'SELECT id, title FROM habits WHERE creator_id = %s',                                                       
+          (g.user['id'],)                                                                                           
+      )
+    habits = cur.fetchall()                                                                                                      
+    
+    # Generate all logs in the date range
+    cur.execute(
+        'SELECT * ' \
+        'FROM habit_logs hl ' \
+        'JOIN habits h'
+        ' ON hl.habit_id = h.id ' \
+        'WHERE creator_id = %s AND ' \
+        'log_date BETWEEN %s AND %s',
+        (g.user['id'], start_date.isoformat(), end_date.isoformat())
+    )
+    logs = cur.fetchall()
+
+    cur.close() 
+    
+    # Generate all dates                                                                                       
+    all_dates = []                                                                                                
+    current = start_date     
+                                                                                 
+    while current <= end_date:                                                                               
+        all_dates.append(current)                                                                                 
+        current += timedelta(days=1) 
+
+    # Set of habit id and date
+    completed_set = set()
+    for log in logs:
+        completed_set.add((log['habit_id'], log['log_date']))
+
+    # Build the full grid (habit × date)                                                                       
+    habit_data = []                                                                                               
+    for habit in habits:                                                                                          
+        days = []                                                                                                 
+        for d in all_dates:       
+            # check if theres a log for this habit on this date   
+            if (habit['id'], d) in completed_set: 
+                completed = True
+            else: completed = False
+
+            days.append({'date': d, 'completed': completed})
+            print(days)     
+            print()                                                           
+        habit_data.append({'habit': habit, 'days': days})   
+    
+    return habit_data, all_dates
 
 @bp.route('/')
 def index():
@@ -19,36 +83,52 @@ def index():
     db = get_db()
     cur = db.cursor()
 
-    # today = date.today().isoformat()                                                                                  
     cur.execute(
-        'SELECT h.id, h.title, h.body'
-        ' FROM habits h' 
-        ' LEFT JOIN habit_logs hl'
-        '   ON h.id = hl.habit_id'
-        '   AND hl.log_date = %s' 
-        ' WHERE h.creator_id = %s'
-        ' AND hl.habit_id IS NULL'
-        ' ORDER BY created_at DESC',
-        (date.today(), g.user['id'],)
+        'SELECT list_view' \
+        ' FROM users'
+        ' WHERE id = %s',
+        (g.user['id'],)
     )
+    view = cur.fetchone()
 
-    habits = cur.fetchall()
+    # List view
+    if view['list_view']:
+        today = get_user_local_date()                                                                               
+        cur.execute(
+            'SELECT h.id, h.title, h.body'
+            ' FROM habits h' 
+            ' LEFT JOIN habit_logs hl'
+            '   ON h.id = hl.habit_id'
+            '   AND hl.log_date = %s' 
+            ' WHERE h.creator_id = %s'
+            ' AND hl.habit_id IS NULL'
+            ' ORDER BY created_at DESC',
+            (today, g.user['id'],)
+        )
 
-    cur.execute(
-        'SELECT h.id, title, body'
-        ' FROM habits h' 
-        ' INNER JOIN habit_logs hl'
-        '   ON h.id = hl.habit_id'
-        '   AND hl.log_date = %s' 
-        ' WHERE h.creator_id = %s'
-        ' ORDER BY created_at DESC',
-        (date.today(), g.user['id'],)   
-    )
-    habits_done = cur.fetchall()
+        habits = cur.fetchall()
+        today = get_user_local_date()
+        cur.execute(
+            'SELECT h.id, title, body'
+            ' FROM habits h' 
+            ' INNER JOIN habit_logs hl'
+            '   ON h.id = hl.habit_id'
+            '   AND hl.log_date = %s' 
+            ' WHERE h.creator_id = %s'
+            ' ORDER BY created_at DESC',
+            (today, g.user['id'],)   
+        )
+        habits_done = cur.fetchall()
 
-    cur.close()
+        cur.close()
 
-    return render_template('dashboard/index.jinja', habits=habits, habits_done=habits_done)
+        return render_template('dashboard/index.jinja', habits=habits, habits_done=habits_done, view=view)
+
+    # Grid view        
+    habit_data, all_dates = track()
+
+    return render_template('dashboard/track.jinja', habit_data=habit_data, dates=all_dates, view=view)
+
 
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
@@ -142,12 +222,13 @@ def complete(id):
 
     db = get_db() 
     cur = db.cursor()
-    # today = date.today().isoformat() 
+    
+    today = get_user_local_date()
 
     # try create a log for today
     cur.execute(
         "INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)",
-        (date.today(), id)
+        (today, id)
     )
     db.commit()
     cur.close()

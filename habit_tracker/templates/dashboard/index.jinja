@@ -1,7 +1,7 @@
 {% extends 'base.jinja' %}
 
 {% block header %}
-  <h1>{% block title %}Florifer{% endblock %}</h1>
+  <h1>{% block title %}Due Today{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
@@ -10,80 +10,120 @@
     + New Habit
   </a>
 
-  {# List of habits not completed #}
-  <div class="mt-8 flex flex-col gap-4">
-  {% for habit in habits %}
-    {# Each habit  #}
-    <div class="bg-white hover:bg-gray-100 cursor-pointer rounded-xl px-4 py-2 shadow-lg/30 border-3 border-calm-500">
-      <div class="flex flex-row items-center">
-        <a 
-        class="habit basis-6/7 flex gap-6"
-        href="{{ url_for('dashboard.update', id=habit['id']) }}"
-        >
-            <h3 
-              class="font-black text-xl font-bold text-calm-600">
-              {{habit['title'] }}
-            </h3>
-            <p 
-              class="text-lg text-gray-500 font-sans font-light truncate">
-              {{ habit['body'] }}
-            </p>
-        </a>
-        <form 
-        action="{{ url_for('dashboard.complete', id=habit['id']) }}"
-        method="post" 
-        class="basis-1/7"
-        >
-          <button 
-              class="status-btn text-white text-xl bg-calm-500 hover:bg-calm-600 hover:bg-calm-700 rounded-xl cursor-pointer px-4 py-1.5 shadow-lg/30">
-            &#10004
-          </button>
-        </form>
+  {# habits #}
+  {% if view['list_view'] %}
+    <div class="mt-8 flex flex-col gap-4"></div>
+      {% for habit in habits %}
+        {# Each habit  #}
+        <div class="bg-white hover:bg-gray-100 cursor-pointer rounded-xl px-4 py-2 shadow-lg/30 border-3 border-calm-500">
+          <div class="flex flex-row items-center">
+            <a 
+            class="habit basis-6/7 flex gap-6"
+            href="{{ url_for('dashboard.update', id=habit['id']) }}"
+            >
+                <h3 
+                  class="font-black text-xl font-bold text-calm-600">
+                  {{habit['title'] }}
+                </h3>
+                <p 
+                  class="text-lg text-gray-500 font-sans font-light truncate">
+                  {{ habit['body'] }}
+                </p>
+            </a>
+            <form 
+            action="{{ url_for('dashboard.complete', id=habit['id']) }}"
+            method="post" 
+            class="basis-1/7"
+            >
+              <input type="hidden" name="local_date">
+              <button 
+                  class="text-white text-xl bg-calm-500 hover:bg-calm-600 hover:bg-calm-700 rounded-xl cursor-pointer px-4 py-1.5 shadow-lg/30">
+                &#10004
+              </button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
     </div>
-  </div>
-  {% endfor %}
 
-  <hr class="my-4 border-t border-gray-400">
+    <hr class="my-8 border-t border-gray-400">
+    
+    <div class="flex flex-col gap-4">
+      {# List of habits done #}
+      <div class=" flex flex-col gap-4">
+        {% for habit in habits_done %}
+          {# Each habit   #}
+          <div class="bg-white hover:bg-gray-100 cursor-pointer rounded-xl px-4 py-2 shadow-lg/30 border-3 border-calm-500">
+            <div class="flex flex-row items-center">
+              <a 
+              class="habit basis-6/7 flex gap-6"
+              href="{{ url_for('dashboard.update', id=habit['id']) }}"
+              >
+                <h3 
+                  class="font-black text-xl font-bold text-calm-600">
+                  {{habit['title'] }} 
+                </h3>
+                <p 
+                  class="text-lg text-gray-500 font-sans font-light truncate">
+                  {{ habit['body'] }}
+                </p>
+              </a>
+              <form 
+              action="{{ url_for('dashboard.undo_complete', id=habit['id']) }}"
+              method="post" 
+              class="basis-1/7"
+              >
+                <button 
+                    class="text-white text-xl bg-calm-500 hover:bg-calm-600 hover:bg-calm-700 rounded-xl cursor-pointer px-4 py-1.5 shadow-lg/30">
+                  Undo
+                </button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>  
 
-  {# List of habits done #}
-  <div class=" flex flex-col gap-4">
-  {% for habit in habits_done %}
-    {# Each habit  #}
-    <div class="bg-white hover:bg-gray-100 cursor-pointer rounded-xl px-4 py-2 shadow-lg/30 border-3 border-calm-500">
-      <div class="flex flex-row items-center">
-        <a 
-        class="habit basis-6/7 flex gap-6"
-        href="{{ url_for('dashboard.update', id=habit['id']) }}"
-        >
-            <h3 
-              class="font-black text-xl font-bold text-calm-600">
-              {{habit['title'] }} 
-            </h3>
-            <p 
-              class="text-lg text-gray-500 font-sans font-light truncate">
-              {{ habit['body'] }}
-            </p>
-        </a>
-        <form 
-        action="{{ url_for('dashboard.undo_complete', id=habit['id']) }}"
-        method="post" 
-        class="basis-1/7"
-        >
-          <button 
-              class="status-btn text-white text-xl bg-calm-500 hover:bg-calm-600 hover:bg-calm-700 rounded-xl cursor-pointer px-4 py-1.5 shadow-lg/30">
-            Undo
-          </button>
-        </form>
+  {% else %}
+    {# Grid view #}
+    <div class="overflow-x-auto">
+      <table class="border-collapse">
+        {# Date headers #}
+        <thead>
+          <tr>
+            <th class="p-2"></th>
+            {% for date in dates %}
+              <th class="p-1 text-xs text-gray-500 font-normal">
+                {{ date.strftime('%d') }}
+              </th>
+            {% endfor %}
+          </tr>
+        </thead>
+
+        {# Habit rows #}
+        <tbody>
+          {% for item in habit_data %}
+            <tr>
+              <td class="pr-4 py-2 text-sm font-medium text-calm-600 whitespace-nowrap">
+                {{ item.habit.title }}
+              </td>
+              {% for day in item.days %}
+                <td class="p-1">
+                  <div
+                    class="w-6 h-6 rounded
+                      {% if day.completed %}
+                        bg-calm-500
+                      {% else %}
+                        bg-gray-200
+                      {% endif %}"
+                    title="{{ day.date }}">
+                  </div>
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-  </div>
-  {% endfor %}
-  </div>
-
-  {# Visualize data #}
-  <hr class="my-5 border-t border-gray-700">
-  <a 
-  class="text-center bg-calm-400 hover:bg-calm-500 text-bg-calm-500 p-2 rounded font-bold cursor-pointer text-xl shadow-lg/30" 
-  href="{{ url_for('visuals.track') }}">
-    Weekly habit completion
-  </a>
+  {% endif %}
 {% endblock %}
