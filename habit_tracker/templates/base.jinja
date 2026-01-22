@@ -22,16 +22,16 @@
 
     {# icons #}
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-
+    
   </head>
   <body class="w-full h-dvh {% block body_class %}{% endblock %}">
     {% for message in get_flashed_messages() %}
       <div class="bg-calm-500 text-white px-4 py-2 rounded-xl mb-4 shadow">{{ message }}</div>
     {% endfor %}
 
-    {% block view %}{% endblock %}
+    <section class="flex flex-col px-8 pt-1 pb-22">
+      {% block view %}{% endblock %}
 
-    <section class="flex flex-col px-8 pt-8 pb-22">
       <header class="w-3/4 mx-auto" >
         {% block header %}{% endblock %}
       </header>
@@ -41,7 +41,7 @@
 
     <nav class="fixed bottom-0 left-0 right-0 overscroll-none bg-calm-600 shadow-lg/30">
       {% if g.user %}
-        <div class="flex justify-around items-stretch divide-x-1 my-4 text-center text-white">
+        <div class="flex justify-around items-stretch divide-x-1 mt-3 mb-5 text-center text-white">
           <div class="flex-1">
             <a 
             href="{{ url_for('dashboard.index') }}" 
