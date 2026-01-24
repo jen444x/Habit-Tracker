@@ -15,7 +15,8 @@ CREATE TABLE habits (
     creator_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,                                                                                                   
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),                                                                                                                        
     title VARCHAR(100) NOT NULL,                                                                                                                                          
-    body TEXT NOT NULL                                                                                                                                                    
+    body TEXT NOT NULL,
+    display_order INTEGER
 );                                                                                                                                                                        
                                                                                                                                                                         
 CREATE TABLE habit_logs (                                                                                                                                                 

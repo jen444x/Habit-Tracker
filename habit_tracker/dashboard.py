@@ -25,7 +25,10 @@ def track():
 
     # Get user habits
     cur.execute(                                                                                          
-          'SELECT id, title FROM habits WHERE creator_id = %s',                                                       
+          'SELECT id, title ' \
+          'FROM habits ' \
+          'WHERE creator_id = %s '
+          'ORDER BY display_order DESC',                                                       
           (g.user['id'],)                                                                                           
       )
     habits = cur.fetchall()                                                                                                      
@@ -100,7 +103,7 @@ def index():
             '   AND hl.log_date = %s' 
             ' WHERE h.creator_id = %s'
             ' AND hl.habit_id IS NULL'
-            ' ORDER BY created_at DESC',
+            ' ORDER BY display_order DESC',
             (today, g.user['id'],)
         )
 
@@ -112,8 +115,7 @@ def index():
             ' INNER JOIN habit_logs hl'
             '   ON h.id = hl.habit_id'
             '   AND hl.log_date = %s' 
-            ' WHERE h.creator_id = %s'
-            ' ORDER BY created_at DESC',
+            ' WHERE h.creator_id = %s',
             (today, g.user['id'],)   
         )
         habits_done = cur.fetchall()
@@ -144,12 +146,14 @@ def create():
         else:
             db = get_db()
             cur = db.cursor()
-            
+
             # create habit
             cur.execute(
-                'INSERT INTO habits (title, body, creator_id)'
-                ' VALUES (%s, %s, %s)',
-                (title, body, g.user['id'])
+                'INSERT INTO habits (title, body, creator_id, display_order)'
+                ' VALUES (%s, %s, %s, (' \
+                'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
+                'FROM habits WHERE creator_id = %s))',
+                (title, body, g.user['id'], g.user['id'])
             )
             db.commit()
             cur.close()
