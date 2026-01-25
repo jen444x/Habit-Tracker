@@ -1,0 +1,51 @@
+{% extends 'base.jinja' %}
+
+{% block header %}
+{# layout #}
+  <h1>{% block title %}Challenges{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  {# Add new challenge #}
+<a 
+class="text-center bg-calm-600 hover:bg-calm-500 text-white py-2 rounded font-bold cursor-pointer text-xl shadow-lg/30" 
+href="{{ url_for('challenges.create') }}">
+    + New Challenge
+</a>
+
+{# challenges #}
+<div class="flex flex-col gap-4 my-6">
+    {% for challenge in challenges %}
+    {# Each challenge  #}
+    <div class="bg-white hover:bg-gray-100 cursor-pointer rounded-xl px-4 py-3.5 shadow-lg/30 border-3 border-calm-500">
+        <div class="flex flex-row items-center">
+        <a 
+        class="challenge basis-6/7 flex gap-6"
+        href="{{ url_for('challenges.update', id=challenge['id']) }}"
+        >
+            <h3 
+                class="font-black text-xl font-bold text-calm-600">
+                {{challenge['title'] }}
+            </h3>
+            <p 
+                class="text-lg text-gray-500 font-sans font-light truncate">
+                {{ challenge['body'] }}
+            </p>
+        </a>
+        {# <form 
+        action="{{ url_for('challenges.complete', id=challenge['id']) }}"
+        method="post" 
+        class="basis-1/7"
+        >
+            <button 
+                class="text-white text-xl bg-calm-500 hover:bg-calm-600 hover:bg-calm-700 rounded-xl cursor-pointer px-4 py-1.5 shadow-lg/30">
+            &#10004
+            </button>
+        </form> #}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+{% endblock %}

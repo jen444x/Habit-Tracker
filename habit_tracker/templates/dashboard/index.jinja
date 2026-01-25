@@ -1,7 +1,17 @@
 {% extends 'base.jinja' %}
 
-{% block view %}
-  <form action="{{ url_for('dashboard.toggle_view') }}" method="post" class="z-10 text-right">
+{% block header %}
+{# layout #}
+  <h1>{% block title %}Due Today{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  {# Add new habit #}
+  <a class="text-center bg-calm-600 hover:bg-calm-500 text-white py-2 rounded font-bold cursor-pointer text-xl shadow-lg/30" href="{{ url_for('dashboard.create') }}">
+    + New Habit
+  </a>
+
+  <form action="{{ url_for('dashboard.toggle_view') }}" method="post" class="mt-3 mb-1 text-right">
     <button>
       {% if view['list_view'] %}
         <svg xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="#000000"><path d="M120-520v-320h320v320H120Zm0 400v-320h320v320H120Zm400-400v-320h320v320H520Zm0 400v-320h320v320H520ZM200-600h160v-160H200v160Zm400 0h160v-160H600v160Zm0 400h160v-160H600v160Zm-400 0h160v-160H200v160Zm400-400Zm0 240Zm-240 0Zm0-240Z"/></svg>
@@ -10,22 +20,10 @@
       {% endif %}
     </button>
   </form>
-{% endblock %}
-
-{% block header %}
-{# layout #}
-  <h1>{% block title %}Due Today{% endblock %}</h1>
-{% endblock %}
-
-{% block content %}
-  {# Add new habit #}
-  <a class="text-center bg-calm-600 hover:bg-calm-500 text-white p-2 rounded font-bold cursor-pointer text-xl shadow-lg/30" href="{{ url_for('dashboard.create') }}">
-    + New Habit
-  </a>
 
   {# habits #}
   {% if view['list_view'] %}
-    <div class="mt-8 flex flex-col gap-4">
+    <div class="flex flex-col gap-4">
       {% for habit in habits %}
         {# Each habit  #}
         <div class="bg-white hover:bg-gray-100 cursor-pointer rounded-xl px-4 py-2 shadow-lg/30 border-3 border-calm-500">

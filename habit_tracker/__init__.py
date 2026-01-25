@@ -56,6 +56,9 @@ def create_app(test_config=None):
 
     from . import visuals
     app.register_blueprint(visuals.bp)
+    
+    from . import challenges
+    app.register_blueprint(challenges.bp)
 
     from . import chat
     app.register_blueprint(chat.bp)

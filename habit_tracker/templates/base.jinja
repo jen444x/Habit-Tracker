@@ -30,8 +30,6 @@
     {% endfor %}
 
     <section class="flex flex-col px-4 pt-4 pb-22">
-      {% block view %}{% endblock %}
-
       <header class="w-3/4 mx-auto" >
         {% block header %}{% endblock %}
       </header>
@@ -44,9 +42,16 @@
         <div class="flex justify-around items-stretch divide-x-1 mt-3 mb-5 text-center text-white">
           <div class="flex-1">
             <a 
+            href="{{ url_for('challenges.index') }}" 
+            class= "text-xl font-medium">
+              Challenges
+            </a>
+          </div> 
+          <div class="flex-1">
+            <a 
             href="{{ url_for('dashboard.index') }}" 
             class= "text-xl font-medium">
-              Home
+              Habits
             </a>
           </div> 
           <div class="flex-1 ">

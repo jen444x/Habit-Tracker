@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS habit_logs;                                                                                                                                          
 DROP TABLE IF EXISTS habits;                                                                                                                                              
-DROP TABLE IF EXISTS users;                                                                                                                                               
+DROP TABLE IF EXISTS users;  
+DROP TABLE IF EXISTS projects                                                                                                                                             
                                                                                                                                                                         
 CREATE TABLE users (                                                                                                                                                      
     id SERIAL PRIMARY KEY,                                                                                                                                                
@@ -12,7 +13,8 @@ CREATE TABLE users (
                                                                                                                                                                         
 CREATE TABLE habits (                                                                                                                                                     
     id SERIAL PRIMARY KEY,                                                                                                                                                
-    creator_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,                                                                                                   
+    creator_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,   
+    challenge_id INTEGER REFERENCES challenges(id) ON DELETE CASCADE,                                                                                                
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),                                                                                                                        
     title VARCHAR(100) NOT NULL,                                                                                                                                          
     body TEXT NOT NULL,
@@ -24,3 +26,11 @@ CREATE TABLE habit_logs (
     habit_id INTEGER NOT NULL REFERENCES habits(id) ON DELETE CASCADE,                                                                                                    
     PRIMARY KEY (habit_id, log_date)                                                                                                                                      
 );                                                                                                                                                                        
+
+CREATE TABLE challenges (
+    id SERIAL PRIMARY KEY,
+    creator_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    title VARCHAR(100) NOT NULL,     
+    body TEXT NOT NULL,
+);
