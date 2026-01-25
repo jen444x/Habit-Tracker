@@ -125,3 +125,40 @@ def delete(id):
     db.commit()
     cur.close()
     return redirect(url_for('challenges.index'))
+
+@bp.route('/<int:id>/challenge', methods=('GET', 'POST'))
+@login_required
+def challenge(id):
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute(
+        'SELECT c.id, title, body, creator_id'
+        ' FROM challenges c'
+        ' JOIN users u'
+        ' ON c.creator_id = u.id'
+        ' WHERE c.id = %s',
+        (id,)
+    )
+    challenge = cur.fetchone()
+
+    cur.execute(
+        'SELECT * ' \
+        'FROM habits ' \
+        'WHERE challenge_id = %s',
+        (id,)
+    )
+    habits = cur.fetchall()
+
+    cur.close()
+
+    if challenge is None:
+        abort(404, f"Challenge id {id} doesn't exist.")
+
+    if challenge['creator_id'] != g.user['id']:
+        abort(403)
+
+    
+
+    return render_template('challenges/challenge.jinja', challenge=challenge, habits=habits)
+

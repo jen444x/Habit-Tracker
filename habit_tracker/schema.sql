@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS habit_logs;                                                                                                                                          
 DROP TABLE IF EXISTS habits;                                                                                                                                              
 DROP TABLE IF EXISTS users;  
-DROP TABLE IF EXISTS projects                                                                                                                                             
+DROP TABLE IF EXISTS challenges;                                                                                                                                             
                                                                                                                                                                         
 CREATE TABLE users (                                                                                                                                                      
     id SERIAL PRIMARY KEY,                                                                                                                                                
@@ -32,5 +32,5 @@ CREATE TABLE challenges (
     creator_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     title VARCHAR(100) NOT NULL,     
-    body TEXT NOT NULL,
+    body TEXT NOT NULL
 );

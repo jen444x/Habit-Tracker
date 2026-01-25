@@ -1,0 +1,62 @@
+{% extends 'base.jinja' %}
+
+{% block header %}
+{# layout #}
+  <h1>{% block title %}{{challenge['title']}}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <a 
+    href="{{ url_for('challenges.challenge', id=challenge['id']) }}"
+    >
+        <p 
+            class="text-lg text-gray-500 font-normal text-center">
+            {{ challenge['body'] }}
+        </p>
+    </a>
+    
+    {# habits associated with proj #}
+    {# habits #}
+    <div class="flex flex-col gap-4 mt-4">
+      {% for habit in habits %}
+        {# Each habit  #}
+        <div class="bg-white hover:bg-gray-100 cursor-pointer rounded-xl px-4 py-2 shadow-lg/30 border-3 border-calm-500">
+          <div class="flex flex-row items-center">
+            <a 
+            class="habit basis-6/7 flex gap-6"
+            href="{{ url_for('dashboard.update', id=habit['id']) }}"
+            >
+                <h3 
+                  class="font-black text-xl font-bold text-calm-600">
+                  {{habit['title'] }}
+                </h3>
+                <p 
+                  class="text-lg text-gray-500 font-sans font-light truncate">
+                  {{ habit['body'] }}
+                </p>
+            </a>
+            <form 
+            action="{{ url_for('dashboard.complete', id=habit['id']) }}"
+            method="post" 
+            class="basis-1/7"
+            >
+              <button 
+                  class="text-white text-xl bg-calm-500 hover:bg-calm-600 hover:bg-calm-700 rounded-xl cursor-pointer px-4 py-1.5 shadow-lg/30">
+                &#10004
+              </button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <a 
+    href="{{ url_for('challenges.update', id=challenge['id']) }}"
+    class="text-center"
+    >
+        <button 
+            class="mt-6 text-white text-xl bg-calm-500 hover:bg-calm-600 hover:bg-calm-700 rounded-xl cursor-pointer px-2 py-1 shadow-lg/30">
+            Edit Challenge
+        </button>
+    </a>
+{% endblock %}

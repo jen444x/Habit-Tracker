@@ -167,7 +167,7 @@ def get_habit(id):
     cur = db.cursor()
 
     cur.execute(
-        'SELECT h.id, title, body, creator_id'
+        'SELECT h.id, title, challenge_id, body, creator_id'
         ' FROM habits h'
         ' JOIN users u'
         ' ON h.creator_id = u.id'
@@ -189,10 +189,13 @@ def get_habit(id):
 @login_required
 def update(id):
     habit = get_habit(id)
-    print(f"habit: {habit}")
+
+    if not habit['challenge_id']:
+        habit['challenge_id'] = ''
 
     if request.method == 'POST':
         title = request.form['title']
+        challenge = request.form['challenge']
         body = request.form['body']
         error = None
 
@@ -206,9 +209,9 @@ def update(id):
             cur = db.cursor()
             cur.execute(
                 'UPDATE habits'
-                ' SET title = %s, body = %s'
+                ' SET title = %s, challenge_id = %s, body = %s'
                 ' WHERE id = %s',
-                (title, body, id)
+                (title, challenge, body, id)
             )
             db.commit()
             cur.close()
