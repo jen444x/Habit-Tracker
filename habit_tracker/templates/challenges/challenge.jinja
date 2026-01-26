@@ -3,27 +3,108 @@
 {% block title %}{{ challenge['title'] }}{% endblock %}
 
 {% block header %}
-  <a href="{{ url_for('challenges.update', id=challenge['id']) }}" class="block mb-8 text-center">
-    <h1>{{ challenge['title'] }}</h1>
-    {% if challenge['body'] %}
-      <p class="text-gray-400 mt-1">{{ challenge['body'] }}</p>
-    {% endif %}
-  </a>
+  <h1>Challenge</h1>
 {% endblock %}
 
 {% block content %}
-  {# Stats section #}
+  {# Challenge switcher + edit #}
+  <div class="flex gap-3 mb-6">
+    <div class="flex-1 relative">
+      <select
+        onchange="window.location.href=this.value"
+        class="w-full appearance-none bg-white border-2 border-calm-500 rounded-lg px-4 py-2 text-xl font-bold text-calm-600 cursor-pointer hover:bg-gray-50 transition-colors duration-150 pr-10"
+      >
+        {% for c in all_challenges %}
+          <option value="{{ url_for('challenges.challenge', id=c['id']) }}" {% if c['id'] == challenge['id'] %}selected{% endif %}>
+            {{ c['title'] }}
+          </option>
+        {% endfor %}
+      </select>
+      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-calm-500">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </div>
+    </div>
+    <a
+      href="{{ url_for('challenges.update', id=challenge['id']) }}"
+      class="px-3 flex items-center bg-white hover:bg-gray-50 border-2 border-calm-500 rounded-lg cursor-pointer transition-colors duration-150"
+      title="Edit challenge"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#0d9488">
+        <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
+      </svg>
+    </a>
+    <a
+      href="{{ url_for('challenges.create') }}"
+      class="px-3 flex items-center bg-calm-600 hover:bg-calm-500 rounded-lg cursor-pointer transition-colors duration-150"
+      title="New challenge"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="white">
+        <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/>
+      </svg>
+    </a>
+  </div>
+
+  {% if challenge['body'] %}
+    <p class="text-gray-500 mb-6">{{ challenge['body'] }}</p>
+  {% endif %}
+
+  {# Weekly Progress #}
   {% if weeks %}
-  <section class="mb-10 bg-gray-50 rounded-2xl p-6">
+  <section class="mb-6 bg-white rounded-xl p-5 border-2 border-calm-500 shadow-lg/30">
     <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-4">Weekly Progress</h2>
-    <div class="flex items-end gap-3 h-36">
+    <div class="flex items-end gap-3 h-32 overflow-x-auto">
       {% for week in weeks %}
-        <div class="flex flex-col items-center w-12">
+        <div class="flex flex-col items-center min-w-[3rem]">
           <span class="text-sm font-bold text-calm-600 mb-2">{{ week.percentage|round(0)|int }}%</span>
-          <div class="w-full bg-calm-500 rounded-lg transition-all" style="height: {{ [week.percentage * 1.2, 8]|max }}px;"></div>
+          <div class="w-full bg-calm-500 rounded-lg transition-all" style="height: {{ [week.percentage * 1.0, 6]|max }}px;"></div>
           <span class="text-xs text-gray-400 mt-2">W{{ loop.index }}</span>
         </div>
       {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {# Last 7 Days Grid #}
+  {% if habit_data %}
+  <section class="mb-8 bg-white rounded-xl p-5 border-2 border-calm-500 shadow-lg/30">
+    <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-4">Last 7 Days</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr>
+            <th class="p-2"></th>
+            {% for date in dates %}
+              <th class="p-1 text-xs text-gray-500 font-normal text-center">
+                {{ date.strftime('%a') }}<br>{{ date.strftime('%d') }}
+              </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in habit_data %}
+            <tr>
+              <td class="pr-4 py-2 text-sm font-medium text-calm-600 whitespace-nowrap">
+                {{ item.habit.title }}
+              </td>
+              {% for day in item.days %}
+                <td class="p-1 text-center">
+                  <div
+                    class="w-6 h-6 mx-auto rounded
+                      {% if day.completed %}
+                        bg-calm-500
+                      {% else %}
+                        bg-gray-200
+                      {% endif %}"
+                    title="{{ day.date }}">
+                  </div>
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </section>
   {% endif %}
@@ -32,25 +113,27 @@
   <section>
     <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-4">Habits</h2>
     {% if habits %}
-      <div class="flex flex-col gap-3">
+      <div class="flex flex-col gap-4">
         {% for habit in habits %}
-          <div class="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
-            <a href="{{ url_for('dashboard.update', id=habit['id']) }}" class="flex-1">
-              <span class="font-bold text-calm-700">{{ habit['title'] }}</span>
-              {% if habit['body'] %}
-                <p class="text-gray-400 text-sm mt-0.5">{{ habit['body']|truncate(50) }}</p>
-              {% endif %}
-            </a>
-            <form action="{{ url_for('dashboard.complete', id=habit['id']) }}" method="post" class="ml-4">
-              <button class="w-10 h-10 flex items-center justify-center text-white bg-calm-500 hover:bg-calm-600 rounded-full text-lg">
-                &#10004;
-              </button>
-            </form>
+          <div class="bg-white hover:bg-gray-50 cursor-pointer rounded-xl px-4 py-3 shadow-lg/30 border-2 border-calm-500 transition-all duration-150">
+            <div class="flex flex-row items-center">
+              <a href="{{ url_for('dashboard.update', id=habit['id']) }}" class="flex-1 flex gap-6">
+                <h3 class="font-black text-xl font-bold text-calm-600">{{ habit['title'] }}</h3>
+                {% if habit['body'] %}
+                  <p class="text-lg text-gray-500 font-sans font-light truncate">{{ habit['body'] }}</p>
+                {% endif %}
+              </a>
+              <form action="{{ url_for('dashboard.complete', id=habit['id']) }}" method="post" class="ml-4">
+                <button class="text-white text-xl bg-calm-500 hover:bg-calm-600 rounded-xl cursor-pointer px-4 py-1.5 shadow-lg/30 transition-colors duration-150">
+                  &#10004
+                </button>
+              </form>
+            </div>
           </div>
         {% endfor %}
       </div>
     {% else %}
-      <p class="text-gray-400 bg-gray-50 rounded-xl px-4 py-6 text-center">No habits yet. Add habits and assign them to this challenge.</p>
+      <p class="text-gray-400 bg-gray-50 rounded-xl px-4 py-6 text-center border-2 border-dashed border-gray-300">No habits yet. Add habits and assign them to this challenge.</p>
     {% endif %}
   </section>
 {% endblock %}

@@ -12,27 +12,24 @@ from zoneinfo import ZoneInfo
 bp = Blueprint('challenges', __name__, url_prefix='/challenges')
 
 @bp.route('/')
+@login_required
 def index():
-    # Show landing page for logged-out users
-    if g.user is None:
-        return render_template('auth/landing.jinja')
-    
     db = get_db()
     cur = db.cursor()
 
-    # get habits
+    # Get first challenge to redirect to
     cur.execute(
-        'SELECT *' \
-        ' FROM challenges' \
-        ' WHERE creator_id = %s',
+        'SELECT id FROM challenges WHERE creator_id = %s ORDER BY id LIMIT 1',
         (g.user['id'],)
     )
-
-    challenges = cur.fetchall()
+    first_challenge = cur.fetchone()
     cur.close()
 
-
-    return render_template('challenges/index.jinja', challenges=challenges)
+    if first_challenge:
+        return redirect(url_for('challenges.challenge', id=first_challenge['id']))
+    else:
+        # No challenges yet - show create page
+        return redirect(url_for('challenges.create'))
 
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
@@ -199,9 +196,52 @@ def challenge(id):
 
         current_week_start += timedelta(days=7)
 
+    # Get all challenges for the switcher dropdown
+    cur.execute(
+        'SELECT id, title FROM challenges WHERE creator_id = %s ORDER BY id',
+        (g.user['id'],)
+    )
+    all_challenges = cur.fetchall()
+
+    # Build grid data for last 7 days
+    end_date = today
+    start_date = end_date - timedelta(days=6)
+
+    # Get habit logs for the date range
+    cur.execute(
+        'SELECT hl.habit_id, hl.log_date '
+        'FROM habit_logs hl '
+        'JOIN habits h ON hl.habit_id = h.id '
+        'WHERE h.challenge_id = %s '
+        'AND hl.log_date BETWEEN %s AND %s',
+        (id, start_date, end_date)
+    )
+    logs = cur.fetchall()
+
+    # Generate all dates
+    all_dates = []
+    current = start_date
+    while current <= end_date:
+        all_dates.append(current)
+        current += timedelta(days=1)
+
+    # Set of (habit_id, date) for quick lookup
+    completed_set = set()
+    for log in logs:
+        completed_set.add((log['habit_id'], log['log_date']))
+
+    # Build the grid
+    habit_data = []
+    for habit in habits:
+        days = []
+        for d in all_dates:
+            completed = (habit['id'], d) in completed_set
+            days.append({'date': d, 'completed': completed})
+        habit_data.append({'habit': habit, 'days': days})
+
     cur.close()
 
-    return render_template('challenges/challenge.jinja', challenge=challenge, habits=habits, weeks=weeks)
+    return render_template('challenges/challenge.jinja', challenge=challenge, habits=habits, weeks=weeks, all_challenges=all_challenges, habit_data=habit_data, dates=all_dates)
 
 @bp.route('/challenge/<int:id>/stats')
 @login_required

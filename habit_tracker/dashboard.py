@@ -3,77 +3,17 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 
-from zoneinfo import ZoneInfo                                                   
-from datetime import datetime, date, timedelta 
+from zoneinfo import ZoneInfo
+from datetime import datetime 
 
 from habit_tracker.auth import login_required
 from habit_tracker.db import get_db
 
 bp = Blueprint('dashboard', __name__)
 
-def get_user_local_date():                                                      
-      tz = ZoneInfo(g.user['timezone'])                                           
-      return datetime.now(tz).date()  
-
-def track():
-    db = get_db()
-    cur = db.cursor()
-
-    # Define date range
-    end_date = get_user_local_date()
-    start_date = end_date - timedelta(days=6)
-
-    # Get user habits
-    cur.execute(                                                                                          
-          'SELECT id, title ' \
-          'FROM habits ' \
-          'WHERE creator_id = %s '
-          'ORDER BY display_order DESC',                                                       
-          (g.user['id'],)                                                                                           
-      )
-    habits = cur.fetchall()                                                                                                      
-    
-    # Generate all logs in the date range
-    cur.execute(
-        'SELECT * ' \
-        'FROM habit_logs hl ' \
-        'JOIN habits h'
-        ' ON hl.habit_id = h.id ' \
-        'WHERE creator_id = %s AND ' \
-        'log_date BETWEEN %s AND %s',
-        (g.user['id'], start_date.isoformat(), end_date.isoformat())
-    )
-    logs = cur.fetchall()
-
-    cur.close() 
-    
-    # Generate all dates                                                                                       
-    all_dates = []                                                                                                
-    current = start_date     
-                                                                                 
-    while current <= end_date:                                                                               
-        all_dates.append(current)                                                                                 
-        current += timedelta(days=1) 
-
-    # Set of habit id and date
-    completed_set = set()
-    for log in logs:
-        completed_set.add((log['habit_id'], log['log_date']))
-
-    # Build the full grid (habit × date)                                                                       
-    habit_data = []                                                                                               
-    for habit in habits:                                                                                          
-        days = []                                                                                                 
-        for d in all_dates:       
-            # check if theres a log for this habit on this date   
-            if (habit['id'], d) in completed_set: 
-                completed = True
-            else: completed = False
-
-            days.append({'date': d, 'completed': completed})                                            
-        habit_data.append({'habit': habit, 'days': days})   
-    
-    return habit_data, all_dates
+def get_user_local_date():
+    tz = ZoneInfo(g.user['timezone'])
+    return datetime.now(tz).date()
 
 @bp.route('/')
 def index():
@@ -84,50 +24,57 @@ def index():
     db = get_db()
     cur = db.cursor()
 
+    # Get challenge filter from query param
+    challenge_filter = request.args.get('challenge', type=int)
+
+    # Get all challenges for the filter dropdown
     cur.execute(
-        'SELECT list_view' \
-        ' FROM users'
-        ' WHERE id = %s',
+        'SELECT id, title FROM challenges WHERE creator_id = %s ORDER BY id',
         (g.user['id'],)
     )
-    view = cur.fetchone()
+    all_challenges = cur.fetchall()
 
-    # List view
-    if view['list_view']:
-        today = get_user_local_date()                                                                               
-        cur.execute(
-            'SELECT h.id, h.title, h.body'
-            ' FROM habits h' 
-            ' LEFT JOIN habit_logs hl'
-            '   ON h.id = hl.habit_id'
-            '   AND hl.log_date = %s' 
-            ' WHERE h.creator_id = %s'
-            ' AND hl.habit_id IS NULL'
-            ' ORDER BY display_order DESC',
-            (today, g.user['id'],)
-        )
+    # Build challenge filter clause
+    if challenge_filter:
+        challenge_clause = ' AND h.challenge_id = %s'
+        challenge_param = (challenge_filter,)
+    else:
+        challenge_clause = ''
+        challenge_param = ()
 
-        habits = cur.fetchall()
-        today = get_user_local_date()
-        cur.execute(
-            'SELECT h.id, title, body'
-            ' FROM habits h' 
-            ' INNER JOIN habit_logs hl'
-            '   ON h.id = hl.habit_id'
-            '   AND hl.log_date = %s' 
-            ' WHERE h.creator_id = %s',
-            (today, g.user['id'],)   
-        )
-        habits_done = cur.fetchall()
+    today = get_user_local_date()
 
-        cur.close()
+    # Get incomplete habits
+    cur.execute(
+        'SELECT h.id, h.title, h.body'
+        ' FROM habits h'
+        ' LEFT JOIN habit_logs hl'
+        '   ON h.id = hl.habit_id'
+        '   AND hl.log_date = %s'
+        ' WHERE h.creator_id = %s'
+        ' AND hl.habit_id IS NULL'
+        + challenge_clause +
+        ' ORDER BY display_order DESC',
+        (today, g.user['id']) + challenge_param
+    )
+    habits = cur.fetchall()
 
-        return render_template('dashboard/index.jinja', habits=habits, habits_done=habits_done, view=view)
+    # Get completed habits
+    cur.execute(
+        'SELECT h.id, title, body'
+        ' FROM habits h'
+        ' INNER JOIN habit_logs hl'
+        '   ON h.id = hl.habit_id'
+        '   AND hl.log_date = %s'
+        ' WHERE h.creator_id = %s'
+        + challenge_clause,
+        (today, g.user['id']) + challenge_param
+    )
+    habits_done = cur.fetchall()
 
-    # Grid view        
-    habit_data, all_dates = track()
+    cur.close()
 
-    return render_template('dashboard/index.jinja', habit_data=habit_data, dates=all_dates, view=view)
+    return render_template('dashboard/index.jinja', habits=habits, habits_done=habits_done, all_challenges=all_challenges, challenge_filter=challenge_filter)
 
 
 @bp.route('/create', methods=('GET', 'POST'))
@@ -301,16 +248,3 @@ def delete(id):
     cur.close()
     return redirect(url_for('dashboard.index'))
 
-@bp.route('/toggle_view', methods=("POST",))
-@login_required
-def toggle_view():
-    db = get_db()
-    cur = db.cursor()
-    cur.execute(
-        'UPDATE users' \
-        ' SET list_view = NOT list_view' \
-        ' WHERE id = %s', (g.user['id'],)
-    )
-    db.commit()
-    cur.close()
-    return redirect(url_for('dashboard.index'))
