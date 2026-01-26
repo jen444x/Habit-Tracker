@@ -66,10 +66,55 @@
   </section>
   {% endif %}
 
-  {# Last 7 Days Grid #}
+  {# Weekly Grid #}
   {% if habit_data %}
   <section class="mb-8 bg-white rounded-xl p-5 border-2 border-calm-500 shadow-lg/30">
-    <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-4">Last 7 Days</h2>
+    {# Week navigator #}
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wide">This Week</h2>
+      <div class="flex items-center gap-3">
+        {% if can_go_prev %}
+        <a
+          href="{{ url_for('challenges.challenge', id=challenge['id'], week=week_offset - 1) }}"
+          class="p-1 text-gray-400 hover:text-calm-600 transition-colors"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </a>
+        {% else %}
+        <div class="p-1 w-6"></div>
+        {% endif %}
+
+        <span class="text-sm text-gray-600 font-medium">
+          {% if is_current_week %}
+            This week
+          {% else %}
+            {{ selected_week_monday.strftime('%b %d') }} - {{ selected_week_sunday.strftime('%b %d') }}
+          {% endif %}
+        </span>
+
+        {% if can_go_next %}
+        <a
+          href="{{ url_for('challenges.challenge', id=challenge['id'], week=week_offset + 1) }}"
+          class="p-1 text-gray-400 hover:text-calm-600 transition-colors"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+        {% else %}
+        <div class="p-1 w-6"></div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if not is_current_week %}
+    <div class="mb-3 text-center">
+      <a href="{{ url_for('challenges.challenge', id=challenge['id']) }}" class="text-xs text-calm-500 hover:text-calm-600">Back to this week</a>
+    </div>
+    {% endif %}
+
     <div class="overflow-x-auto">
       <table class="w-full border-collapse">
         <thead>
@@ -92,12 +137,14 @@
                 <td class="p-1 text-center">
                   <div
                     class="w-6 h-6 mx-auto rounded
-                      {% if day.completed %}
+                      {% if day.before_challenge or day.in_future %}
+                        bg-gray-100 border border-dashed border-gray-300
+                      {% elif day.completed %}
                         bg-calm-500
                       {% else %}
                         bg-gray-200
                       {% endif %}"
-                    title="{{ day.date }}">
+                    title="{{ day.date }}{% if day.before_challenge %} (before challenge started){% endif %}{% if day.in_future %} (future){% endif %}">
                   </div>
                 </td>
               {% endfor %}

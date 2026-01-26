@@ -203,9 +203,27 @@ def challenge(id):
     )
     all_challenges = cur.fetchall()
 
-    # Build grid data for last 7 days
-    end_date = today
-    start_date = end_date - timedelta(days=6)
+    # Week navigation
+    week_offset = request.args.get('week', 0, type=int)
+
+    # Calculate current week's Monday
+    current_week_monday = today - timedelta(days=today.weekday())
+
+    # Calculate selected week's Monday based on offset
+    selected_week_monday = current_week_monday + timedelta(weeks=week_offset)
+    selected_week_sunday = selected_week_monday + timedelta(days=6)
+
+    # Calculate the earliest week (when challenge was created)
+    challenge_week_monday = challenge_start - timedelta(days=challenge_start.weekday())
+
+    # Check if we can go prev/next
+    is_current_week = week_offset == 0
+    can_go_next = week_offset < 0  # Can go forward if we're in the past
+    can_go_prev = selected_week_monday > challenge_week_monday  # Can go back if not at challenge start
+
+    # Build grid data for the selected week
+    start_date = selected_week_monday
+    end_date = selected_week_sunday
 
     # Get habit logs for the date range
     cur.execute(
@@ -218,7 +236,7 @@ def challenge(id):
     )
     logs = cur.fetchall()
 
-    # Generate all dates
+    # Generate all dates for the week (Mon-Sun)
     all_dates = []
     current = start_date
     while current <= end_date:
@@ -236,12 +254,34 @@ def challenge(id):
         days = []
         for d in all_dates:
             completed = (habit['id'], d) in completed_set
-            days.append({'date': d, 'completed': completed})
+            # Check if this day is before challenge started or in the future
+            before_challenge = d < challenge_start
+            in_future = d > today
+            days.append({
+                'date': d,
+                'completed': completed,
+                'before_challenge': before_challenge,
+                'in_future': in_future
+            })
         habit_data.append({'habit': habit, 'days': days})
 
     cur.close()
 
-    return render_template('challenges/challenge.jinja', challenge=challenge, habits=habits, weeks=weeks, all_challenges=all_challenges, habit_data=habit_data, dates=all_dates)
+    return render_template(
+        'challenges/challenge.jinja',
+        challenge=challenge,
+        habits=habits,
+        weeks=weeks,
+        all_challenges=all_challenges,
+        habit_data=habit_data,
+        dates=all_dates,
+        week_offset=week_offset,
+        selected_week_monday=selected_week_monday,
+        selected_week_sunday=selected_week_sunday,
+        is_current_week=is_current_week,
+        can_go_next=can_go_next,
+        can_go_prev=can_go_prev
+    )
 
 @bp.route('/challenge/<int:id>/stats')
 @login_required
