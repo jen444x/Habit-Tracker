@@ -190,17 +190,41 @@ def get_habit(id):
 def update(id):
     habit = get_habit(id)
 
-    if not habit['challenge_id']:
-        habit['challenge_id'] = ''
+    # get challenges for drop down
+    db = get_db()
+    cur = db.cursor()
+    print(g.user['id'])
+    print(habit['challenge_id'])
+    if habit['challenge_id'] is None:                                                                                                         
+        cur.execute(                                                                                                                                       
+            'SELECT * FROM challenges WHERE creator_id = %s',                                                                                              
+            (g.user['id'],)                                                                                                                                
+        )                                                                                                                                                  
+    else:                                                                                                                                                  
+        # Has a challenge - get all EXCEPT the currently assigned one                                                                                      
+        cur.execute(                                                                                                                                       
+            'SELECT * FROM challenges WHERE creator_id = %s AND id != %s',                                                                                 
+            (g.user['id'], habit['challenge_id'])                                                                                                          
+        ) 
+
+    dropdown_options = cur.fetchall()
+    print(dropdown_options)
+
+    if habit['challenge_id'] == None:
+        habit['challenge_id'] = 'None'
+    
 
     if request.method == 'POST':
         title = request.form['title']
         challenge = request.form['challenge']
         body = request.form['body']
         error = None
-
+       
         if not title:
             error = 'Title is required.'
+
+        if challenge == 'None':
+            challenge = None
 
         if error is not None:
             flash(error)
@@ -217,7 +241,7 @@ def update(id):
             cur.close()
             return redirect(url_for('dashboard.index'))
 
-    return render_template('dashboard/update.jinja', habit=habit) # Here its passed like a dict reference
+    return render_template('dashboard/update.jinja', habit=habit, dropdown_options=dropdown_options) # Here its passed like a dict reference
 
 @bp.route('/<int:id>/complete', methods=('POST',))
 @login_required
