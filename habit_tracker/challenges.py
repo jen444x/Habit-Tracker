@@ -6,6 +6,9 @@ from werkzeug.exceptions import abort
 from habit_tracker.auth import login_required
 from habit_tracker.db import get_db
 
+from datetime import datetime, date, timedelta 
+from zoneinfo import ZoneInfo    
+
 bp = Blueprint('challenges', __name__, url_prefix='/challenges')
 
 @bp.route('/')
@@ -133,7 +136,7 @@ def challenge(id):
     cur = db.cursor()
 
     cur.execute(
-        'SELECT c.id, title, body, creator_id'
+        'SELECT c.id, c.title, c.body, c.creator_id, c.created_at'
         ' FROM challenges c'
         ' JOIN users u'
         ' ON c.creator_id = u.id'
@@ -142,23 +145,127 @@ def challenge(id):
     )
     challenge = cur.fetchone()
 
-    cur.execute(
-        'SELECT * ' \
-        'FROM habits ' \
-        'WHERE challenge_id = %s',
-        (id,)
-    )
-    habits = cur.fetchall()
-
-    cur.close()
-
     if challenge is None:
         abort(404, f"Challenge id {id} doesn't exist.")
 
     if challenge['creator_id'] != g.user['id']:
         abort(403)
 
-    
+    cur.execute(
+        'SELECT * '
+        'FROM habits '
+        'WHERE challenge_id = %s',
+        (id,)
+    )
+    habits = cur.fetchall()
 
-    return render_template('challenges/challenge.jinja', challenge=challenge, habits=habits)
+    # Get stats data
+    cur.execute(
+        'SELECT COUNT(*) as count FROM habits WHERE challenge_id = %s',
+        (id,)
+    )
+    habit_count = cur.fetchone()['count']
 
+    tz = ZoneInfo(g.user['timezone'])
+    today = datetime.now(tz).date()
+
+    challenge_start = challenge['created_at'].astimezone(tz).date()
+    start_of_week = challenge_start - timedelta(days=challenge_start.weekday())
+
+    weeks = []
+    current_week_start = start_of_week
+
+    while current_week_start <= today:
+        week_end = current_week_start + timedelta(days=6)
+
+        cur.execute(
+            'SELECT COUNT(*) as count FROM habit_logs hl '
+            'JOIN habits h ON hl.habit_id = h.id '
+            'WHERE h.challenge_id = %s '
+            'AND hl.log_date BETWEEN %s AND %s',
+            (id, current_week_start, week_end)
+        )
+        completions = cur.fetchone()['count']
+        possible = habit_count * 7
+        percentage = (completions / possible * 100) if possible > 0 else 0
+
+        weeks.append({
+            'start': current_week_start,
+            'end': week_end,
+            'completions': completions,
+            'possible': possible,
+            'percentage': percentage
+        })
+
+        current_week_start += timedelta(days=7)
+
+    cur.close()
+
+    return render_template('challenges/challenge.jinja', challenge=challenge, habits=habits, weeks=weeks)
+
+@bp.route('/challenge/<int:id>/stats')
+@login_required
+def challenge_stats(id):
+    db = get_db()
+    cur = db.cursor()
+
+    # Get the challenge (including created_at)
+    cur.execute(
+        'SELECT * FROM challenges WHERE id = %s AND creator_id = %s',
+        (id, g.user['id'])
+    )
+    challenge = cur.fetchone()
+    if challenge is None:
+        abort(404)
+
+    # Count habits in this challenge
+    cur.execute(
+        'SELECT COUNT(*) as count FROM habits WHERE challenge_id = %s',
+        (id,)
+    )
+    habit_count = cur.fetchone()['count']
+
+    # Get user's current date
+    tz = ZoneInfo(g.user['timezone'])
+    today = datetime.now(tz).date()
+
+    # Start from the Monday of the week the challenge was created
+    challenge_start = challenge['created_at'].astimezone(tz).date()
+    start_of_week = challenge_start - timedelta(days=challenge_start.weekday())
+
+    # Build weekly stats
+    weeks = []
+    current_week_start = start_of_week
+
+    while current_week_start <= today:
+        week_end = current_week_start + timedelta(days=6)
+
+        cur.execute(
+            'SELECT COUNT(*) as count FROM habit_logs hl '
+            'JOIN habits h ON hl.habit_id = h.id '
+            'WHERE h.challenge_id = %s '
+            'AND hl.log_date BETWEEN %s AND %s',
+            (id, current_week_start, week_end)
+        )
+        completions = cur.fetchone()['count']
+        possible = habit_count * 7
+        percentage = (completions / possible * 100) if possible > 0 else 0
+
+        weeks.append({
+            'start': current_week_start,
+            'end': week_end,
+            'completions': completions,
+            'possible': possible,
+            'percentage': percentage
+        })
+
+        current_week_start += timedelta(days=7)
+
+    cur.close()
+
+    return render_template(
+        'challenges/challenge_stats.jinja',
+        challenge=challenge,
+        habit_count=habit_count,
+        weeks=weeks
+    )         

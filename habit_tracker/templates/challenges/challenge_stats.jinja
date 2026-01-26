@@ -1,0 +1,40 @@
+{% extends 'base.jinja' %}
+
+{% block header %}
+  <h1 class="font-black text-3xl text-calm-600 text-center w-full">
+    {% block title %}{{ challenge['title'] }} - Weekly Stats{% endblock %}
+  </h1>
+{% endblock %}
+
+{% block content %}
+  <div class="bg-white rounded-xl p-8 shadow-lg/30 border-3 border-calm-500 max-w-2xl mx-auto">
+
+    {# Histogram #}
+    <div class="flex items-end justify-center gap-2 h-48 mb-4">
+      {% for week in weeks %}
+        <div class="flex flex-col items-center">
+          <span class="text-xs text-calm-600 mb-1">{{ week.percentage|round(0)|int }}%</span>
+          <div class="w-12 bg-calm-500 rounded-t" style="height: {{ week.percentage * 1.5 }}px;"></div>
+          <span class="text-xs text-gray-500 mt-2">W{{ loop.index }}</span>
+        </div>
+      {% endfor %}
+    </div>
+
+    {# Week details #}
+    <div class="flex flex-col gap-2 text-sm text-gray-500 mt-6">
+      {% for week in weeks %}
+        <div class="flex justify-between">
+          <span>Week {{ loop.index }}: {{ week.start.strftime('%b %d') }} - {{ week.end.strftime('%b %d') }}</span>
+          <span>{{ week.completions }}/{{ week.possible }}</span>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="mt-6 text-center">
+      <a href="{{ url_for('challenges.challenge', id=challenge['id']) }}"
+         class="text-calm-600 hover:text-calm-500 font-bold">
+        &larr; Back to Challenge
+      </a>
+    </div>
+  </div>
+{% endblock %} 

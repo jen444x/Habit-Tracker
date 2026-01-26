@@ -1,62 +1,56 @@
 {% extends 'base.jinja' %}
 
+{% block title %}{{ challenge['title'] }}{% endblock %}
+
 {% block header %}
-{# layout #}
-  <h1>{% block title %}{{challenge['title']}}{% endblock %}</h1>
+  <a href="{{ url_for('challenges.update', id=challenge['id']) }}" class="block mb-8 text-center">
+    <h1>{{ challenge['title'] }}</h1>
+    {% if challenge['body'] %}
+      <p class="text-gray-400 mt-1">{{ challenge['body'] }}</p>
+    {% endif %}
+  </a>
 {% endblock %}
 
 {% block content %}
-    <a 
-    href="{{ url_for('challenges.challenge', id=challenge['id']) }}"
-    >
-        <p 
-            class="text-lg text-gray-500 font-normal text-center">
-            {{ challenge['body'] }}
-        </p>
-    </a>
-    
-    {# habits associated with proj #}
-    {# habits #}
-    <div class="flex flex-col gap-4 mt-4">
-      {% for habit in habits %}
-        {# Each habit  #}
-        <div class="bg-white hover:bg-gray-100 cursor-pointer rounded-xl px-4 py-2 shadow-lg/30 border-3 border-calm-500">
-          <div class="flex flex-row items-center">
-            <a 
-            class="habit basis-6/7 flex gap-6"
-            href="{{ url_for('dashboard.update', id=habit['id']) }}"
-            >
-                <h3 
-                  class="font-black text-xl font-bold text-calm-600">
-                  {{habit['title'] }}
-                </h3>
-                <p 
-                  class="text-lg text-gray-500 font-sans font-light truncate">
-                  {{ habit['body'] }}
-                </p>
-            </a>
-            <form 
-            action="{{ url_for('dashboard.complete', id=habit['id']) }}"
-            method="post" 
-            class="basis-1/7"
-            >
-              <button 
-                  class="text-white text-xl bg-calm-500 hover:bg-calm-600 hover:bg-calm-700 rounded-xl cursor-pointer px-4 py-1.5 shadow-lg/30">
-                &#10004
-              </button>
-            </form>
-          </div>
+  {# Stats section #}
+  {% if weeks %}
+  <section class="mb-10 bg-gray-50 rounded-2xl p-6">
+    <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-4">Weekly Progress</h2>
+    <div class="flex items-end gap-3 h-36">
+      {% for week in weeks %}
+        <div class="flex flex-col items-center w-12">
+          <span class="text-sm font-bold text-calm-600 mb-2">{{ week.percentage|round(0)|int }}%</span>
+          <div class="w-full bg-calm-500 rounded-lg transition-all" style="height: {{ [week.percentage * 1.2, 8]|max }}px;"></div>
+          <span class="text-xs text-gray-400 mt-2">W{{ loop.index }}</span>
         </div>
       {% endfor %}
     </div>
+  </section>
+  {% endif %}
 
-    <a 
-    href="{{ url_for('challenges.update', id=challenge['id']) }}"
-    class="text-center"
-    >
-        <button 
-            class="mt-6 text-white text-xl bg-calm-500 hover:bg-calm-600 hover:bg-calm-700 rounded-xl cursor-pointer px-2 py-1 shadow-lg/30">
-            Edit Challenge
-        </button>
-    </a>
+  {# Habits section #}
+  <section>
+    <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-4">Habits</h2>
+    {% if habits %}
+      <div class="flex flex-col gap-3">
+        {% for habit in habits %}
+          <div class="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+            <a href="{{ url_for('dashboard.update', id=habit['id']) }}" class="flex-1">
+              <span class="font-bold text-calm-700">{{ habit['title'] }}</span>
+              {% if habit['body'] %}
+                <p class="text-gray-400 text-sm mt-0.5">{{ habit['body']|truncate(50) }}</p>
+              {% endif %}
+            </a>
+            <form action="{{ url_for('dashboard.complete', id=habit['id']) }}" method="post" class="ml-4">
+              <button class="w-10 h-10 flex items-center justify-center text-white bg-calm-500 hover:bg-calm-600 rounded-full text-lg">
+                &#10004;
+              </button>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-gray-400 bg-gray-50 rounded-xl px-4 py-6 text-center">No habits yet. Add habits and assign them to this challenge.</p>
+    {% endif %}
+  </section>
 {% endblock %}

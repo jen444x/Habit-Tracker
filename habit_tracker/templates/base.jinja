@@ -29,17 +29,17 @@
       <div class="bg-calm-500 text-white px-4 py-2 rounded-xl mb-4 shadow">{{ message }}</div>
     {% endfor %}
 
-    <section class="flex flex-col px-4 pt-4 pb-22">
-      <header class="w-3/4 mx-auto" >
+    <section class="flex flex-col pt-4 pb-22 max-w-2xl mx-auto px-6">
+      <header>
         {% block header %}{% endblock %}
       </header>
-  
+
       {% block content %}{% endblock %}
     </section>
 
     <nav class="fixed bottom-0 left-0 right-0 overscroll-none bg-calm-600 shadow-lg/30">
       {% if g.user %}
-        <div class="flex justify-around items-stretch divide-x-1 mt-3 mb-5 text-center text-white">
+        <div class="flex justify-around items-stretch divide-x-1 mt-3 mb-7 text-center text-white">
           <div class="flex-1">
             <a 
             href="{{ url_for('challenges.index') }}" 

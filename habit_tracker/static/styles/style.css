@@ -1,6 +1,5 @@
 html {
-  /* Light, airy outer background */
-  background-color: #e8f1f5;
+  background-color: #ffffff;
   /* background-color: #1a3a42; */
   font-size: 16px;
   font-family: "Delius", cursive;
@@ -18,18 +17,6 @@ h1 {
   font-weight: bold;
 }
 
-h2 {
-  /* Slightly less bright teal for hierarchy */
-  /* color: #7bc4b8; */
-  font-size: 48px;
-  margin-bottom: 12px;
-  color: #a8dcd1;
-  text-align: center;
-  letter-spacing: 2px;
-  margin: 0;
-  padding: 8px 0;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4);
-}
 
 /* p {
   /* font-size: 16px; */
