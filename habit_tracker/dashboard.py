@@ -4,7 +4,7 @@ from flask import (
 from werkzeug.exceptions import abort
 
 from zoneinfo import ZoneInfo
-from datetime import datetime 
+from datetime import datetime, timedelta 
 
 from habit_tracker.auth import login_required
 from habit_tracker.db import get_db
@@ -24,8 +24,24 @@ def index():
     db = get_db()
     cur = db.cursor()
 
-    # Get challenge filter from query param
+    # Get query params
     challenge_filter = request.args.get('challenge', type=int)
+    date_str = request.args.get('date')
+
+    # Parse date or default to today
+    today = get_user_local_date()
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            selected_date = today
+    else:
+        selected_date = today
+
+    # Calculate prev/next dates
+    prev_date = selected_date - timedelta(days=1)
+    next_date = selected_date + timedelta(days=1)
+    is_today = selected_date == today
 
     # Get all challenges for the filter dropdown
     cur.execute(
@@ -42,8 +58,6 @@ def index():
         challenge_clause = ''
         challenge_param = ()
 
-    today = get_user_local_date()
-
     # Get incomplete habits
     cur.execute(
         'SELECT h.id, h.title, h.body'
@@ -55,7 +69,7 @@ def index():
         ' AND hl.habit_id IS NULL'
         + challenge_clause +
         ' ORDER BY display_order DESC',
-        (today, g.user['id']) + challenge_param
+        (selected_date, g.user['id']) + challenge_param
     )
     habits = cur.fetchall()
 
@@ -68,13 +82,23 @@ def index():
         '   AND hl.log_date = %s'
         ' WHERE h.creator_id = %s'
         + challenge_clause,
-        (today, g.user['id']) + challenge_param
+        (selected_date, g.user['id']) + challenge_param
     )
     habits_done = cur.fetchall()
 
     cur.close()
 
-    return render_template('dashboard/index.jinja', habits=habits, habits_done=habits_done, all_challenges=all_challenges, challenge_filter=challenge_filter)
+    return render_template(
+        'dashboard/index.jinja',
+        habits=habits,
+        habits_done=habits_done,
+        all_challenges=all_challenges,
+        challenge_filter=challenge_filter,
+        selected_date=selected_date,
+        prev_date=prev_date,
+        next_date=next_date,
+        is_today=is_today
+    )
 
 
 @bp.route('/create', methods=('GET', 'POST'))
@@ -206,35 +230,57 @@ def complete(id):
     # make sure it exists
     get_habit(id)
 
-    db = get_db() 
-    cur = db.cursor()
-    
-    today = get_user_local_date()
+    # Get the date from form (for logging past days)
+    date_str = request.form.get('date')
+    if date_str:
+        try:
+            log_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            log_date = get_user_local_date()
+    else:
+        log_date = get_user_local_date()
 
-    # try create a log for today
+    db = get_db()
+    cur = db.cursor()
+
     cur.execute(
         "INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)",
-        (today, id)
+        (log_date, id)
     )
     db.commit()
     cur.close()
 
+    # Redirect back to same date view
+    if date_str:
+        return redirect(url_for('dashboard.index', date=date_str))
     return redirect(url_for('dashboard.index'))
 
 @bp.route('/<int:id>/undo_complete', methods=('POST',))
 @login_required
 def undo_complete(id):
-    db=get_db() 
+    # Get the date from form
+    date_str = request.form.get('date')
+    if date_str:
+        try:
+            log_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            log_date = get_user_local_date()
+    else:
+        log_date = get_user_local_date()
+
+    db = get_db()
     cur = db.cursor()
-    today = get_user_local_date()
-    # set log to false
     cur.execute(
-        'DELETE FROM habit_logs ' \
-        'WHERE habit_id = %s AND log_date = %s', 
-        (id,today)
+        'DELETE FROM habit_logs '
+        'WHERE habit_id = %s AND log_date = %s',
+        (id, log_date)
     )
     db.commit()
     cur.close()
+
+    # Redirect back to same date view
+    if date_str:
+        return redirect(url_for('dashboard.index', date=date_str))
     return redirect(url_for('dashboard.index'))
 
 @bp.route('/<int:id>/delete', methods=('POST',))

@@ -1,16 +1,50 @@
 {% extends 'base.jinja' %}
 
 {% block header %}
-{# layout #}
-  <h1>{% block title %}Due Today{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
+  {# Date navigator #}
+  <div class="flex items-center justify-center gap-4 mb-4">
+    <a
+      href="{{ url_for('dashboard.index', date=prev_date.strftime('%Y-%m-%d'), challenge=challenge_filter) if challenge_filter else url_for('dashboard.index', date=prev_date.strftime('%Y-%m-%d')) }}"
+      class="p-2 text-gray-400 hover:text-calm-600 transition-colors"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <div class="text-center">
+      <span class="text-lg font-medium text-gray-700">
+        {% if is_today %}
+          Today
+        {% else %}
+          {{ selected_date.strftime('%a, %b %d') }}
+        {% endif %}
+      </span>
+      {% if not is_today %}
+        <a href="{{ url_for('dashboard.index', challenge=challenge_filter) if challenge_filter else url_for('dashboard.index') }}" class="block text-xs text-calm-500 hover:text-calm-600">Back to today</a>
+      {% endif %}
+    </div>
+    {% if not is_today %}
+    <a
+      href="{{ url_for('dashboard.index', date=next_date.strftime('%Y-%m-%d'), challenge=challenge_filter) if challenge_filter else url_for('dashboard.index', date=next_date.strftime('%Y-%m-%d')) }}"
+      class="p-2 text-gray-400 hover:text-calm-600 transition-colors"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+    </a>
+    {% else %}
+    <div class="p-2 w-9"></div>
+    {% endif %}
+  </div>
+
   {# Challenge filter tabs #}
   {% if all_challenges %}
-  <div class="flex gap-2 mb-4 overflow-x-auto pb-1">
+  <div class="flex gap-2 mb-4 overflow-x-auto pb-1 justify-center">
     <a
-      href="{{ url_for('dashboard.index') }}"
+      href="{{ url_for('dashboard.index', date=selected_date.strftime('%Y-%m-%d')) if not is_today else url_for('dashboard.index') }}"
       class="px-3 py-1 text-sm font-medium rounded-full whitespace-nowrap transition-colors duration-150
         {% if not challenge_filter %}
           bg-calm-500 text-white
@@ -20,7 +54,7 @@
     >All</a>
     {% for c in all_challenges %}
       <a
-        href="{{ url_for('dashboard.index', challenge=c['id']) }}"
+        href="{{ url_for('dashboard.index', challenge=c['id'], date=selected_date.strftime('%Y-%m-%d')) if not is_today else url_for('dashboard.index', challenge=c['id']) }}"
         class="px-3 py-1 text-sm font-medium rounded-full whitespace-nowrap transition-colors duration-150
           {% if challenge_filter == c['id'] %}
             bg-calm-500 text-white
@@ -64,6 +98,7 @@
           method="post"
           class="basis-1/7"
           >
+            <input type="hidden" name="date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
             <button
                 class="text-white text-xl bg-calm-500 hover:bg-calm-600 rounded-xl cursor-pointer px-4 py-1.5 shadow-lg/30 transition-colors duration-150">
               &#10004
@@ -77,7 +112,7 @@
   {% if habits_done %}
     <hr class="my-8 border-t border-gray-300">
 
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-4 mb-6">
       {# List of habits done #}
       {% for habit in habits_done %}
         {# Each habit   #}
@@ -101,6 +136,7 @@
             method="post"
             class="basis-1/7"
             >
+              <input type="hidden" name="date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
               <button
                   class="text-calm-600 text-sm bg-white hover:bg-calm-50 rounded-xl cursor-pointer px-3 py-1.5 border border-gray-300 transition-colors duration-150">
                 Undo
