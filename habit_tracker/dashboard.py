@@ -193,22 +193,32 @@ def update(id):
     # get challenges for drop down
     db = get_db()
     cur = db.cursor()
-    print(g.user['id'])
-    print(habit['challenge_id'])
+    
     if habit['challenge_id'] is None:                                                                                                         
         cur.execute(                                                                                                                                       
-            'SELECT * FROM challenges WHERE creator_id = %s',                                                                                              
+            'SELECT * ' \
+            'FROM challenges ' \
+            'WHERE creator_id = %s',                                                                                              
             (g.user['id'],)                                                                                                                                
-        )                                                                                                                                                  
-    else:                                                                                                                                                  
-        # Has a challenge - get all EXCEPT the currently assigned one                                                                                      
+        )  
+        habit['challenge_title'] = 'None'                                                                                                                                              
+    else:    
+        # get project name of challenge
+        cur.execute(
+            'SELECT title ' \
+            'FROM challenges ' \
+            'WHERE id = %s',
+            (habit['challenge_id'], )
+        )   
+        c_title = cur.fetchone()
+        habit['challenge_title'] = c_title['title'] 
+
         cur.execute(                                                                                                                                       
             'SELECT * FROM challenges WHERE creator_id = %s AND id != %s',                                                                                 
             (g.user['id'], habit['challenge_id'])                                                                                                          
         ) 
 
     dropdown_options = cur.fetchall()
-    print(dropdown_options)
 
     if habit['challenge_id'] == None:
         habit['challenge_id'] = 'None'

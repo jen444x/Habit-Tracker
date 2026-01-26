@@ -25,9 +25,9 @@
       <div class="flex flex-col gap-2">
         <label for="challenge" class="font-bold text-calm-600 text-lg">Challenge</label>
         <select name="challenge" id="challenge" class="border-2 rounded-lg px-4 py-2 focus:outline-none focus:border-calm-500 text-calm-600">
-          <option value="{{ request.form['challenge_id'] or habit['challenge_id'] }}"> {{ request.form['challenge_id'] or habit['challenge_id'] }}</option>
+          <option value="{{ request.form['challenge_id'] or habit['challenge_id'] }}"> {{ request.form['challenge'] or habit['challenge_title'] }}</option>
           {% for dropdown_option in dropdown_options %}
-            <option value="{{ dropdown_option['id'] }}">{{ dropdown_option['id'] }}</option>
+            <option value="{{ dropdown_option['id'] }}">{{ dropdown_option['title'] }}</option>
           {% endfor %}
           {% if habit['challenge_id'] != 'None'%}
             <option value="None">None</option>
