@@ -156,6 +156,108 @@ def get_habit(id):
 
     return habit
 
+@bp.route('/<int:id>')
+@login_required
+def view(id):
+    habit = get_habit(id)
+    db = get_db()
+    cur = db.cursor()
+
+    # Get habit created_at date
+    cur.execute(
+        'SELECT created_at FROM habits WHERE id = %s',
+        (id,)
+    )
+    habit_row = cur.fetchone()
+    habit_created_date = habit_row['created_at'].date()
+
+    # Get completion logs for this week
+    today = get_user_local_date()
+    # Get Monday of current week
+    monday = today - timedelta(days=today.weekday())
+    sunday = monday + timedelta(days=6)
+
+    cur.execute(
+        'SELECT log_date FROM habit_logs '
+        'WHERE habit_id = %s AND log_date >= %s AND log_date <= %s '
+        'ORDER BY log_date DESC',
+        (id, monday, sunday)
+    )
+    logs = cur.fetchall()
+    completed_dates = {log['log_date'] for log in logs}
+
+    # Build week data (Mon-Sun)
+    days_data = []
+    for i in range(7):
+        date = monday + timedelta(days=i)
+        days_data.append({
+            'date': date,
+            'completed': date in completed_dates,
+            'in_future': date > today,
+            'before_habit': date < habit_created_date
+        })
+
+    # Get all completion dates for streak calculations
+    cur.execute(
+        'SELECT log_date FROM habit_logs '
+        'WHERE habit_id = %s ORDER BY log_date',
+        (id,)
+    )
+    all_logs = cur.fetchall()
+    all_completed_dates = {log['log_date'] for log in all_logs}
+
+    # Current streak
+    current_streak = 0
+    check_date = today
+    while check_date in all_completed_dates:
+        current_streak += 1
+        check_date -= timedelta(days=1)
+
+    # If not completed today, check if yesterday started a streak
+    if current_streak == 0:
+        check_date = today - timedelta(days=1)
+        while check_date in all_completed_dates:
+            current_streak += 1
+            check_date -= timedelta(days=1)
+
+    # Longest streak
+    longest_streak = 0
+    if all_logs:
+        sorted_dates = sorted(all_completed_dates)
+        streak = 1
+        for i in range(1, len(sorted_dates)):
+            if sorted_dates[i] - sorted_dates[i-1] == timedelta(days=1):
+                streak += 1
+            else:
+                longest_streak = max(longest_streak, streak)
+                streak = 1
+        longest_streak = max(longest_streak, streak)
+
+    # All-time completion count
+    all_time_completions = len(all_logs)
+
+    # Get challenge info if assigned
+    challenge = None
+    if habit['challenge_id']:
+        cur.execute(
+            'SELECT id, title FROM challenges WHERE id = %s',
+            (habit['challenge_id'],)
+        )
+        challenge = cur.fetchone()
+
+    cur.close()
+
+    return render_template(
+        'dashboard/view.jinja',
+        habit=habit,
+        days_data=days_data,
+        current_streak=current_streak,
+        longest_streak=longest_streak,
+        all_time_completions=all_time_completions,
+        challenge=challenge
+    )
+
+
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required
 def update(id):

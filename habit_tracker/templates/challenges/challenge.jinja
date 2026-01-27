@@ -52,7 +52,7 @@
 
   {# Weekly Progress #}
   {% if weeks %}
-  <section class="mb-6 bg-white rounded-xl p-5 border-2 border-calm-500 shadow-lg/30">
+  <section class="mb-6 bg-white rounded-xl p-3 border-2 border-calm-500 shadow-lg/30">
     <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-4">Weekly Progress</h2>
     <div class="flex items-end gap-3 h-32 overflow-x-auto">
       {% for week in weeks %}
@@ -68,7 +68,7 @@
 
   {# Weekly Grid #}
   {% if habit_data %}
-  <section class="mb-8 bg-white rounded-xl p-5 border-2 border-calm-500 shadow-lg/30">
+  <section class="mb-8 bg-white rounded-xl p-3 border-2 border-calm-500 shadow-lg/30">
     {# Week navigator #}
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wide">This Week</h2>
@@ -162,20 +162,22 @@
     {% if habits %}
       <div class="flex flex-col gap-4">
         {% for habit in habits %}
-          <div class="bg-white hover:bg-gray-50 cursor-pointer rounded-xl px-4 py-3 shadow-lg/30 border-2 border-calm-500 transition-all duration-150">
-            <div class="flex flex-row items-center">
-              <a href="{{ url_for('dashboard.update', id=habit['id']) }}" class="flex-1 flex gap-6">
-                <h3 class="font-black text-xl font-bold text-calm-600">{{ habit['title'] }}</h3>
-                {% if habit['body'] %}
-                  <p class="text-lg text-gray-500 font-sans font-light truncate">{{ habit['body'] }}</p>
-                {% endif %}
-              </a>
-              <form action="{{ url_for('dashboard.complete', id=habit['id']) }}" method="post" class="ml-4">
-                <button class="text-white text-xl bg-calm-500 hover:bg-calm-600 rounded-xl cursor-pointer px-4 py-1.5 shadow-lg/30 transition-colors duration-150">
-                  &#10004
-                </button>
-              </form>
-            </div>
+          <div class="bg-white rounded-xl px-3 py-3 shadow-lg/30 border-2 border-calm-500 flex items-center justify-between gap-4">
+            <a href="{{ url_for('dashboard.view', id=habit['id']) }}" class="flex-1 flex gap-6 min-w-0 hover:opacity-70 transition-opacity">
+              <h3 class="font-black text-xl font-bold text-calm-600">{{ habit['title'] }}</h3>
+              {% if habit['body'] %}
+                <p class="text-lg text-gray-500 font-sans font-light truncate">{{ habit['body'] }}</p>
+              {% endif %}
+            </a>
+            <a
+              href="{{ url_for('dashboard.update', id=habit['id']) }}"
+              class="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-150"
+              title="Edit habit"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#0d9488">
+                <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
+              </svg>
+            </a>
           </div>
         {% endfor %}
       </div>

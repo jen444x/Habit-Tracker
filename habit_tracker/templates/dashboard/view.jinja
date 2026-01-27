@@ -1,0 +1,75 @@
+{% extends 'base.jinja' %}
+
+{% block title %}{{ habit['title'] }}{% endblock %}
+
+{% block header %}
+  <h1>{{ habit['title'] }}</h1>
+{% endblock %}
+
+{% block content %}
+  {# Header with edit button #}
+  <div class="flex items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold text-calm-600">{{ habit['title'] }}</h2>
+    <a
+      href="{{ url_for('dashboard.update', id=habit['id']) }}"
+      class="px-3 py-2 flex items-center gap-2 bg-white hover:bg-gray-50 border-2 border-calm-500 rounded-lg cursor-pointer transition-colors duration-150"
+      title="Edit habit"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#0d9488">
+        <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
+      </svg>
+      <span class="text-calm-600 font-medium">Edit</span>
+    </a>
+  </div>
+
+  {% if habit['body'] %}
+    <p class="text-gray-500 mb-6">{{ habit['body'] }}</p>
+  {% endif %}
+
+  {% if challenge %}
+    <div class="mb-6">
+      <a href="{{ url_for('challenges.challenge', id=challenge['id']) }}" class="inline-flex items-center gap-2 text-calm-500 hover:text-calm-600">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
+        </svg>
+        {{ challenge['title'] }}
+      </a>
+    </div>
+  {% endif %}
+
+  {# Stats cards #}
+  <div class="grid grid-cols-2 gap-4 mb-6">
+    <div class="bg-white rounded-xl p-4 border-2 border-calm-500 shadow-lg/30 text-center">
+      <div class="text-3xl font-bold text-calm-600">{{ current_streak }}</div>
+      <div class="text-sm text-gray-500">Current Streak</div>
+    </div>
+    <div class="bg-white rounded-xl p-4 border-2 border-calm-500 shadow-lg/30 text-center">
+      <div class="text-3xl font-bold text-calm-600">{{ longest_streak }}</div>
+      <div class="text-sm text-gray-500">Longest Streak</div>
+    </div>
+  </div>
+
+  {# Weekly grid #}
+  <section class="bg-white rounded-xl p-5 border-2 border-calm-500 shadow-lg/30">
+    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-4">This Week</h3>
+    <div class="grid grid-cols-7 gap-2">
+      {% for day in days_data %}
+        <div class="flex flex-col items-center gap-1">
+          <span class="text-xs text-gray-500">{{ day.date.strftime('%a') }}</span>
+          <div
+            class="w-8 h-8 rounded-md
+              {% if day.in_future or day.before_habit %}
+                bg-gray-100 border border-dashed border-gray-300
+              {% elif day.completed %}
+                bg-calm-500
+              {% else %}
+                bg-gray-200
+              {% endif %}"
+            title="{{ day.date.strftime('%b %d') }}{% if day.completed %} - Completed{% elif day.in_future %} - Future{% elif day.before_habit %} - Before habit created{% endif %}"
+          ></div>
+          <span class="text-xs text-gray-400">{{ day.date.strftime('%d') }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

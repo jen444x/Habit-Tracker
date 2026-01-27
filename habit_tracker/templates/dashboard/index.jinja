@@ -78,11 +78,11 @@
   <div class="flex flex-col gap-4">
     {% for habit in habits %}
       {# Each habit  #}
-      <div class="bg-white hover:bg-gray-50 cursor-pointer rounded-xl px-4 py-3 shadow-lg/30 border-2 border-calm-500 transition-all duration-150">
-        <div class="flex flex-row items-center">
+      <div class="bg-white rounded-xl px-4 py-3 shadow-lg/30 border-2 border-calm-500 transition-all duration-150">
+        <div class="flex flex-row items-center gap-3">
           <a
-          class="habit basis-6/7 flex gap-6"
-          href="{{ url_for('dashboard.update', id=habit['id']) }}"
+          class="habit flex-1 flex gap-6 min-w-0 hover:opacity-70 transition-opacity"
+          href="{{ url_for('dashboard.view', id=habit['id']) }}"
           >
               <h3
                 class="font-black text-xl font-bold text-calm-600">
@@ -93,10 +93,18 @@
                 {{ habit['body'] }}
               </p>
           </a>
+          <a
+            href="{{ url_for('dashboard.update', id=habit['id']) }}"
+            class="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-150"
+            title="Edit habit"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#0d9488">
+              <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
+            </svg>
+          </a>
           <form
           action="{{ url_for('dashboard.complete', id=habit['id']) }}"
           method="post"
-          class="basis-1/7"
           >
             <input type="hidden" name="date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
             <button
@@ -116,11 +124,11 @@
       {# List of habits done #}
       {% for habit in habits_done %}
         {# Each habit   #}
-        <div class="bg-gray-50 hover:bg-white cursor-pointer rounded-xl px-4 py-3 border-2 border-gray-300 transition-all duration-150">
-          <div class="flex flex-row items-center">
+        <div class="bg-gray-50 rounded-xl px-4 py-3 border-2 border-gray-300 transition-all duration-150">
+          <div class="flex flex-row items-center gap-3">
             <a
-            class="habit basis-6/7 flex gap-6"
-            href="{{ url_for('dashboard.update', id=habit['id']) }}"
+            class="habit flex-1 flex gap-6 min-w-0 hover:opacity-70 transition-opacity"
+            href="{{ url_for('dashboard.view', id=habit['id']) }}"
             >
               <h3
                 class="font-black text-xl font-bold text-gray-400 line-through">
@@ -131,10 +139,18 @@
                 {{ habit['body'] }}
               </p>
             </a>
+            <a
+              href="{{ url_for('dashboard.update', id=habit['id']) }}"
+              class="p-2 hover:bg-gray-200 rounded-lg transition-colors duration-150"
+              title="Edit habit"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#9ca3af">
+                <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
+              </svg>
+            </a>
             <form
             action="{{ url_for('dashboard.undo_complete', id=habit['id']) }}"
             method="post"
-            class="basis-1/7"
             >
               <input type="hidden" name="date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
               <button
