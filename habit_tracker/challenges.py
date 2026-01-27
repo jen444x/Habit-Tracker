@@ -175,15 +175,24 @@ def challenge(id):
     while current_week_start <= today:
         week_end = current_week_start + timedelta(days=6)
 
+        # Count valid days (not before challenge started, not in future)
+        valid_days = 0
+        valid_start = max(current_week_start, challenge_start)
+        valid_end = min(week_end, today)
+        for d in range(7):
+            day = current_week_start + timedelta(days=d)
+            if day >= challenge_start and day <= today:
+                valid_days += 1
+
         cur.execute(
             'SELECT COUNT(*) as count FROM habit_logs hl '
             'JOIN habits h ON hl.habit_id = h.id '
             'WHERE h.challenge_id = %s '
-            'AND hl.log_date BETWEEN %s AND %s',
-            (id, current_week_start, week_end)
+            'AND hl.log_date >= %s AND hl.log_date <= %s',
+            (id, valid_start, valid_end)
         )
         completions = cur.fetchone()['count']
-        possible = habit_count * 7
+        possible = habit_count * valid_days
         percentage = (completions / possible * 100) if possible > 0 else 0
 
         weeks.append({
@@ -320,15 +329,24 @@ def challenge_stats(id):
     while current_week_start <= today:
         week_end = current_week_start + timedelta(days=6)
 
+        # Count valid days (not before challenge started, not in future)
+        valid_days = 0
+        valid_start = max(current_week_start, challenge_start)
+        valid_end = min(week_end, today)
+        for d in range(7):
+            day = current_week_start + timedelta(days=d)
+            if day >= challenge_start and day <= today:
+                valid_days += 1
+
         cur.execute(
             'SELECT COUNT(*) as count FROM habit_logs hl '
             'JOIN habits h ON hl.habit_id = h.id '
             'WHERE h.challenge_id = %s '
-            'AND hl.log_date BETWEEN %s AND %s',
-            (id, current_week_start, week_end)
+            'AND hl.log_date >= %s AND hl.log_date <= %s',
+            (id, valid_start, valid_end)
         )
         completions = cur.fetchone()['count']
-        possible = habit_count * 7
+        possible = habit_count * valid_days
         percentage = (completions / possible * 100) if possible > 0 else 0
 
         weeks.append({

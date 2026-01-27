@@ -58,9 +58,12 @@ def index():
         challenge_clause = ''
         challenge_param = ()
 
+    # Get current week (Mon-Sun)
+    monday = today - timedelta(days=today.weekday())
+
     # Get incomplete habits
     cur.execute(
-        'SELECT h.id, h.title, h.body'
+        'SELECT h.id, h.title, h.body, h.created_at'
         ' FROM habits h'
         ' LEFT JOIN habit_logs hl'
         '   ON h.id = hl.habit_id'
@@ -71,11 +74,11 @@ def index():
         ' ORDER BY display_order DESC',
         (selected_date, g.user['id']) + challenge_param
     )
-    habits = cur.fetchall()
+    habits = [dict(row) for row in cur.fetchall()]
 
     # Get completed habits
     cur.execute(
-        'SELECT h.id, title, body'
+        'SELECT h.id, title, body, h.created_at'
         ' FROM habits h'
         ' INNER JOIN habit_logs hl'
         '   ON h.id = hl.habit_id'
@@ -84,7 +87,41 @@ def index():
         + challenge_clause,
         (selected_date, g.user['id']) + challenge_param
     )
-    habits_done = cur.fetchall()
+    habits_done = [dict(row) for row in cur.fetchall()]
+
+    # Get all habit IDs
+    all_habit_ids = [h['id'] for h in habits] + [h['id'] for h in habits_done]
+
+    # Get week's completion logs for all habits
+    week_logs = {}
+    if all_habit_ids:
+        cur.execute(
+            'SELECT habit_id, log_date FROM habit_logs '
+            'WHERE habit_id = ANY(%s) AND log_date >= %s AND log_date <= %s',
+            (all_habit_ids, monday, monday + timedelta(days=6))
+        )
+        for log in cur.fetchall():
+            if log['habit_id'] not in week_logs:
+                week_logs[log['habit_id']] = set()
+            week_logs[log['habit_id']].add(log['log_date'])
+
+    # Add week data to each habit
+    def add_week_data(habit_list):
+        for habit in habit_list:
+            habit_created = habit['created_at'].date() if habit['created_at'] else monday
+            completed_dates = week_logs.get(habit['id'], set())
+            habit['week'] = []
+            for i in range(7):
+                date = monday + timedelta(days=i)
+                habit['week'].append({
+                    'date': date,
+                    'completed': date in completed_dates,
+                    'in_future': date > today,
+                    'before_habit': date < habit_created
+                })
+
+    add_week_data(habits)
+    add_week_data(habits_done)
 
     cur.close()
 
@@ -171,17 +208,27 @@ def view(id):
     habit_row = cur.fetchone()
     habit_created_date = habit_row['created_at'].date()
 
-    # Get completion logs for this week
     today = get_user_local_date()
-    # Get Monday of current week
-    monday = today - timedelta(days=today.weekday())
-    sunday = monday + timedelta(days=6)
 
+    # Week navigation
+    week_offset = request.args.get('week', 0, type=int)
+    current_monday = today - timedelta(days=today.weekday())
+    selected_week_monday = current_monday + timedelta(weeks=week_offset)
+    selected_week_sunday = selected_week_monday + timedelta(days=6)
+    is_current_week = week_offset == 0
+
+    # Can go prev if habit existed before this week
+    habit_created_monday = habit_created_date - timedelta(days=habit_created_date.weekday())
+    can_go_prev = selected_week_monday > habit_created_monday
+    # Can go next if not already at current week
+    can_go_next = week_offset < 0
+
+    # Get completion logs for selected week
     cur.execute(
         'SELECT log_date FROM habit_logs '
         'WHERE habit_id = %s AND log_date >= %s AND log_date <= %s '
         'ORDER BY log_date DESC',
-        (id, monday, sunday)
+        (id, selected_week_monday, selected_week_sunday)
     )
     logs = cur.fetchall()
     completed_dates = {log['log_date'] for log in logs}
@@ -189,7 +236,7 @@ def view(id):
     # Build week data (Mon-Sun)
     days_data = []
     for i in range(7):
-        date = monday + timedelta(days=i)
+        date = selected_week_monday + timedelta(days=i)
         days_data.append({
             'date': date,
             'completed': date in completed_dates,
@@ -233,8 +280,34 @@ def view(id):
                 streak = 1
         longest_streak = max(longest_streak, streak)
 
-    # All-time completion count
-    all_time_completions = len(all_logs)
+    # Calculate weekly progress (last 8 weeks)
+    weeks = []
+    for w in range(7, -1, -1):
+        week_start = current_monday - timedelta(weeks=w)
+        week_end = week_start + timedelta(days=6)
+
+        # Count days that are valid (not before habit created, not in future)
+        valid_days = 0
+        completed_days = 0
+        for d in range(7):
+            day = week_start + timedelta(days=d)
+            if day >= habit_created_date and day <= today:
+                valid_days += 1
+                if day in all_completed_dates:
+                    completed_days += 1
+
+        if valid_days > 0:
+            percentage = (completed_days / valid_days) * 100
+        else:
+            percentage = 0
+
+        weeks.append({
+            'start': week_start,
+            'end': week_end,
+            'completed': completed_days,
+            'valid_days': valid_days,
+            'percentage': percentage
+        })
 
     # Get challenge info if assigned
     challenge = None
@@ -253,8 +326,14 @@ def view(id):
         days_data=days_data,
         current_streak=current_streak,
         longest_streak=longest_streak,
-        all_time_completions=all_time_completions,
-        challenge=challenge
+        weeks=weeks,
+        challenge=challenge,
+        week_offset=week_offset,
+        is_current_week=is_current_week,
+        can_go_prev=can_go_prev,
+        can_go_next=can_go_next,
+        selected_week_monday=selected_week_monday,
+        selected_week_sunday=selected_week_sunday
     )
 
 
@@ -393,6 +472,49 @@ def delete(id):
     cur = db.cursor()
     cur.execute('DELETE FROM habits WHERE id = %s', (id,))
     db.commit()
+    cur.close()
+    return redirect(url_for('dashboard.index'))
+
+@bp.route('/<int:id>/move/<direction>', methods=('POST',))
+@login_required
+def move(id, direction):
+    habit = get_habit(id)
+    db = get_db()
+    cur = db.cursor()
+
+    current_order = habit['display_order'] if habit['display_order'] else 0
+
+    if direction == 'up':
+        # Find habit with next higher display_order
+        cur.execute(
+            'SELECT id, display_order FROM habits '
+            'WHERE creator_id = %s AND display_order > %s '
+            'ORDER BY display_order ASC LIMIT 1',
+            (g.user['id'], current_order)
+        )
+    else:
+        # Find habit with next lower display_order
+        cur.execute(
+            'SELECT id, display_order FROM habits '
+            'WHERE creator_id = %s AND display_order < %s '
+            'ORDER BY display_order DESC LIMIT 1',
+            (g.user['id'], current_order)
+        )
+
+    swap_habit = cur.fetchone()
+
+    if swap_habit:
+        # Swap the display_order values
+        cur.execute(
+            'UPDATE habits SET display_order = %s WHERE id = %s',
+            (swap_habit['display_order'], id)
+        )
+        cur.execute(
+            'UPDATE habits SET display_order = %s WHERE id = %s',
+            (current_order, swap_habit['id'])
+        )
+        db.commit()
+
     cur.close()
     return redirect(url_for('dashboard.index'))
 

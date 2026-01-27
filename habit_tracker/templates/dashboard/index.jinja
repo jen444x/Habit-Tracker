@@ -80,18 +80,28 @@
       {# Each habit  #}
       <div class="bg-white rounded-xl px-4 py-3 shadow-lg/30 border-2 border-calm-500 transition-all duration-150">
         <div class="flex flex-row items-center gap-3">
+          {# Reorder buttons #}
+          <div class="flex flex-col">
+            <form action="{{ url_for('dashboard.move', id=habit['id'], direction='up') }}" method="post">
+              <button class="text-gray-300 hover:text-calm-500 transition-colors" title="Move up">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                </svg>
+              </button>
+            </form>
+            <form action="{{ url_for('dashboard.move', id=habit['id'], direction='down') }}" method="post">
+              <button class="text-gray-300 hover:text-calm-500 transition-colors" title="Move down">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
+            </form>
+          </div>
           <a
-          class="habit flex-1 flex gap-6 min-w-0 hover:opacity-70 transition-opacity"
+          class="habit flex-1 min-w-0 hover:opacity-70 transition-opacity"
           href="{{ url_for('dashboard.view', id=habit['id']) }}"
           >
-              <h3
-                class="font-black text-xl font-bold text-calm-600">
-                {{habit['title'] }}
-              </h3>
-              <p
-                class="text-lg text-gray-500 font-sans font-light truncate">
-                {{ habit['body'] }}
-              </p>
+              <h3 class="font-black text-xl font-bold text-calm-600">{{habit['title'] }}</h3>
           </a>
           <form
           action="{{ url_for('dashboard.complete', id=habit['id']) }}"
@@ -121,17 +131,10 @@
         <div class="bg-gray-50 rounded-xl px-4 py-3 border-2 border-gray-300 transition-all duration-150">
           <div class="flex flex-row items-center gap-3">
             <a
-            class="habit flex-1 flex gap-6 min-w-0 hover:opacity-70 transition-opacity"
+            class="habit flex-1 min-w-0 hover:opacity-70 transition-opacity"
             href="{{ url_for('dashboard.view', id=habit['id']) }}"
             >
-              <h3
-                class="font-black text-xl font-bold text-gray-400 line-through">
-                {{habit['title'] }}
-              </h3>
-              <p
-                class="text-lg text-gray-400 font-sans font-light truncate">
-                {{ habit['body'] }}
-              </p>
+              <h3 class="font-black text-xl font-bold text-gray-400 line-through">{{habit['title'] }}</h3>
             </a>
             <form
             action="{{ url_for('dashboard.undo_complete', id=habit['id']) }}"
