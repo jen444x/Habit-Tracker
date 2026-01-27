@@ -705,10 +705,24 @@
     --tw-duration: 150ms;
     transition-duration: 150ms;
   }
+  .group-hover\:text-white {
+    &:is(:where(.group):hover *) {
+      @media (hover: hover) {
+        color: var(--color-white);
+      }
+    }
+  }
   .hover\:bg-\[\#7bc4b8\] {
     &:hover {
       @media (hover: hover) {
         background-color: #7bc4b8;
+      }
+    }
+  }
+  .hover\:bg-calm-400 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-calm-400);
       }
     }
   }
@@ -779,6 +793,13 @@
     &:hover {
       @media (hover: hover) {
         color: var(--color-calm-600);
+      }
+    }
+  }
+  .hover\:text-gray-600 {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-gray-600);
       }
     }
   }
