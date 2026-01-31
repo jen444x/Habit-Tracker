@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask
+from flask import Flask, send_from_directory
 
 
 def create_app(test_config=None):
@@ -65,6 +65,24 @@ def create_app(test_config=None):
 
     from . import api
     app.register_blueprint(api.bp)
+
+    # Serve React build in production
+    react_build_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'dist')
+
+    if os.path.exists(react_build_dir):
+        # Serve static assets (JS, CSS, images)
+        @app.route('/assets/<path:filename>')
+        def serve_assets(filename):
+            return send_from_directory(os.path.join(react_build_dir, 'assets'), filename)
+
+        # Serve React app for all non-API routes (client-side routing)
+        @app.route('/', defaults={'path': ''})
+        @app.route('/<path:path>')
+        def serve_react(path):
+            # Don't intercept API routes or existing Flask routes
+            if path.startswith('api/') or path.startswith('auth/') or path.startswith('challenges/') or path.startswith('visuals/'):
+                return app.send_static_file('index.html')
+            return send_from_directory(react_build_dir, 'index.html')
 
     return app
 
