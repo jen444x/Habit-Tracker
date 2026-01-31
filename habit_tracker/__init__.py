@@ -66,6 +66,9 @@ def create_app(test_config=None):
     from . import api
     app.register_blueprint(api.bp)
 
+    from . import journal
+    app.register_blueprint(journal.bp)
+
     # Serve React build in production
     react_build_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'dist')
 

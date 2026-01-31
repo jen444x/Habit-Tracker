@@ -31,6 +31,14 @@ CREATE TABLE challenges (
     id SERIAL PRIMARY KEY,
     creator_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    title VARCHAR(100) NOT NULL,     
+    title VARCHAR(100) NOT NULL,
     body TEXT NOT NULL
+);
+
+CREATE TABLE journal_entries (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    content TEXT NOT NULL,
+    extracted_data JSONB
 );

@@ -6,6 +6,7 @@ import HabitView from "./pages/HabitView";
 import HabitForm from "./pages/HabitForm";
 import ChallengesList from "./pages/ChallengesList";
 import ChallengeForm from "./pages/ChallengeForm";
+import Journal from "./pages/Journal";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -110,6 +111,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <ChallengeForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/journal"
+        element={
+          <ProtectedRoute>
+            <Journal />
           </ProtectedRoute>
         }
       />
