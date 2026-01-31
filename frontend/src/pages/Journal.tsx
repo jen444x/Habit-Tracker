@@ -19,7 +19,6 @@ interface JournalEntry {
 export default function Journal() {
   const [content, setContent] = useState('');
   const [entries, setEntries] = useState<JournalEntry[]>([]);
-  const [loading, setLoading] = useState(false);
   const [extracting, setExtracting] = useState(false);
 
   useEffect(() => {
