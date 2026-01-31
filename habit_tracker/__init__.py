@@ -63,6 +63,8 @@ def create_app(test_config=None):
     from . import chat
     app.register_blueprint(chat.bp)
 
+    from . import api
+    app.register_blueprint(api.bp)
 
     return app
 
