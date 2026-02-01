@@ -1,6 +1,4 @@
 import os
-from openai import OpenAI
-
 import functools
 
 from flask import (
