@@ -52,7 +52,7 @@ def index():
 
     # Build challenge filter clause
     if challenge_filter:
-        challenge_clause = ' AND h.challenge_id = %s'
+        challenge_clause = ' AND h.id IN (SELECT habit_id FROM habit_challenges WHERE challenge_id = %s)'
         challenge_param = (challenge_filter,)
     else:
         challenge_clause = ''
@@ -141,9 +141,20 @@ def index():
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
 def create():
+    db = get_db()
+    cur = db.cursor()
+
+    # Get all challenges for the user
+    cur.execute(
+        'SELECT id, title FROM challenges WHERE creator_id = %s ORDER BY title',
+        (g.user['id'],)
+    )
+    all_challenges = cur.fetchall()
+
     if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
+        selected_challenges = request.form.getlist('challenges')
         error = None
 
         if not title:
@@ -152,30 +163,38 @@ def create():
         if error is not None:
             flash(error)
         else:
-            db = get_db()
-            cur = db.cursor()
-
-            # create habit
+            # Create habit
             cur.execute(
                 'INSERT INTO habits (title, body, creator_id, display_order)'
-                ' VALUES (%s, %s, %s, (' \
-                'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
-                'FROM habits WHERE creator_id = %s))',
+                ' VALUES (%s, %s, %s, ('
+                'SELECT COALESCE(MAX(display_order), 0) + 1 '
+                'FROM habits WHERE creator_id = %s)) RETURNING id',
                 (title, body, g.user['id'], g.user['id'])
             )
+            habit_id = cur.fetchone()['id']
+
+            # Insert challenge associations
+            for challenge_id in selected_challenges:
+                if challenge_id:
+                    cur.execute(
+                        'INSERT INTO habit_challenges (habit_id, challenge_id) VALUES (%s, %s)',
+                        (habit_id, int(challenge_id))
+                    )
+
             db.commit()
             cur.close()
 
             return redirect(url_for('dashboard.index'))
 
-    return render_template('dashboard/create.jinja')
+    cur.close()
+    return render_template('dashboard/create.jinja', all_challenges=all_challenges)
 
 def get_habit(id):
     db = get_db()
     cur = db.cursor()
 
     cur.execute(
-        'SELECT h.id, title, challenge_id, body, creator_id, display_order'
+        'SELECT h.id, title, body, creator_id, display_order'
         ' FROM habits h'
         ' JOIN users u'
         ' ON h.creator_id = u.id'
@@ -309,14 +328,14 @@ def view(id):
             'percentage': percentage
         })
 
-    # Get challenge info if assigned
-    challenge = None
-    if habit['challenge_id']:
-        cur.execute(
-            'SELECT id, title FROM challenges WHERE id = %s',
-            (habit['challenge_id'],)
-        )
-        challenge = cur.fetchone()
+    # Get all challenges for this habit
+    cur.execute(
+        'SELECT c.id, c.title FROM challenges c '
+        'JOIN habit_challenges hc ON c.id = hc.challenge_id '
+        'WHERE hc.habit_id = %s',
+        (id,)
+    )
+    challenges = cur.fetchall()
 
     cur.close()
 
@@ -327,7 +346,7 @@ def view(id):
         current_streak=current_streak,
         longest_streak=longest_streak,
         weeks=weeks,
-        challenge=challenge,
+        challenges=challenges,
         week_offset=week_offset,
         is_current_week=is_current_week,
         can_go_prev=can_go_prev,
@@ -342,68 +361,63 @@ def view(id):
 def update(id):
     habit = get_habit(id)
 
-    # get challenges for drop down
     db = get_db()
     cur = db.cursor()
-    
-    if habit['challenge_id'] is None:                                                                                                         
-        cur.execute(                                                                                                                                       
-            'SELECT * ' \
-            'FROM challenges ' \
-            'WHERE creator_id = %s',                                                                                              
-            (g.user['id'],)                                                                                                                                
-        )  
-        habit['challenge_title'] = 'None'                                                                                                                                              
-    else:    
-        # get project name of challenge
-        cur.execute(
-            'SELECT title ' \
-            'FROM challenges ' \
-            'WHERE id = %s',
-            (habit['challenge_id'], )
-        )   
-        c_title = cur.fetchone()
-        habit['challenge_title'] = c_title['title'] 
 
-        cur.execute(                                                                                                                                       
-            'SELECT * FROM challenges WHERE creator_id = %s AND id != %s',                                                                                 
-            (g.user['id'], habit['challenge_id'])                                                                                                          
-        ) 
+    # Get all challenges for the user
+    cur.execute(
+        'SELECT id, title FROM challenges WHERE creator_id = %s ORDER BY title',
+        (g.user['id'],)
+    )
+    all_challenges = cur.fetchall()
 
-    dropdown_options = cur.fetchall()
-
-    if habit['challenge_id'] == None:
-        habit['challenge_id'] = 'None'
-    
+    # Get currently assigned challenge IDs for this habit
+    cur.execute(
+        'SELECT challenge_id FROM habit_challenges WHERE habit_id = %s',
+        (id,)
+    )
+    habit_challenge_ids = [row['challenge_id'] for row in cur.fetchall()]
 
     if request.method == 'POST':
         title = request.form['title']
-        challenge = request.form['challenge']
         body = request.form['body']
+        selected_challenges = request.form.getlist('challenges')
         error = None
-       
+
         if not title:
             error = 'Title is required.'
-
-        if challenge == 'None':
-            challenge = None
 
         if error is not None:
             flash(error)
         else:
-            db = get_db()
-            cur = db.cursor()
+            # Update habit details
             cur.execute(
-                'UPDATE habits'
-                ' SET title = %s, challenge_id = %s, body = %s'
-                ' WHERE id = %s',
-                (title, challenge, body, id)
+                'UPDATE habits SET title = %s, body = %s WHERE id = %s',
+                (title, body, id)
             )
+
+            # Delete existing challenge associations
+            cur.execute('DELETE FROM habit_challenges WHERE habit_id = %s', (id,))
+
+            # Insert new challenge associations
+            for challenge_id in selected_challenges:
+                if challenge_id:
+                    cur.execute(
+                        'INSERT INTO habit_challenges (habit_id, challenge_id) VALUES (%s, %s)',
+                        (id, int(challenge_id))
+                    )
+
             db.commit()
             cur.close()
             return redirect(url_for('dashboard.index'))
 
-    return render_template('dashboard/update.jinja', habit=habit, dropdown_options=dropdown_options) # Here its passed like a dict reference
+    cur.close()
+    return render_template(
+        'dashboard/update.jinja',
+        habit=habit,
+        all_challenges=all_challenges,
+        habit_challenge_ids=habit_challenge_ids
+    )
 
 @bp.route('/<int:id>/complete', methods=('POST',))
 @login_required
