@@ -97,8 +97,26 @@ def index():
     )
     habits_done = [dict(row) for row in cur.fetchall()]
 
-    # Get all habit IDs
-    all_habit_ids = [h['id'] for h in habits] + [h['id'] for h in habits_done]
+    # Get all habit IDs (including skipped)
+    all_habit_ids = [h['id'] for h in habits] + [h['id'] for h in habits_skipped] + [h['id'] for h in habits_done]
+
+    # Get challenges for all habits
+    habit_challenges_map = {}
+    if all_habit_ids:
+        cur.execute(
+            'SELECT hc.habit_id, c.id, c.title FROM habit_challenges hc '
+            'JOIN challenges c ON hc.challenge_id = c.id '
+            'WHERE hc.habit_id = ANY(%s)',
+            (all_habit_ids,)
+        )
+        for row in cur.fetchall():
+            if row['habit_id'] not in habit_challenges_map:
+                habit_challenges_map[row['habit_id']] = []
+            habit_challenges_map[row['habit_id']].append({'id': row['id'], 'title': row['title']})
+
+    # Add challenges to each habit
+    for habit in habits + habits_skipped + habits_done:
+        habit['challenges'] = habit_challenges_map.get(habit['id'], [])
 
     # Get week's completion logs for all habits
     week_logs = {}
