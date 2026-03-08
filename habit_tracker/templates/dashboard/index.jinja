@@ -104,6 +104,19 @@
               <h3 class="font-black text-xl font-bold text-calm-600">{{habit['title'] }}</h3>
           </a>
           <form
+          action="{{ url_for('dashboard.skip', id=habit['id']) }}"
+          method="post"
+          >
+            <input type="hidden" name="date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
+            <button
+                class="group w-8 h-8 rounded-full border-2 border-gray-300 hover:bg-gray-300 cursor-pointer transition-colors duration-150 flex items-center justify-center"
+                title="Skip for today">
+              <svg class="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </form>
+          <form
           action="{{ url_for('dashboard.complete', id=habit['id']) }}"
           method="post"
           >
@@ -121,13 +134,39 @@
     {% endfor %}
   </div>
 
-  {% if habits_done %}
+  {% if habits_skipped or habits_done %}
     <hr class="my-8 border-t border-gray-300">
 
     <div class="flex flex-col gap-4 mb-6">
-      {# List of habits done #}
+      {# Skipped habits #}
+      {% for habit in habits_skipped %}
+        <div class="bg-gray-50 rounded-xl px-4 py-3 border-2 border-dashed border-gray-300 transition-all duration-150">
+          <div class="flex flex-row items-center gap-3">
+            <a
+            class="habit flex-1 min-w-0 hover:opacity-70 transition-opacity"
+            href="{{ url_for('dashboard.view', id=habit['id']) }}"
+            >
+              <h3 class="font-black text-xl font-bold text-gray-400">{{habit['title'] }}</h3>
+            </a>
+            <form
+            action="{{ url_for('dashboard.unskip', id=habit['id']) }}"
+            method="post"
+            >
+              <input type="hidden" name="date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
+              <button
+                  class="group w-8 h-8 rounded-full border-2 border-gray-300 hover:bg-gray-300 cursor-pointer transition-colors duration-150 flex items-center justify-center"
+                  title="Undo skip">
+                <svg class="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+
+      {# Completed habits #}
       {% for habit in habits_done %}
-        {# Each habit   #}
         <div class="bg-gray-50 rounded-xl px-4 py-3 border-2 border-gray-300 transition-all duration-150">
           <div class="flex flex-row items-center gap-3">
             <a

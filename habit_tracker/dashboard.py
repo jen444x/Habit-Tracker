@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, session
 )
 from werkzeug.exceptions import abort
 
@@ -74,7 +74,15 @@ def index():
         ' ORDER BY display_order DESC',
         (selected_date, g.user['id']) + challenge_param
     )
-    habits = [dict(row) for row in cur.fetchall()]
+    all_incomplete = [dict(row) for row in cur.fetchall()]
+
+    # Get skipped habit IDs for this date from session
+    skipped_key = f"skipped_{selected_date.isoformat()}"
+    skipped_ids = set(session.get(skipped_key, []))
+
+    # Separate skipped from incomplete
+    habits = [h for h in all_incomplete if h['id'] not in skipped_ids]
+    habits_skipped = [h for h in all_incomplete if h['id'] in skipped_ids]
 
     # Get completed habits
     cur.execute(
@@ -121,6 +129,7 @@ def index():
                 })
 
     add_week_data(habits)
+    add_week_data(habits_skipped)
     add_week_data(habits_done)
 
     cur.close()
@@ -128,6 +137,7 @@ def index():
     return render_template(
         'dashboard/index.jinja',
         habits=habits,
+        habits_skipped=habits_skipped,
         habits_done=habits_done,
         all_challenges=all_challenges,
         challenge_filter=challenge_filter,
@@ -530,5 +540,55 @@ def move(id, direction):
         db.commit()
 
     cur.close()
+    return redirect(url_for('dashboard.index'))
+
+@bp.route('/<int:id>/skip', methods=('POST',))
+@login_required
+def skip(id):
+    get_habit(id)  # Verify ownership
+
+    date_str = request.form.get('date')
+    if date_str:
+        try:
+            skip_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            skip_date = get_user_local_date()
+    else:
+        skip_date = get_user_local_date()
+
+    # Add to session
+    skipped_key = f"skipped_{skip_date.isoformat()}"
+    skipped_ids = session.get(skipped_key, [])
+    if id not in skipped_ids:
+        skipped_ids.append(id)
+        session[skipped_key] = skipped_ids
+
+    if date_str:
+        return redirect(url_for('dashboard.index', date=date_str))
+    return redirect(url_for('dashboard.index'))
+
+@bp.route('/<int:id>/unskip', methods=('POST',))
+@login_required
+def unskip(id):
+    get_habit(id)  # Verify ownership
+
+    date_str = request.form.get('date')
+    if date_str:
+        try:
+            skip_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            skip_date = get_user_local_date()
+    else:
+        skip_date = get_user_local_date()
+
+    # Remove from session
+    skipped_key = f"skipped_{skip_date.isoformat()}"
+    skipped_ids = session.get(skipped_key, [])
+    if id in skipped_ids:
+        skipped_ids.remove(id)
+        session[skipped_key] = skipped_ids
+
+    if date_str:
+        return redirect(url_for('dashboard.index', date=date_str))
     return redirect(url_for('dashboard.index'))
 
