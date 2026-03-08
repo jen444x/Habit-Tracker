@@ -1,6 +1,7 @@
-DROP TABLE IF EXISTS habit_logs;                                                                                                                                          
-DROP TABLE IF EXISTS habits;                                                                                                                                              
-DROP TABLE IF EXISTS users;  
+DROP TABLE IF EXISTS habit_challenges;
+DROP TABLE IF EXISTS habit_logs;
+DROP TABLE IF EXISTS habits;
+DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS challenges;                                                                                                                                             
                                                                                                                                                                         
 CREATE TABLE users (                                                                                                                                                      
@@ -11,12 +12,11 @@ CREATE TABLE users (
     timezone VARCHAR(50) DEFAULT 'UTC'                                                                                                                         
 );                                                                                                                                                                        
                                                                                                                                                                         
-CREATE TABLE habits (                                                                                                                                                     
-    id SERIAL PRIMARY KEY,                                                                                                                                                
-    creator_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,   
-    challenge_id INTEGER REFERENCES challenges(id) ON DELETE CASCADE,                                                                                                
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),                                                                                                                        
-    title VARCHAR(100) NOT NULL,                                                                                                                                          
+CREATE TABLE habits (
+    id SERIAL PRIMARY KEY,
+    creator_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    title VARCHAR(100) NOT NULL,
     body TEXT NOT NULL,
     display_order INTEGER
 );                                                                                                                                                                        
@@ -31,6 +31,12 @@ CREATE TABLE challenges (
     id SERIAL PRIMARY KEY,
     creator_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    title VARCHAR(100) NOT NULL,     
+    title VARCHAR(100) NOT NULL,
     body TEXT NOT NULL
+);
+
+CREATE TABLE habit_challenges (
+    habit_id INTEGER NOT NULL REFERENCES habits(id) ON DELETE CASCADE,
+    challenge_id INTEGER NOT NULL REFERENCES challenges(id) ON DELETE CASCADE,
+    PRIMARY KEY (habit_id, challenge_id)
 );
