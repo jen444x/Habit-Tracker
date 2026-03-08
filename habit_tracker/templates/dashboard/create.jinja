@@ -24,6 +24,22 @@
           class="border-2 border-calm-300 rounded-lg px-4 py-3 focus:outline-none focus:border-calm-500 text-calm-600 resize-y">{{ request.form['body'] }}</textarea>
       </div>
 
+      {# challenges - multi-select #}
+      {% if all_challenges %}
+      <div class="flex flex-col gap-2">
+        <label class="font-bold text-calm-600 text-lg">Challenges</label>
+        <div class="border-2 border-calm-300 rounded-lg p-4 flex flex-col gap-2">
+          {% for challenge in all_challenges %}
+          <label class="flex items-center gap-3 cursor-pointer hover:bg-calm-50 p-2 rounded-lg transition-colors">
+            <input type="checkbox" name="challenges" value="{{ challenge['id'] }}"
+              class="w-5 h-5 text-calm-600 border-calm-300 rounded focus:ring-calm-500 cursor-pointer">
+            <span class="text-calm-600">{{ challenge['title'] }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
       <div class="flex gap-4 mt-2">
         <input type="submit" value="Create Habit"
           class="bg-calm-600 hover:bg-calm-500 text-white px-6 py-3 rounded-lg font-bold cursor-pointer flex-1 shadow-lg/30">
