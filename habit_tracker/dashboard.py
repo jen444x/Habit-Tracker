@@ -175,7 +175,7 @@ def get_habit(id):
     cur = db.cursor()
 
     cur.execute(
-        'SELECT h.id, title, challenge_id, body, creator_id'
+        'SELECT h.id, title, challenge_id, body, creator_id, display_order'
         ' FROM habits h'
         ' JOIN users u'
         ' ON h.creator_id = u.id'
@@ -487,16 +487,16 @@ def move(id, direction):
     if direction == 'up':
         # Find habit with next higher display_order
         cur.execute(
-            'SELECT id, display_order FROM habits '
-            'WHERE creator_id = %s AND display_order > %s '
+            'SELECT id, COALESCE(display_order, 0) as display_order FROM habits '
+            'WHERE creator_id = %s AND COALESCE(display_order, 0) > %s '
             'ORDER BY display_order ASC LIMIT 1',
             (g.user['id'], current_order)
         )
     else:
         # Find habit with next lower display_order
         cur.execute(
-            'SELECT id, display_order FROM habits '
-            'WHERE creator_id = %s AND display_order < %s '
+            'SELECT id, COALESCE(display_order, 0) as display_order FROM habits '
+            'WHERE creator_id = %s AND COALESCE(display_order, 0) < %s '
             'ORDER BY display_order DESC LIMIT 1',
             (g.user['id'], current_order)
         )
