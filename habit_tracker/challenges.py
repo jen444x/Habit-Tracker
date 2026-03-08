@@ -149,16 +149,17 @@ def challenge(id):
         abort(403)
 
     cur.execute(
-        'SELECT * '
-        'FROM habits '
-        'WHERE challenge_id = %s',
+        'SELECT h.* '
+        'FROM habits h '
+        'JOIN habit_challenges hc ON h.id = hc.habit_id '
+        'WHERE hc.challenge_id = %s',
         (id,)
     )
     habits = cur.fetchall()
 
     # Get stats data
     cur.execute(
-        'SELECT COUNT(*) as count FROM habits WHERE challenge_id = %s',
+        'SELECT COUNT(*) as count FROM habit_challenges WHERE challenge_id = %s',
         (id,)
     )
     habit_count = cur.fetchone()['count']
@@ -186,8 +187,8 @@ def challenge(id):
 
         cur.execute(
             'SELECT COUNT(*) as count FROM habit_logs hl '
-            'JOIN habits h ON hl.habit_id = h.id '
-            'WHERE h.challenge_id = %s '
+            'JOIN habit_challenges hc ON hl.habit_id = hc.habit_id '
+            'WHERE hc.challenge_id = %s '
             'AND hl.log_date >= %s AND hl.log_date <= %s',
             (id, valid_start, valid_end)
         )
@@ -238,8 +239,8 @@ def challenge(id):
     cur.execute(
         'SELECT hl.habit_id, hl.log_date '
         'FROM habit_logs hl '
-        'JOIN habits h ON hl.habit_id = h.id '
-        'WHERE h.challenge_id = %s '
+        'JOIN habit_challenges hc ON hl.habit_id = hc.habit_id '
+        'WHERE hc.challenge_id = %s '
         'AND hl.log_date BETWEEN %s AND %s',
         (id, start_date, end_date)
     )
@@ -309,7 +310,7 @@ def challenge_stats(id):
 
     # Count habits in this challenge
     cur.execute(
-        'SELECT COUNT(*) as count FROM habits WHERE challenge_id = %s',
+        'SELECT COUNT(*) as count FROM habit_challenges WHERE challenge_id = %s',
         (id,)
     )
     habit_count = cur.fetchone()['count']
@@ -340,8 +341,8 @@ def challenge_stats(id):
 
         cur.execute(
             'SELECT COUNT(*) as count FROM habit_logs hl '
-            'JOIN habits h ON hl.habit_id = h.id '
-            'WHERE h.challenge_id = %s '
+            'JOIN habit_challenges hc ON hl.habit_id = hc.habit_id '
+            'WHERE hc.challenge_id = %s '
             'AND hl.log_date >= %s AND hl.log_date <= %s',
             (id, valid_start, valid_end)
         )
