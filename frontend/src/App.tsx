@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router";
 import LandingPage from "./pages/LandingPage.tsx";
 import SignUpPage from "./pages/SignUpPage.tsx";
+import LogInPage from "./pages/LogInPage.tsx";
 
 function App() {
   return (
@@ -8,7 +9,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/login" element={<div>Log In Page</div>} />
+        <Route path="/login" element={<LogInPage />} />
       </Routes>
     </>
   );

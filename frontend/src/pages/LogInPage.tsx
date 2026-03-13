@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function SignUpPage() {
+function LogInPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -12,11 +12,11 @@ function SignUpPage() {
     <div className="min-h-screen bg-calm-50 px-6 py-12">
       {/* Header */}
       <div className="text-center mb-10">
-        <div className="text-5xl mb-4">🌱</div>
+        <div className="text-5xl mb-4">🌿</div>
         <h1 className="font-heading text-4xl text-calm-900 mb-2">
-          Begin Your Journey
+          Welcome Back
         </h1>
-        <p className="text-calm-600 text-sm">Small steps, steady growth</p>
+        <p className="text-calm-600 text-sm">Continue your growth</p>
       </div>
 
       {/* Form */}
@@ -29,7 +29,7 @@ function SignUpPage() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             type="text"
-            placeholder="Choose a username"
+            placeholder="Enter your username"
             className="w-full px-4 py-4 bg-white border border-calm-200 rounded-xl focus:outline-none focus:border-calm-500 text-calm-900 placeholder:text-calm-400"
           />
         </div>
@@ -42,23 +42,22 @@ function SignUpPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             type="password"
-            placeholder="Create a password"
+            placeholder="Enter your password"
             className="w-full px-4 py-4 bg-white border border-calm-200 rounded-xl focus:outline-none focus:border-calm-500 text-calm-900 placeholder:text-calm-400"
           />
         </div>
 
         <button className="w-full bg-calm-600 text-white py-4 rounded-xl font-medium hover:bg-calm-700 transition-colors mt-4">
-          Start Growing
+          Sign In
         </button>
       </form>
 
       {/* Footer */}
       <p className="text-center text-calm-500 text-sm mt-8">
-        Already have an account?{" "}
-        <span className="text-calm-700 font-medium">Sign in</span>
+        Don't have an account?{" "}
+        <span className="text-calm-700 font-medium">Sign up</span>
       </p>
     </div>
   );
 }
-
-export default SignUpPage;
+export default LogInPage;
