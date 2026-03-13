@@ -1,7 +1,7 @@
 import functools
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Blueprint, flash, g, redirect, render_template, request, session, url_for, jsonify
 )
 
 from psycopg2 import errors 
@@ -12,41 +12,39 @@ from habit_tracker.db import get_db
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
-@bp.route('register', methods=('GET', 'POST'))
+@bp.route('/register', methods=['POST'])
 def register():
-    """ 
-    Register user:
-    if successful redirects to login
-    if not shows error and stays on register
-    """ 
-    if request.method =='POST': 
-        # Get data
-        username = request.form['username'].lower()
-        password = request.form['password']
-        db = get_db()
-        cur = db.cursor()
-        error = None
+    # Make sure data is available
+    validation_errors = []
+    data = request.get_json()
+    
+    username = data.get('username')
+    password = data.get('password')
 
-        # Make sure both fields were entered
-        if not username or not password:
-            error = "Both fields are required."
+    if not username:
+        validation_errors.append("missing_username")
+    if not password:
+        validation_errors.append("missing_password")
 
-        if error is None:
-            try:
-                cur.execute(
-                    "INSERT INTO users (username, password) VALUES (%s, %s)",
-                    (username, generate_password_hash(password))
-                )
-                db.commit()
-                cur.close()
-            except errors.UniqueViolation:
-                error = f"User {username} is already registered."
-            else:
-                return redirect(url_for("auth.login"))
-            
-        flash(error)
+    if validation_errors:
+        return jsonify({"errors": validation_errors}), 400
+    
+    username = username.lower()
 
-    return render_template('auth/auth_form.jinja', form_title='Sign Up', button_text='Sign Up')
+    db = get_db()
+    cur = db.cursor()
+    try:
+        cur.execute(
+            "INSERT INTO users (username, password) VALUES (%s, %s)",
+            (username, generate_password_hash(password))
+        )
+        db.commit()
+        cur.close()
+    except errors.UniqueViolation:
+        return jsonify({"errors": ["username is taken"]}), 409
+    else:
+        return jsonify({}), 201
+
 
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
