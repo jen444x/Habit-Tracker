@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 
 function LogInPage() {
   const [username, setUsername] = useState("");
@@ -48,14 +49,16 @@ function LogInPage() {
         </div>
 
         <button className="w-full bg-calm-600 text-white py-4 rounded-xl font-medium hover:bg-calm-700 transition-colors mt-4">
-          Sign In
+          Log In
         </button>
       </form>
 
       {/* Footer */}
       <p className="text-center text-calm-500 text-sm mt-8">
         Don't have an account?{" "}
-        <span className="text-calm-700 font-medium">Sign up</span>
+        <Link to="/signup" className="text-calm-700 font-medium">
+          Sign up
+        </Link>
       </p>
     </div>
   );

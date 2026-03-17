@@ -14,20 +14,16 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @bp.route('/register', methods=['POST'])
 def register():
+    print("hello")
     # Make sure data is available
-    validation_errors = []
     data = request.get_json()
+    print(data)
     
     username = data.get('username')
     password = data.get('password')
 
-    if not username:
-        validation_errors.append("missing_username")
-    if not password:
-        validation_errors.append("missing_password")
-
-    if validation_errors:
-        return jsonify({"errors": validation_errors}), 400
+    if not username or not password:
+        return jsonify({"error": "missing field(s)"}), 400
     
     username = username.lower()
 
@@ -41,7 +37,7 @@ def register():
         db.commit()
         cur.close()
     except errors.UniqueViolation:
-        return jsonify({"errors": ["username is taken"]}), 409
+        return jsonify({"error": "username is taken"}), 409
     else:
         return jsonify({}), 201
 

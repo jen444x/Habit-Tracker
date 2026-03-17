@@ -1,7 +1,7 @@
 import os
 
 from flask import Flask
-
+from flask_cors import CORS
 
 def create_app(test_config=None):
     # create and configure the app
@@ -10,6 +10,7 @@ def create_app(test_config=None):
     # local data that shouldn't be committed to version control, such as
     # configuration secrets and the database file.
     app = Flask(__name__, instance_relative_config=True)
+    CORS(app) # Enables CORS for all routes
     # SECRET_KEY is used by Flask and extensions to keep data safe. It's set to
     # 'dev' to provide a convenient value during development, but it should be
     # overridden with a random value when deploying.

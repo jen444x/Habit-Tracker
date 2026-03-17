@@ -1,11 +1,43 @@
 import { useState } from "react";
+import { Link } from "react-router";
+import { useNavigate } from "react-router";
 
 function SignUpPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
+  const navigate = useNavigate();
+
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    const url = "http://localhost:8000/auth/register";
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: username, password: password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error);
+        console.log(data.error);
+        return;
+      }
+
+      // go to dashboard on success
+      navigate("/dashboard");
+      console.log("signup successful!", data);
+    } catch (error) {
+      // this only runs if the request itself failed (network error, etc.)
+      setError(error instanceof Error ? error.message : "An unknown error occurred");
+      console.error("network error:", error);
+    }
   }
 
   return (
@@ -47,6 +79,9 @@ function SignUpPage() {
           />
         </div>
 
+        {/* Show errors if any */}
+        {error && <p>{error}</p>}
+
         <button className="w-full bg-calm-600 text-white py-4 rounded-xl font-medium hover:bg-calm-700 transition-colors mt-4">
           Start Growing
         </button>
@@ -55,7 +90,9 @@ function SignUpPage() {
       {/* Footer */}
       <p className="text-center text-calm-500 text-sm mt-8">
         Already have an account?{" "}
-        <span className="text-calm-700 font-medium">Sign in</span>
+        <Link to="/login" className="text-calm-700 font-medium">
+          Log in
+        </Link>
       </p>
     </div>
   );
