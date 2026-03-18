@@ -44,10 +44,9 @@ def register():
         # Create token
         token = jwt.encode({"user_id": user_id['id']}, secret_key, algorithm="HS256")   
 
+        return jsonify({"token": token}), 201
     except errors.UniqueViolation:
         return jsonify({"error": "username is taken"}), 409
-    else:
-        return jsonify({"token": token}), 201
 
 
 @bp.route('/login', methods=('GET', 'POST'))
@@ -58,44 +57,36 @@ def login():
     if not, shows error and stays on login
     """
     if request.method == 'POST':
+        print("do i get here")
         # Get data
-        username = request.form['username'].lower()
-        password = request.form['password']
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        
+        if not username or not password:
+            return jsonify({"error": "missing field(s)"}), 400
+
+        username = username.lower()
+
         db = get_db()
         cur = db.cursor()
-        error = None
-
-        # Make sure fields were entered
-        if not username or not password:
-            error = "Both fields are required."
 
         # Get row data
-        if error is None:
-            cur.execute(
-                'SELECT * FROM users WHERE username = %s', (username,)
-            )
+        cur.execute(
+            'SELECT * FROM users WHERE username = %s', (username,)
+        )
 
-            user = cur.fetchone()
-
-            cur.close()
-            
-            # Check if user exists
-            if user is None:
-                error = 'One or more fields are incorrect.'
+        user = cur.fetchone()
+        cur.close()
         
-            # Check password 
-            if user and not check_password_hash(user['password'], password):
-                error = 'One or more fields are incorrect.'
+        # Check if user exists or password is inccorect
+        if (user is None) or (not check_password_hash(user['password'], password)):
+            return jsonify({"error":"One or more fields are incorrect."}), 401
 
-        if error is None:
-            # session is a dict that stores data across requests
-            session.clear()
-            session['user_id'] = user['id']
-            return redirect(url_for('index'))
-        
-        flash (error)
-
-    return render_template('auth/auth_form.jinja', form_title='Welcome Back', button_text='Log In')
+        # create token
+        secret_key = current_app.config['SECRET_KEY']
+        token = jwt.encode({"user_id": user['id']}, secret_key, algorithm="HS256")   
+        return jsonify({"token": token}), 200
 
 
 @bp.before_app_request

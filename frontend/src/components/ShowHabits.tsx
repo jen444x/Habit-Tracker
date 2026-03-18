@@ -1,3 +1,5 @@
+import ToDo from "./Todo";
+
 function ShowHabits({ habits }) {
   if (habits.length === 0) {
     return (
@@ -16,13 +18,7 @@ function ShowHabits({ habits }) {
       </h2>
       <ul className="space-y-3">
         {habits.map((habit) => (
-          <li
-            key={habit.id}
-            className="bg-white border border-calm-200 rounded-xl px-4 py-4 flex items-center gap-3"
-          >
-            <div className="w-5 h-5 rounded-full border-2 border-calm-300 flex-shrink-0" />
-            <span className="text-calm-900">{habit.title}</span>
-          </li>
+          <ToDo key={habit.id} habit={habit} />
         ))}
       </ul>
     </div>
