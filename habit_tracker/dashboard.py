@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify
 )
 from werkzeug.exceptions import abort
 
@@ -19,6 +19,7 @@ def get_user_local_date():
 def index():
     # Show landing page for logged-out users
     if g.user is None:
+        print("USER IS NONE")
         return render_template('auth/landing.jinja')
 
     db = get_db()
@@ -125,48 +126,51 @@ def index():
 
     cur.close()
 
-    return render_template(
-        'dashboard/index.jinja',
-        habits=habits,
-        habits_done=habits_done,
-        all_challenges=all_challenges,
-        challenge_filter=challenge_filter,
-        selected_date=selected_date,
-        prev_date=prev_date,
-        next_date=next_date,
-        is_today=is_today
-    )
+    return jsonify({"habits":habits})
+
+    # return render_template(
+    #     'dashboard/index.jinja',
+    #     habits=habits,
+    #     habits_done=habits_done,
+    #     all_challenges=all_challenges,
+    #     challenge_filter=challenge_filter,
+    #     selected_date=selected_date,
+    #     prev_date=prev_date,
+    #     next_date=next_date,
+    #     is_today=is_today
+    # )
 
 
 @bp.route('/create', methods=('GET', 'POST'))
-@login_required
 def create():
     if request.method == 'POST':
-        title = request.form['title']
-        body = request.form['body']
-        error = None
+        print("helloooo")
+        print("yer")
+        # get data
+        data = request.get_json()
+        print(data)
+        name = data.get('name')
+        description = data.get('desc')
+    
+        print("yo")
+        if not name:
+            return jsonify({"error": "Name is missing"}), 400
 
-        if not title:
-            error = 'Title is required.'
+        db = get_db()
+        cur = db.cursor()
 
-        if error is not None:
-            flash(error)
-        else:
-            db = get_db()
-            cur = db.cursor()
+        # create habit
+        cur.execute(
+            'INSERT INTO habits (title, body, creator_id, display_order)'
+            ' VALUES (%s, %s, %s, (' \
+            'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
+            'FROM habits WHERE creator_id = %s))',
+            (name, description, g.user['id'], g.user['id'])
+        )
+        db.commit()
+        cur.close()
 
-            # create habit
-            cur.execute(
-                'INSERT INTO habits (title, body, creator_id, display_order)'
-                ' VALUES (%s, %s, %s, (' \
-                'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
-                'FROM habits WHERE creator_id = %s))',
-                (title, body, g.user['id'], g.user['id'])
-            )
-            db.commit()
-            cur.close()
-
-            return redirect(url_for('dashboard.index'))
+        return jsonify({}),201
 
     return render_template('dashboard/create.jinja')
 

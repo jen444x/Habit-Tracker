@@ -1,76 +1,66 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import AddHabit from "../components/AddHabit";
+import ShowHabits from "../components/ShowHabits";
 
 function DashboardPage() {
-  const [task_name, setTaskName] = useState("");
-  const [task_desc, setTaskDesc] = useState("");
+  const [habits, setHabits] = useState([]);
   const [error, setError] = useState("");
-  const [status, setStatus] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    const url = "http://localhost:8000/create";
+  async function fetchHabits() {
+    const url = "http://localhost:8000";
     const token = localStorage.getItem("token");
+
     try {
-      const response = await fetch(url, {
-        method: "POST",
+      setIsLoading(true);
+      const res = await fetch(url, {
+        method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name: task_name, desc: task_desc }),
       });
-      const data = await response.json();
 
-      if (!response.ok) {
+      const data = await res.json();
+      if (!res.ok) {
         setError(data.error);
-        console.log(data.error);
-        return;
       }
 
-      console.log("task added");
-
-      // reset values
-      setTaskName("");
-      setTaskDesc("");
-      setError("");
-      setStatus("succes");
+      setHabits(data.habits);
     } catch (error) {
-      // this only runs if the request itself failed (network error, etc.)
       setError(
         error instanceof Error ? error.message : "An unknown error occurred",
       );
-      console.error("network error:", error);
+      console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
+  useEffect(() => {
+    fetchHabits();
+  }, []);
+
   return (
-    <div>
-      <h1>habits</h1>
-      {/* Add habits  */}
-      <form onSubmit={handleSubmit}>
-        <label>Task name</label>
-        <input
-          value={task_name}
-          onChange={(e) => setTaskName(e.target.value)}
-          type="text"
-        ></input>
+    <div className="min-h-screen bg-calm-50 px-6 py-12">
+      {/* Header */}
+      <div className="text-center mb-10">
+        <div className="text-5xl mb-4">🌿</div>
+        <h1 className="font-heading text-4xl text-calm-900 mb-2">
+          Your Habits
+        </h1>
+        <p className="text-calm-600 text-sm">Nurture your daily growth</p>
+      </div>
 
-        <label>Description</label>
-        <input
-          value={task_desc}
-          onChange={(e) => setTaskDesc(e.target.value)}
-          type="text"
-        ></input>
-        <button>Add task</button>
-      </form>
+      <AddHabit onSuccess={fetchHabits} />
 
-      {error && <p>{error}</p>}
-      {status && <p>New task created</p>}
+      {isLoading && (
+        <p className="text-center text-calm-500 mt-6">Loading habits...</p>
+      )}
 
-      <ul>
-        <li>habits</li>
-      </ul>
+      {error && <p className="text-center text-red-500 mt-4">{error}</p>}
+
+      <ShowHabits habits={habits} />
     </div>
   );
 }
