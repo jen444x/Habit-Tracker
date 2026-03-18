@@ -30,12 +30,16 @@ function SignUpPage() {
         return;
       }
 
+      // save token to local storage
+      localStorage.setItem("token", data.token);
       // go to dashboard on success
       navigate("/dashboard");
       console.log("signup successful!", data);
     } catch (error) {
       // this only runs if the request itself failed (network error, etc.)
-      setError(error instanceof Error ? error.message : "An unknown error occurred");
+      setError(
+        error instanceof Error ? error.message : "An unknown error occurred",
+      );
       console.error("network error:", error);
     }
   }
