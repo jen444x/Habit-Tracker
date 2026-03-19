@@ -1,6 +1,15 @@
 import ToDo from "./Todo";
 
-function ShowHabits({ habits }) {
+interface Habit {
+  id: number;
+  title: string;
+}
+
+interface ShowHabitsProps {
+  habits: Habit[];
+}
+
+function ShowHabits({ habits }: ShowHabitsProps) {
   if (habits.length === 0) {
     return (
       <div className="text-center py-12">
@@ -17,7 +26,7 @@ function ShowHabits({ habits }) {
         Your habits
       </h2>
       <ul className="space-y-3">
-        {habits.map((habit) => (
+        {habits.map((habit: Habit) => (
           <ToDo key={habit.id} habit={habit} />
         ))}
       </ul>

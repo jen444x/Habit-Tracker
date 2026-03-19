@@ -1,4 +1,13 @@
-function ToDo({ habit }) {
+interface Habit {
+  id: number;
+  title: string;
+}
+
+interface ToDoProps {
+  habit: Habit;
+}
+
+function ToDo({ habit }: ToDoProps) {
   return (
     <div>
       <li className="bg-white border border-calm-200 rounded-xl px-4 py-4 flex items-center gap-3">

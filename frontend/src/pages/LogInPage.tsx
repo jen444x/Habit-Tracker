@@ -85,6 +85,8 @@ function LogInPage() {
           />
         </div>
 
+        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
         <button className="w-full bg-calm-600 text-white py-4 rounded-xl font-medium hover:bg-calm-700 transition-colors mt-4">
           Log In
         </button>

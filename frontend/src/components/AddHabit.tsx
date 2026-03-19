@@ -1,6 +1,10 @@
 import { useState } from "react";
 
-function AddHabit({ onSuccess }) {
+interface AddHabitProps {
+  onSuccess: () => void;
+}
+
+function AddHabit({ onSuccess }: AddHabitProps) {
   const [habitName, setHabitName] = useState("");
   const [habitDesc, setHabitDesc] = useState("");
   const [isLoading, setIsLoading] = useState(false);
