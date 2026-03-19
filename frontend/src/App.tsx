@@ -3,6 +3,7 @@ import LandingPage from "./pages/LandingPage.tsx";
 import SignUpPage from "./pages/SignUpPage.tsx";
 import LogInPage from "./pages/LogInPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
+import AddHabitPage from "./pages/AddHabitPage.tsx";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/login" element={<LogInPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/create" element={<AddHabitPage />} />
       </Routes>
     </>
   );

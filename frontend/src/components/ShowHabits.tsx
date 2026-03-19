@@ -12,7 +12,7 @@ function ShowHabits({ habits }) {
   }
 
   return (
-    <div className="mt-8">
+    <div className="max-w-md mx-auto">
       <h2 className="text-calm-700 text-sm font-medium mb-4 uppercase tracking-wide">
         Your habits
       </h2>

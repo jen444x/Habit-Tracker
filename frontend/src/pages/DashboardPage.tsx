@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import AddHabit from "../components/AddHabit";
+import { useNavigate } from "react-router";
 import ShowHabits from "../components/ShowHabits";
 
 function DashboardPage() {
   const [habits, setHabits] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   async function fetchHabits() {
     const url = "http://localhost:8000";
@@ -41,6 +43,10 @@ function DashboardPage() {
     fetchHabits();
   }, []);
 
+  function handleClick() {
+    navigate("/create");
+  }
+
   return (
     <div className="min-h-screen bg-calm-50 px-6 py-12">
       {/* Header */}
@@ -52,7 +58,15 @@ function DashboardPage() {
         <p className="text-calm-600 text-sm">Nurture your daily growth</p>
       </div>
 
-      <AddHabit onSuccess={fetchHabits} />
+      {/* Add Habit Button */}
+      <div className="max-w-md mx-auto mb-8">
+        <button
+          onClick={handleClick}
+          className="w-full bg-calm-600 text-white py-4 rounded-xl font-medium hover:bg-calm-700 transition-colors"
+        >
+          + Add New Habit
+        </button>
+      </div>
 
       {isLoading && (
         <p className="text-center text-calm-500 mt-6">Loading habits...</p>
