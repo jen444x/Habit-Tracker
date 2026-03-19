@@ -12,7 +12,7 @@ function AddHabit({ onSuccess }) {
 
     setIsLoading(true);
 
-    const url = "http://localhost:8000/create";
+    const url = `${import.meta.env.VITE_API_URL}/create`;
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(url, {

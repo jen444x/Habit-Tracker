@@ -13,7 +13,7 @@ function LogInPage() {
     e.preventDefault();
 
     // fetch
-    const url = "http://localhost:8000/auth/login";
+    const url = `${import.meta.env.VITE_API_URL}/auth/login`;
     try {
       console.log("starting");
       const response = await fetch(url, {

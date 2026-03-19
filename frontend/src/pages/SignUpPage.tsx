@@ -12,7 +12,7 @@ function SignUpPage() {
   async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    const url = "http://localhost:8000/auth/register";
+    const url = `${import.meta.env.VITE_API_URL}/auth/register`;
     try {
       const response = await fetch(url, {
         method: "POST",

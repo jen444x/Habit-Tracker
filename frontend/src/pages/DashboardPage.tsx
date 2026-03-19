@@ -10,7 +10,7 @@ function DashboardPage() {
   const navigate = useNavigate();
 
   async function fetchHabits() {
-    const url = "http://localhost:8000";
+    const url = import.meta.env.VITE_API_URL;
     const token = localStorage.getItem("token");
 
     try {
