@@ -126,7 +126,7 @@ def index():
 
     cur.close()
 
-    return jsonify({"habits":habits})
+    return jsonify({"habits":habits, "habits_done":habits_done})
 
     # return render_template(
     #     'dashboard/index.jinja',
@@ -196,6 +196,76 @@ def get_habit(id):
         abort(403)
 
     return habit
+
+
+@bp.route('/<int:id>/complete', methods=('POST',))
+@login_required
+def complete(id):
+    # make sure it exists
+    get_habit(id)
+
+    # Get the date from form (for logging past days)
+    date_str = request.form.get('date')
+    if date_str:
+        try:
+            log_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            log_date = get_user_local_date()
+    else:
+        log_date = get_user_local_date()
+
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute(
+        "INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)",
+        (log_date, id)
+    )
+    db.commit()
+    cur.close()
+
+    return jsonify({}), 200
+
+    # # Redirect back to same date view
+    # if date_str:
+    #     return redirect(url_for('dashboard.index', date=date_str))
+    # return redirect(url_for('dashboard.index'))
+
+
+
+@bp.route('/<int:id>/undo_complete', methods=('POST',))
+@login_required
+def undo_complete(id):
+    # Get the date from form
+    date_str = request.form.get('date')
+    if date_str:
+        try:
+            log_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            log_date = get_user_local_date()
+    else:
+        log_date = get_user_local_date()
+
+    db = get_db()
+    cur = db.cursor()
+    cur.execute(
+        'DELETE FROM habit_logs '
+        'WHERE habit_id = %s AND log_date = %s',
+        (id, log_date)
+    )
+    db.commit()
+    cur.close()
+    return jsonify({}), 200
+
+    # Redirect back to same date view
+    # if date_str:
+    #     return redirect(url_for('dashboard.index', date=date_str))
+    # return redirect(url_for('dashboard.index'))
+
+
+
+
+
 
 @bp.route('/<int:id>')
 @login_required
@@ -341,6 +411,16 @@ def view(id):
     )
 
 
+
+
+
+
+
+
+
+
+
+
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required
 def update(id):
@@ -409,64 +489,7 @@ def update(id):
 
     return render_template('dashboard/update.jinja', habit=habit, dropdown_options=dropdown_options) # Here its passed like a dict reference
 
-@bp.route('/<int:id>/complete', methods=('POST',))
-@login_required
-def complete(id):
-    # make sure it exists
-    get_habit(id)
 
-    # Get the date from form (for logging past days)
-    date_str = request.form.get('date')
-    if date_str:
-        try:
-            log_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        except ValueError:
-            log_date = get_user_local_date()
-    else:
-        log_date = get_user_local_date()
-
-    db = get_db()
-    cur = db.cursor()
-
-    cur.execute(
-        "INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)",
-        (log_date, id)
-    )
-    db.commit()
-    cur.close()
-
-    # Redirect back to same date view
-    if date_str:
-        return redirect(url_for('dashboard.index', date=date_str))
-    return redirect(url_for('dashboard.index'))
-
-@bp.route('/<int:id>/undo_complete', methods=('POST',))
-@login_required
-def undo_complete(id):
-    # Get the date from form
-    date_str = request.form.get('date')
-    if date_str:
-        try:
-            log_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        except ValueError:
-            log_date = get_user_local_date()
-    else:
-        log_date = get_user_local_date()
-
-    db = get_db()
-    cur = db.cursor()
-    cur.execute(
-        'DELETE FROM habit_logs '
-        'WHERE habit_id = %s AND log_date = %s',
-        (id, log_date)
-    )
-    db.commit()
-    cur.close()
-
-    # Redirect back to same date view
-    if date_str:
-        return redirect(url_for('dashboard.index', date=date_str))
-    return redirect(url_for('dashboard.index'))
 
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required

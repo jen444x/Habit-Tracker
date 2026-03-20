@@ -1,4 +1,5 @@
 import ToDo from "./Todo";
+import Done from "./Done";
 
 interface Habit {
   id: number;
@@ -7,10 +8,12 @@ interface Habit {
 
 interface ShowHabitsProps {
   habits: Habit[];
+  habitsDone: Habit[];
+  onComplete: () => void;
 }
 
-function ShowHabits({ habits }: ShowHabitsProps) {
-  if (habits.length === 0) {
+function ShowHabits({ habits, habitsDone, onComplete }: ShowHabitsProps) {
+  if (habits.length === 0 && habitsDone.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="text-4xl mb-3">🌱</div>
@@ -27,7 +30,13 @@ function ShowHabits({ habits }: ShowHabitsProps) {
       </h2>
       <ul className="space-y-3">
         {habits.map((habit: Habit) => (
-          <ToDo key={habit.id} habit={habit} />
+          <ToDo key={habit.id} habit={habit} onComplete={onComplete} />
+        ))}
+      </ul>
+      ----
+      <ul className="space-y-3">
+        {habitsDone.map((habit: Habit) => (
+          <Done key={habit.id} habit={habit} onComplete={onComplete} />
         ))}
       </ul>
     </div>

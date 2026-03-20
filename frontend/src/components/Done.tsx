@@ -3,14 +3,14 @@ interface Habit {
   title: string;
 }
 
-interface ToDoProps {
+interface DoneProps {
   habit: Habit;
   onComplete: () => void;
 }
 
-function ToDo({ habit, onComplete }: ToDoProps) {
+function Done({ habit, onComplete }: DoneProps) {
   async function handleChange() {
-    const url = `${import.meta.env.VITE_API_URL}/${habit.id}/complete`;
+    const url = `${import.meta.env.VITE_API_URL}/${habit.id}/undo_complete`;
     const token = localStorage.getItem("token");
 
     try {
@@ -44,4 +44,4 @@ function ToDo({ habit, onComplete }: ToDoProps) {
   );
 }
 
-export default ToDo;
+export default Done;
