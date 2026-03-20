@@ -4,6 +4,7 @@ import ShowHabits from "../components/ShowHabits";
 
 function DashboardPage() {
   const [habits, setHabits] = useState([]);
+  const [habitsDone, setHabitsDone] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -29,6 +30,7 @@ function DashboardPage() {
       }
 
       setHabits(data.habits);
+      setHabitsDone(data.habits_done);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "An unknown error occurred",
@@ -74,7 +76,11 @@ function DashboardPage() {
 
       {error && <p className="text-center text-red-500 mt-4">{error}</p>}
 
-      <ShowHabits habits={habits} />
+      <ShowHabits
+        habits={habits}
+        habitsDone={habitsDone}
+        onComplete={fetchHabits}
+      />
     </div>
   );
 }
