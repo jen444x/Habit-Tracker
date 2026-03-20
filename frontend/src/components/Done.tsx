@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router";
+
 interface Habit {
   id: number;
   title: string;
@@ -9,6 +11,11 @@ interface DoneProps {
 }
 
 function Done({ habit, onComplete }: DoneProps) {
+  const navigate = useNavigate();
+  async function handleClick() {
+    // go to single habit page
+    navigate(`/${habit.id}`);
+  }
   async function handleChange() {
     const url = `${import.meta.env.VITE_API_URL}/${habit.id}/undo_complete`;
     const token = localStorage.getItem("token");
@@ -32,7 +39,10 @@ function Done({ habit, onComplete }: DoneProps) {
   }
   return (
     <div>
-      <li className="bg-white border border-calm-200 rounded-xl px-4 py-4 flex items-center gap-3">
+      <li
+        onClick={handleClick}
+        className="bg-white border border-calm-200 rounded-xl px-4 py-4 flex items-center gap-3"
+      >
         <input
           type="checkbox"
           onChange={handleChange}

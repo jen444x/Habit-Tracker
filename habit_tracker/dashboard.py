@@ -270,6 +270,7 @@ def undo_complete(id):
 @bp.route('/<int:id>')
 @login_required
 def view(id):
+    print("hi can u atleast reach here")
     habit = get_habit(id)
     db = get_db()
     cur = db.cursor()
@@ -383,32 +384,33 @@ def view(id):
             'percentage': percentage
         })
 
-    # Get challenge info if assigned
-    challenge = None
-    if habit['challenge_id']:
-        cur.execute(
-            'SELECT id, title FROM challenges WHERE id = %s',
-            (habit['challenge_id'],)
-        )
-        challenge = cur.fetchone()
+    # # Get challenge info if assigned
+    # challenge = None
+    # if habit['challenge_id']:
+    #     cur.execute(
+    #         'SELECT id, title FROM challenges WHERE id = %s',
+    #         (habit['challenge_id'],)
+    #     )
+    #     challenge = cur.fetchone()
 
     cur.close()
+    return jsonify({"habit":habit, "current_streak":current_streak, "longest_streak":longest_streak}), 200
 
-    return render_template(
-        'dashboard/view.jinja',
-        habit=habit,
-        days_data=days_data,
-        current_streak=current_streak,
-        longest_streak=longest_streak,
-        weeks=weeks,
-        challenge=challenge,
-        week_offset=week_offset,
-        is_current_week=is_current_week,
-        can_go_prev=can_go_prev,
-        can_go_next=can_go_next,
-        selected_week_monday=selected_week_monday,
-        selected_week_sunday=selected_week_sunday
-    )
+    # return render_template(
+    #     'dashboard/view.jinja',
+    #     habit=habit,
+    #     days_data=days_data,
+    #     current_streak=current_streak,
+    #     longest_streak=longest_streak,
+    #     weeks=weeks,
+    #     challenge=challenge,
+    #     week_offset=week_offset,
+    #     is_current_week=is_current_week,
+    #     can_go_prev=can_go_prev,
+    #     can_go_next=can_go_next,
+    #     selected_week_monday=selected_week_monday,
+    #     selected_week_sunday=selected_week_sunday
+    # )
 
 
 

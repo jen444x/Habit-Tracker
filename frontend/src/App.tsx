@@ -4,6 +4,7 @@ import SignUpPage from "./pages/SignUpPage.tsx";
 import LogInPage from "./pages/LogInPage.tsx";
 import DashboardPage from "./pages/DashboardPage.tsx";
 import AddHabitPage from "./pages/AddHabitPage.tsx";
+import HabitPage from "./pages/HabitPage.tsx";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/login" element={<LogInPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/create" element={<AddHabitPage />} />
+        <Route path="/:id" element={<HabitPage />} />
       </Routes>
     </>
   );
