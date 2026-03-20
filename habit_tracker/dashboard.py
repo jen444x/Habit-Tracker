@@ -413,7 +413,16 @@ def view(id):
     # )
 
 
-
+@bp.route('/<int:id>/delete', methods=('POST',))
+@login_required
+def delete(id):
+    get_habit(id)
+    db = get_db()
+    cur = db.cursor()
+    cur.execute('DELETE FROM habits WHERE id = %s', (id,))
+    db.commit()
+    cur.close()
+    return redirect(url_for('dashboard.index'))
 
 
 
@@ -492,17 +501,6 @@ def update(id):
     return render_template('dashboard/update.jinja', habit=habit, dropdown_options=dropdown_options) # Here its passed like a dict reference
 
 
-
-@bp.route('/<int:id>/delete', methods=('POST',))
-@login_required
-def delete(id):
-    get_habit(id)
-    db = get_db()
-    cur = db.cursor()
-    cur.execute('DELETE FROM habits WHERE id = %s', (id,))
-    db.commit()
-    cur.close()
-    return redirect(url_for('dashboard.index'))
 
 @bp.route('/<int:id>/move/<direction>', methods=('POST',))
 @login_required

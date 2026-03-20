@@ -53,6 +53,31 @@ function HabitPage() {
     fetchHabit();
   }, []);
 
+  async function handleClick() {
+    if (!confirm("Are you sure you want to delete this habit?")) return;
+
+    const url = `${import.meta.env.VITE_API_URL}/${id}/delete`;
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        console.log(data.error);
+        return;
+      }
+      navigate("/dashboard");
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-calm-50 px-6 py-12">
       {/* Header */}
@@ -84,6 +109,13 @@ function HabitPage() {
             <p className="text-calm-500 text-sm">Longest Streak</p>
           </div>
         </div>
+
+        <button
+          onClick={handleClick}
+          className="px-4 py-2 bg-red-50 text-red-500 text-sm rounded-lg hover:bg-red-100 transition-colors mb-4"
+        >
+          Delete Habit
+        </button>
 
         {/* Back link */}
         <button
