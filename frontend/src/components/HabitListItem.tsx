@@ -8,16 +8,24 @@ interface Habit {
 interface DoneProps {
   habit: Habit;
   onComplete: () => void;
+  done: boolean;
 }
 
-function Done({ habit, onComplete }: DoneProps) {
+function HabitListItem({ habit, onComplete, done }: DoneProps) {
   const navigate = useNavigate();
   async function handleClick() {
     // go to single habit page
     navigate(`/${habit.id}`);
   }
+
   async function handleChange() {
-    const url = `${import.meta.env.VITE_API_URL}/${habit.id}/undo_complete`;
+    let url = `${import.meta.env.VITE_API_URL}/${habit.id}`;
+
+    if (done) {
+      url = url + "/undo_complete";
+    } else {
+      url = url + "/complete";
+    }
     const token = localStorage.getItem("token");
 
     try {
@@ -37,6 +45,7 @@ function Done({ habit, onComplete }: DoneProps) {
       console.log(error);
     }
   }
+
   return (
     <div>
       <li
@@ -54,4 +63,4 @@ function Done({ habit, onComplete }: DoneProps) {
   );
 }
 
-export default Done;
+export default HabitListItem;

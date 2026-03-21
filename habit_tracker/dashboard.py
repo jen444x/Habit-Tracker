@@ -144,15 +144,11 @@ def index():
 @bp.route('/create', methods=('GET', 'POST'))
 def create():
     if request.method == 'POST':
-        print("helloooo")
-        print("yer")
         # get data
         data = request.get_json()
-        print(data)
         name = data.get('name')
         description = data.get('desc')
-    
-        print("yo")
+   
         if not name:
             return jsonify({"error": "Name is missing"}), 400
 

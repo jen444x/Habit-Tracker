@@ -1,5 +1,4 @@
-import ToDo from "./Todo";
-import Done from "./Done";
+import Habit from "./HabitListItem";
 
 interface Habit {
   id: number;
@@ -30,13 +29,23 @@ function ShowHabits({ habits, habitsDone, onComplete }: ShowHabitsProps) {
       </h2>
       <ul className="space-y-3">
         {habits.map((habit: Habit) => (
-          <ToDo key={habit.id} habit={habit} onComplete={onComplete} />
+          <Habit
+            key={habit.id}
+            habit={habit}
+            onComplete={onComplete}
+            done={false}
+          />
         ))}
       </ul>
       ----
       <ul className="space-y-3">
         {habitsDone.map((habit: Habit) => (
-          <Done key={habit.id} habit={habit} onComplete={onComplete} />
+          <Habit
+            key={habit.id}
+            habit={habit}
+            onComplete={onComplete}
+            done={true}
+          />
         ))}
       </ul>
     </div>
