@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useParams } from "react-router";
+import Header from "../components/Header";
 
 function HabitPage() {
   const { id } = useParams();
@@ -80,14 +81,7 @@ function HabitPage() {
 
   return (
     <div className="min-h-screen bg-calm-50 px-6 py-12">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <div className="text-5xl mb-4">✨</div>
-        <h1 className="font-heading text-4xl text-calm-900 mb-2">
-          {habitName}
-        </h1>
-        {habitDesc && <p className="text-calm-600 text-sm">{habitDesc}</p>}
-      </div>
+      <Header title={habitName} body={habitDesc} />
 
       {error && (
         <p className="text-red-500 text-sm mb-4 text-center">{error}</p>

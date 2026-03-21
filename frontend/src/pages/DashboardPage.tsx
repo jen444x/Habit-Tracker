@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import ShowHabits from "../components/ShowHabits";
+import Header from "../components/Header";
 
 function DashboardPage() {
   const [habits, setHabits] = useState([]);
@@ -51,14 +52,7 @@ function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-calm-50 px-6 py-12">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <div className="text-5xl mb-4">🌿</div>
-        <h1 className="font-heading text-4xl text-calm-900 mb-2">
-          Your Habits
-        </h1>
-        <p className="text-calm-600 text-sm">Nurture your daily growth</p>
-      </div>
+      <Header title="Your Habits" body="1% better everyday" />
 
       {/* Add Habit Button */}
       <div className="max-w-md mx-auto mb-8">

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
+import Header from "../components/Header";
 
 function SignUpPage() {
   const [username, setUsername] = useState("");
@@ -46,14 +47,7 @@ function SignUpPage() {
 
   return (
     <div className="min-h-screen bg-calm-50 px-6 py-12">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <div className="text-5xl mb-4">🌱</div>
-        <h1 className="font-heading text-4xl text-calm-900 mb-2">
-          Begin Your Journey
-        </h1>
-        <p className="text-calm-600 text-sm">Small steps, steady growth</p>
-      </div>
+      <Header title="Begin Your Journey" body="Small steps, steady growth" />
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-5">
