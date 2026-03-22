@@ -5,7 +5,7 @@ function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen items-center bg-linear-to-b from-warm-100 to-calm-50">
       <h1 className="pt-32 font-heading text-6xl font-light tracking-widest text-calm-900">
-        Crescentia
+        Crescencia
       </h1>
       <p className="mt-3 text-sm font-light tracking-widest text-calm-500 uppercase">
         what if it all works out

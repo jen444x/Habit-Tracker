@@ -55,6 +55,7 @@ function HabitListItem({ habit, onComplete, done }: DoneProps) {
         <input
           type="checkbox"
           onChange={handleChange}
+          onClick={(e) => e.stopPropagation()} // prevents li click when clicking checkbox
           className="w-5 h-5 rounded-full border-2 border-calm-300 flex-shrink-0"
         />
         <span className="text-calm-900">{habit.title}</span>

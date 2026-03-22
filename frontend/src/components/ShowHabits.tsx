@@ -1,4 +1,4 @@
-import Habit from "./HabitListItem";
+import HabitListItem from "./HabitListItem";
 
 interface Habit {
   id: number;
@@ -29,7 +29,7 @@ function ShowHabits({ habits, habitsDone, onComplete }: ShowHabitsProps) {
       </h2>
       <ul className="space-y-3">
         {habits.map((habit: Habit) => (
-          <Habit
+          <HabitListItem
             key={habit.id}
             habit={habit}
             onComplete={onComplete}
@@ -40,7 +40,7 @@ function ShowHabits({ habits, habitsDone, onComplete }: ShowHabitsProps) {
       ----
       <ul className="space-y-3">
         {habitsDone.map((habit: Habit) => (
-          <Habit
+          <HabitListItem
             key={habit.id}
             habit={habit}
             onComplete={onComplete}
