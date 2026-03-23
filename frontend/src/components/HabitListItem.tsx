@@ -50,7 +50,7 @@ function HabitListItem({ habit, onComplete, done, selectedDate }: DoneProps) {
   return (
     <li
       onClick={handleClick}
-      className={`bg-white border rounded-xl pl-3 pr-4 py-3 flex items-center gap-2 cursor-pointer transition-colors ${
+      className={`bg-white border rounded-xl pl-3 pr-4 py-4 flex items-center gap-3 cursor-pointer transition-colors ${
         done ? "border-calm-100" : "border-calm-200 hover:border-calm-300"
       }`}
     >
