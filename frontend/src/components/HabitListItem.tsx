@@ -20,13 +20,8 @@ function HabitListItem({ habit, onComplete, done, selectedDate }: DoneProps) {
   }
 
   async function handleChange() {
-    let url = `${import.meta.env.VITE_API_URL}/${habit.id}`;
-
-    if (done) {
-      url = url + "/undo_complete";
-    } else {
-      url = url + "/complete";
-    }
+    const url = `${import.meta.env.VITE_API_URL}/${habit.id}`;
+    const fetchUrl = done ? `${url}/undo_complete` : `${url}/complete`;
     const token = localStorage.getItem("token");
 
     try {
@@ -34,7 +29,7 @@ function HabitListItem({ habit, onComplete, done, selectedDate }: DoneProps) {
       if (selectedDate) {
         formData.append("date", selectedDate);
       }
-      const res = await fetch(url, {
+      const res = await fetch(fetchUrl, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -62,6 +57,7 @@ function HabitListItem({ habit, onComplete, done, selectedDate }: DoneProps) {
           type="checkbox"
           onChange={handleChange}
           onClick={(e) => e.stopPropagation()} // prevents li click when clicking checkbox
+          checked={done}
           className="w-6 h-6 rounded-full border-2 border-calm-300 flex-shrink-0"
         />
         <span className="text-calm-900">{habit.title}</span>

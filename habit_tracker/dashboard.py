@@ -187,6 +187,8 @@ def get_habit(id):
     return habit
 
 
+
+
 @bp.route('/<int:id>/complete', methods=('POST',))
 @login_required
 def complete(id):
@@ -250,7 +252,6 @@ def undo_complete(id):
     # if date_str:
     #     return redirect(url_for('dashboard.index', date=date_str))
     # return redirect(url_for('dashboard.index'))
-
 
 
 
