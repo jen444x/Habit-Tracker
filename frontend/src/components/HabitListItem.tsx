@@ -48,21 +48,37 @@ function HabitListItem({ habit, onComplete, done, selectedDate }: DoneProps) {
   }
 
   return (
-    <div>
-      <li
-        onClick={handleClick}
-        className="bg-white border border-calm-200 rounded-xl px-4 py-4 flex items-center gap-3"
+    <li
+      onClick={handleClick}
+      className={`bg-white border rounded-xl pl-3 pr-4 py-3 flex items-center gap-2 cursor-pointer transition-colors ${
+        done ? "border-calm-100" : "border-calm-200 hover:border-calm-300"
+      }`}
+    >
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          handleChange();
+        }}
+        className="p-2 -m-2 shrink-0"
       >
-        <input
-          type="checkbox"
-          onChange={handleChange}
-          onClick={(e) => e.stopPropagation()} // prevents li click when clicking checkbox
-          checked={done}
-          className="w-6 h-6 rounded-full border-2 border-calm-300 flex-shrink-0"
-        />
-        <span className="text-calm-900">{habit.title}</span>
-      </li>
-    </div>
+        <span
+          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+            done
+              ? "bg-calm-500 border-calm-500 text-white"
+              : "border-calm-300"
+          }`}
+        >
+          {done && (
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </span>
+      </button>
+      <span className={`${done ? "text-calm-400 line-through" : "text-calm-900"}`}>
+        {habit.title}
+      </span>
+    </li>
   );
 }
 
