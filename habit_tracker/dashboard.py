@@ -17,10 +17,9 @@ def get_user_local_date():
 
 @bp.route('/')
 def index():
-    # Show landing page for logged-out users
     if g.user is None:
         print("USER IS NONE")
-        return render_template('auth/landing.jinja')
+        return jsonify({}), 401
 
     db = get_db()
     cur = db.cursor()
@@ -126,19 +125,13 @@ def index():
 
     cur.close()
 
-    return jsonify({"habits":habits, "habits_done":habits_done})
-
-    # return render_template(
-    #     'dashboard/index.jinja',
-    #     habits=habits,
-    #     habits_done=habits_done,
-    #     all_challenges=all_challenges,
-    #     challenge_filter=challenge_filter,
-    #     selected_date=selected_date,
-    #     prev_date=prev_date,
-    #     next_date=next_date,
-    #     is_today=is_today
-    # )
+    return jsonify({                                                                                                                                                                                                                        
+      "habits": habits,                                                                                                                                                                                                                   
+      "habits_done": habits_done,                                                                                                                                                                                                         
+      "prev_date": prev_date.isoformat(),                                                                                                                                                                                                 
+      "next_date": next_date.isoformat(),                                                                                                                                                                                                 
+      "today": today.isoformat()                                                                                                                                                                                                          
+  })                                                                                                                                                                                                                                      
 
 
 @bp.route('/create', methods=('GET', 'POST'))

@@ -24,7 +24,7 @@ def register():
     if not username or not password:
         return jsonify({"error": "missing field(s)"}), 400
     
-    username = username.lower()
+    username = username.lower().strip()
 
     db = get_db()
     cur = db.cursor()

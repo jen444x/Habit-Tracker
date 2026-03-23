@@ -1,50 +1,13 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { useSearchParams } from "react-router-dom";
 import ShowHabits from "../components/ShowHabits";
 import Header from "../components/Header";
 
 function DashboardPage() {
-  const [habits, setHabits] = useState([]);
-  const [habitsDone, setHabitsDone] = useState([]);
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const selectedDate = searchParams.get("date"); // null if not set
 
   const navigate = useNavigate();
-
-  async function fetchHabits() {
-    const url = import.meta.env.VITE_API_URL;
-    const token = localStorage.getItem("token");
-
-    try {
-      setIsLoading(true);
-      const res = await fetch(url, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error);
-      }
-
-      setHabits(data.habits);
-      setHabitsDone(data.habits_done);
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "An unknown error occurred",
-      );
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchHabits();
-  }, []);
 
   function handleClick() {
     navigate("/create");
@@ -63,18 +26,8 @@ function DashboardPage() {
           + Add New Habit
         </button>
       </div>
-
-      {isLoading && (
-        <p className="text-center text-calm-500 mt-6">Loading habits...</p>
-      )}
-
-      {error && <p className="text-center text-red-500 mt-4">{error}</p>}
-
-      <ShowHabits
-        habits={habits}
-        habitsDone={habitsDone}
-        onComplete={fetchHabits}
-      />
+      <p>Selected date: {selectedDate}</p>
+      <ShowHabits selectedDate={selectedDate} />
     </div>
   );
 }

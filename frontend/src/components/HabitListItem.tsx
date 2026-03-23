@@ -9,9 +9,10 @@ interface DoneProps {
   habit: Habit;
   onComplete: () => void;
   done: boolean;
+  selectedDate: string | null;
 }
 
-function HabitListItem({ habit, onComplete, done }: DoneProps) {
+function HabitListItem({ habit, onComplete, done, selectedDate }: DoneProps) {
   const navigate = useNavigate();
   async function handleClick() {
     // go to single habit page
@@ -29,12 +30,17 @@ function HabitListItem({ habit, onComplete, done }: DoneProps) {
     const token = localStorage.getItem("token");
 
     try {
+      const formData = new FormData();
+      if (selectedDate) {
+        formData.append("date", selectedDate);
+      }
       const res = await fetch(url, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+          // "Content-Type": "application/json",
         },
+        body: formData,
       });
       const data = await res.json();
       if (!res.ok) {
@@ -56,7 +62,7 @@ function HabitListItem({ habit, onComplete, done }: DoneProps) {
           type="checkbox"
           onChange={handleChange}
           onClick={(e) => e.stopPropagation()} // prevents li click when clicking checkbox
-          className="w-5 h-5 rounded-full border-2 border-calm-300 flex-shrink-0"
+          className="w-6 h-6 rounded-full border-2 border-calm-300 flex-shrink-0"
         />
         <span className="text-calm-900">{habit.title}</span>
       </li>
