@@ -25,8 +25,11 @@ function ShowHabits({ selectedDate, onAddHabit }: ShowHabitsProps) {
     const fetchUrl = selectedDate ? `${url}?date=${selectedDate}` : url;
     const token = localStorage.getItem("token");
 
+    setIsLoading(true);
+    setHabits([]);
+    setHabitsDone([]);
+
     try {
-      setIsLoading(true);
       const res = await fetch(fetchUrl, {
         method: "GET",
         headers: {
@@ -58,10 +61,14 @@ function ShowHabits({ selectedDate, onAddHabit }: ShowHabitsProps) {
     fetchHabits();
   }, [selectedDate]);
 
-  if (habits.length === 0 && habitsDone.length === 0) {
+  if (!isLoading && habits.length === 0 && habitsDone.length === 0) {
     return (
       <div className="max-w-md mx-auto">
-        <DateNavigator prevDate={prevDate} nextDate={nextDate} selectedDate={selectedDate} />
+        <DateNavigator
+          prevDate={prevDate}
+          nextDate={nextDate}
+          selectedDate={selectedDate}
+        />
         <div className="text-center py-12">
           <div className="text-4xl mb-3">🌱</div>
           <p className="text-calm-500">No habits yet</p>
@@ -78,7 +85,11 @@ function ShowHabits({ selectedDate, onAddHabit }: ShowHabitsProps) {
 
   return (
     <div className="max-w-md mx-auto">
-      <DateNavigator prevDate={prevDate} nextDate={nextDate} selectedDate={selectedDate} />
+      <DateNavigator
+        prevDate={prevDate}
+        nextDate={nextDate}
+        selectedDate={selectedDate}
+      />
       {isLoading && (
         <p className="text-center text-calm-500 mt-6">Loading habits...</p>
       )}
