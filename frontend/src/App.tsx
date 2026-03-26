@@ -6,6 +6,7 @@ import DashboardPage from "./pages/DashboardPage.tsx";
 import AddHabitPage from "./pages/AddHabitPage.tsx";
 import HabitPage from "./pages/HabitPage.tsx";
 import ChallengesPage from "./pages/ChallengesPage.tsx";
+import AddChallengePage from "./pages/AddChallengePage.tsx";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/challenges" element={<ChallengesPage />} />
         <Route path="/create" element={<AddHabitPage />} />
         <Route path="/:id" element={<HabitPage />} />
+        <Route path="/challenges/create" element={<AddChallengePage />} />
       </Routes>
     </>
   );

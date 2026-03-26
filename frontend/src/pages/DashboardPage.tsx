@@ -17,7 +17,13 @@ function DashboardPage() {
   return (
     <div className="min-h-screen bg-calm-50 px-6 py-12 pb-24">
       <Header title="Your Habits" body="1% better everyday" />
-      <ShowHabits selectedDate={selectedDate} onAddHabit={handleClick} />
+      <ShowHabits selectedDate={selectedDate} />
+      <button
+        onClick={handleClick}
+        className="w-full mt-4 py-3 text-calm-500 hover:text-calm-700 text-sm transition-colors"
+      >
+        + Add habit
+      </button>
       <BottomNav />
     </div>
   );

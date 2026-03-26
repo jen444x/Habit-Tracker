@@ -9,10 +9,9 @@ interface Habit {
 
 interface ShowHabitsProps {
   selectedDate: string | null;
-  onAddHabit: () => void;
 }
 
-function ShowHabits({ selectedDate, onAddHabit }: ShowHabitsProps) {
+function ShowHabits({ selectedDate }: ShowHabitsProps) {
   const [habits, setHabits] = useState([]);
   const [habitsDone, setHabitsDone] = useState([]);
   const [error, setError] = useState("");
@@ -72,12 +71,6 @@ function ShowHabits({ selectedDate, onAddHabit }: ShowHabitsProps) {
         <div className="text-center py-12">
           <div className="text-4xl mb-3">🌱</div>
           <p className="text-calm-500">No habits yet</p>
-          <button
-            onClick={onAddHabit}
-            className="text-calm-600 hover:text-calm-800 text-sm mt-2"
-          >
-            + Add your first habit
-          </button>
         </div>
       </div>
     );
@@ -130,13 +123,6 @@ function ShowHabits({ selectedDate, onAddHabit }: ShowHabitsProps) {
           </ul>
         </>
       )}
-
-      <button
-        onClick={onAddHabit}
-        className="w-full mt-4 py-3 text-calm-500 hover:text-calm-700 text-sm transition-colors"
-      >
-        + Add habit
-      </button>
     </div>
   );
 }

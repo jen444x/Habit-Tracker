@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 
 function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-calm-600 to-calm-500 px-6 py-4 shadow-lg">
+    <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-calm-600 to-calm-500 px-6 pt-3 pb-4.5 shadow-lg">
       <div className="flex justify-around items-center">
         <NavLink
           to="/dashboard"

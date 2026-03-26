@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify
 )
 from werkzeug.exceptions import abort
 
@@ -11,53 +11,73 @@ from zoneinfo import ZoneInfo
 
 bp = Blueprint('challenges', __name__, url_prefix='/challenges')
 
-@bp.route('/')
-@login_required
-def index():
+@bp.route('/')  
+@login_required                                                          
+def index():      
+    print("yoyo")                                                        
+    if g.user is None:
+        print("USER IS NONE")
+        return jsonify({}), 401
+
     db = get_db()
     cur = db.cursor()
 
-    # Get first challenge to redirect to
-    cur.execute(
-        'SELECT id FROM challenges WHERE creator_id = %s ORDER BY id LIMIT 1',
-        (g.user['id'],)
-    )
-    first_challenge = cur.fetchone()
-    cur.close()
+    cur.execute(                                                          
+        'SELECT *'                                                        
+        ' FROM challenges'                                                
+        ' WHERE creator_id = %s',                                         
+        (g.user['id'],)                                                   
+    )                                                                     
+    challenges = cur.fetchall()                                           
+    return jsonify({"challenges": challenges}), 201
 
-    if first_challenge:
-        return redirect(url_for('challenges.challenge', id=first_challenge['id']))
-    else:
-        # No challenges yet - show create page
-        return redirect(url_for('challenges.create'))
+# @bp.route('/')
+# @login_required
+# def index():
+#     if g.user is None:
+#         print("USER IS NONE")
+#         return jsonify({}), 401
+#     db = get_db()
+#     cur = db.cursor()
+
+#     # Get first challenge to redirect to
+#     cur.execute(
+#         'SELECT id FROM challenges WHERE creator_id = %s ORDER BY id LIMIT 1',
+#         (g.user['id'],)
+#     )
+#     first_challenge = cur.fetchone()
+#     cur.close()
+
+#     if first_challenge:
+#         return redirect(url_for('challenges.challenge', id=first_challenge['id']))
+#     else:
+#         # No challenges yet - show create page
+#         return redirect(url_for('challenges.create'))
 
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
 def create():
     if request.method == 'POST':
-        title = request.form['title']
-        body = request.form['body']
-        error = None
+        data = request.get_json()
+        title = data.get('name')
+        body = data.get('desc')
 
         if not title:
-            error = 'Title is required.'
+            return jsonify({"error": "Title is missing"}), 400
+    
+        db = get_db()
+        cur = db.cursor()
 
-        if error is not None:
-            flash(error)
-        else:
-            db = get_db()
-            cur = db.cursor()
+        # create habit
+        cur.execute(
+            'INSERT INTO challenges (title, body, creator_id)'
+            ' VALUES (%s, %s, %s)',
+            (title, body, g.user['id'])
+        )
+        db.commit()
+        cur.close()
 
-            # create habit
-            cur.execute(
-                'INSERT INTO challenges (title, body, creator_id)'
-                ' VALUES (%s, %s, %s)',
-                (title, body, g.user['id'])
-            )
-            db.commit()
-            cur.close()
-
-            return redirect(url_for('challenges.index'))
+        return jsonify({}),201
 
     return render_template('challenges/create.jinja')
 

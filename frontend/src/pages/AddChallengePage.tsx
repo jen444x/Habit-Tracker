@@ -1,7 +1,7 @@
 import AddItemForm from "../components/AddItemForm";
 
 function AddChallengePage() {
-  return <AddItemForm item={"habit"} />;
+  return <AddItemForm item={"challenge"} />;
 }
 
 export default AddChallengePage;
