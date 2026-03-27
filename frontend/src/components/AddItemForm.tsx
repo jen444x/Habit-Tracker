@@ -1,6 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import Header from "../components/Header";
+
+type Challenge = {
+  id: number;
+  title: string;
+  body: string;
+};
 
 interface AddItemFormProps {
   item: string;
@@ -9,8 +15,10 @@ interface AddItemFormProps {
 function AddItemForm({ item }: AddItemFormProps) {
   const [habitName, setHabitName] = useState("");
   const [habitDesc, setHabitDesc] = useState("");
+  const [challengeId, setChallengeId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
 
   const navigate = useNavigate();
 
@@ -20,15 +28,24 @@ function AddItemForm({ item }: AddItemFormProps) {
     setIsLoading(true);
 
     let url = `${import.meta.env.VITE_API_URL}`;
-    if (item == "habit") {
+
+    if (item === "habit") {
       url = url + "/create";
-    } else if (item == "challenge") {
+    } else if (item === "challenge") {
       url = url + "/challenges/create";
     } else {
       setError("Unidentified item");
       return;
     }
 
+    const payload: { name: string; desc: string; challengeId?: number } = {
+      name: habitName,
+      desc: habitDesc,
+    };
+
+    if (item === "habit" && challengeId) {
+      payload.challengeId = parseInt(challengeId, 10);
+    }
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(url, {
@@ -37,7 +54,7 @@ function AddItemForm({ item }: AddItemFormProps) {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name: habitName, desc: habitDesc }),
+        body: JSON.stringify(payload),
       });
       const data = await response.json();
 
@@ -56,6 +73,30 @@ function AddItemForm({ item }: AddItemFormProps) {
       setIsLoading(false);
     }
   }
+
+  async function fetchChallenges() {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/challenges/`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      const data = await response.json();
+      setChallenges(data.challenges);
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "An unknown error occurred",
+      );
+    }
+  }
+
+  useEffect(() => {
+    if (item === "habit") {
+      fetchChallenges();
+    }
+  }, [item]);
 
   return (
     <div className="min-h-screen bg-calm-50 px-6 py-12">
@@ -89,6 +130,25 @@ function AddItemForm({ item }: AddItemFormProps) {
               className="w-full px-4 py-4 bg-white border border-calm-200 rounded-xl focus:outline-none focus:border-calm-500 text-calm-900 placeholder:text-calm-400"
             />
           </div>
+
+          {item == "habit" && (
+            <div>
+              <label>
+                Challenge
+                <select
+                  value={challengeId}
+                  onChange={(e) => setChallengeId(e.target.value)}
+                >
+                  <option value="">None</option>
+                  {challenges.map((challenge) => (
+                    <option key={challenge.id} value={challenge.id}>
+                      {challenge.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
 
           <button
             disabled={isLoading}

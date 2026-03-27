@@ -149,13 +149,25 @@ def create():
         cur = db.cursor()
 
         # create habit
-        cur.execute(
-            'INSERT INTO habits (title, body, creator_id, display_order)'
-            ' VALUES (%s, %s, %s, (' \
-            'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
-            'FROM habits WHERE creator_id = %s))',
-            (name, description, g.user['id'], g.user['id'])
-        )
+        # check if challenge id was included
+        challenge_id = data.get('challengeId')
+        if not challenge_id:
+            cur.execute(
+                'INSERT INTO habits (title, body, creator_id, display_order)'
+                ' VALUES (%s, %s, %s, (' \
+                'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
+                'FROM habits WHERE creator_id = %s))',
+                (name, description, g.user['id'], g.user['id'])
+            )
+        else:
+            cur.execute(
+                'INSERT INTO habits (title, body, challenge_id, creator_id, display_order)'
+                ' VALUES (%s, %s, %s, %s ,(' \
+                'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
+                'FROM habits WHERE creator_id = %s))',
+                (name, description, int(challenge_id), g.user['id'], g.user['id'])
+            )
+
         db.commit()
         cur.close()
 
