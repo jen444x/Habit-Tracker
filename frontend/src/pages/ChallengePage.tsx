@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useParams } from "react-router";
 import Header from "../components/layout/Header";
-import ShowChallengeHabits from "../components/ShowChallengeHabits";
+import ShowChallengeHabits from "../components/challenges/ShowChallengeHabits";
 
 function ChallengePage() {
   const { id } = useParams();
