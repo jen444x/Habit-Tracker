@@ -13,8 +13,7 @@ bp = Blueprint('challenges', __name__, url_prefix='/challenges')
 
 @bp.route('/')  
 @login_required                                                          
-def index():     
-    print("hi, in here")                                                        
+def index():                                                          
     if g.user is None:
         print("USER IS NONE")
         return jsonify({}), 401
@@ -29,7 +28,7 @@ def index():
         (g.user['id'],)                                                   
     )                                                                     
     challenges = cur.fetchall()                                           
-    return jsonify({"challenges": challenges}), 201
+    return jsonify({"challenges": challenges}), 200
 
 
 @bp.route('/create', methods=('GET', 'POST'))
