@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
-import Header from "../components/Header";
-import ShowChallenges from "../components/ShowChallenges";
-import BottomNav from "../components/BottomNav";
+import Header from "../components/layout/Header";
+import ShowChallenges from "../components/challenges/ShowChallenges";
+import BottomNav from "../components/layout/BottomNav";
 
 function ChallengesPage() {
   const navigate = useNavigate();

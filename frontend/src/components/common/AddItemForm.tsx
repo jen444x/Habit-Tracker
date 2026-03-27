@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import Header from "../components/Header";
+import Header from "../layout/Header";
 
 type Challenge = {
   id: number;

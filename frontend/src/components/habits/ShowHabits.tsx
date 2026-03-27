@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import HabitListItem from "./HabitListItem";
-import DateNavigator from "../components/DateNavigator";
+import DateNavigator from "../DateNavigator";
 
 interface Habit {
   id: number;

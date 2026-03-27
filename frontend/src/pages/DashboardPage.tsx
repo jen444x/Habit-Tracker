@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router";
 import { useSearchParams } from "react-router-dom";
-import Header from "../components/Header";
-import ShowHabits from "../components/ShowHabits";
-import BottomNav from "../components/BottomNav";
+import Header from "../components/layout/Header";
+import ShowHabits from "../components/habits/ShowHabits";
+import BottomNav from "../components/layout/BottomNav";
 
 function DashboardPage() {
   const [searchParams] = useSearchParams();
