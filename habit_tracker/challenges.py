@@ -14,10 +14,6 @@ bp = Blueprint('challenges', __name__, url_prefix='/challenges')
 @bp.route('/')  
 @login_required                                                          
 def index():                                                          
-    if g.user is None:
-        print("USER IS NONE")
-        return jsonify({}), 401
-
     db = get_db()
     cur = db.cursor()
 
@@ -114,22 +110,20 @@ def update(id):
 
     return render_template('challenges/update.jinja', challenge=challenge) # Here its passed like a dict reference
 
-@bp.route('/<int:id>/delete', methods=('POST',))
-@login_required
-def delete(id):
-    get_challenge(id)
-    db = get_db()
-    cur = db.cursor()
-    cur.execute('DELETE FROM challenges WHERE id = %s', (id,))
-    db.commit()
-    cur.close()
-    return jsonify({}), 200
-
 
 # Get a single challenge
-@bp.route('/<int:id>', methods=('GET',))
+@bp.route('/<int:id>', methods=('GET', 'DELETE'))
 @login_required
 def challenge(id):
+    if request.method == 'DELETE':
+        get_challenge(id)
+        db = get_db()
+        cur = db.cursor()
+        cur.execute('DELETE FROM challenges WHERE id = %s', (id,))
+        db.commit()
+        cur.close()
+        return jsonify({}), 204
+    
     # get challenge from db
     db = get_db()
     cur = db.cursor()

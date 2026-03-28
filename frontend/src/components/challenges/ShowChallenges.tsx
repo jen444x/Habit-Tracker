@@ -13,14 +13,12 @@ function ShowChallenges() {
   const [isLoading, setIsLoading] = useState(false);
 
   async function fetchChallenges() {
-    const url = `${import.meta.env.VITE_API_URL}/challenges/`;
-    const token = localStorage.getItem("token");
-
     setIsLoading(true);
     setChallenges([]);
 
+    const token = localStorage.getItem("token");
     try {
-      const res = await fetch(url, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/challenges/`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -31,6 +29,7 @@ function ShowChallenges() {
       const data = await res.json();
       if (!res.ok) {
         setError(data.error);
+        return;
       }
 
       setChallenges(data.challenges);

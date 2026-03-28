@@ -97,12 +97,6 @@ def load_logged_in_user():
     if it is, saves user data in g.user,
     which lasts for the length of the request 
     """
-
-    # Get token
-    print("hi")
-    print(request.headers.get('Authorization'))
-    print("hi")
-    
     # Get the Authorization header                                                                                            
     auth_header = request.headers.get('Authorization')
 
@@ -160,7 +154,9 @@ def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
-            return redirect(url_for('auth.login'))
+            print("USER IS NONE")
+            return jsonify({"error": "Authentication required"}), 401  
+ 
         
         return view(**kwargs)
     

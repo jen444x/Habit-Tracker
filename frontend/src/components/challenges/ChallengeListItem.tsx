@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router";
 
-interface Challenge {
+type Challenge = {
   id: number;
   title: string;
   body: string;
-}
+};
 
 interface ChallengeListItemProps {
   challenge: Challenge;

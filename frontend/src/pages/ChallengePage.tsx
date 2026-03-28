@@ -53,20 +53,22 @@ function ChallengePage() {
   async function handleClick() {
     if (!confirm("Are you sure you want to delete this challenge?")) return;
 
-    const url = `${import.meta.env.VITE_API_URL}/challenges/${id}/delete`;
+    const url = `${import.meta.env.VITE_API_URL}/challenges/${id}`;
     const token = localStorage.getItem("token");
 
     try {
       const res = await fetch(url, {
-        method: "POST",
+        method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
-      const data = await res.json();
+
       if (!res.ok) {
-        console.log(data.error);
+        // Handle error
+        const data = await res.json();
+        setError(data.error);
         return;
       }
       navigate(-1);
@@ -78,11 +80,10 @@ function ChallengePage() {
   return (
     <div className="min-h-screen bg-calm-50 px-6 py-12">
       <Header title={challengeName} body={challengeDesc} />
-
+      <p>{startDate}</p>
       {error && (
         <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
       )}
-      <p>{startDate}</p>
       <ShowChallengeHabits id={Number(id)} />
 
       <div className="max-w-md mx-auto">

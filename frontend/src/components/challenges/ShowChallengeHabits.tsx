@@ -25,7 +25,6 @@ function ShowChallengeHabits({ id }: ShowChallengeHabitsProps) {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
       });
 
