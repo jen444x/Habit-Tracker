@@ -80,13 +80,28 @@ function ChallengePage() {
   return (
     <div className="min-h-screen bg-calm-50 px-6 py-12">
       <Header title={challengeName} body={challengeDesc} />
-      <p>{startDate}</p>
+
       {error && (
         <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
       )}
+
+      {/* Start Date */}
+      <div className="max-w-md mx-auto mb-6 text-center">
+        <span className="inline-block px-3 py-1 bg-calm-100 text-calm-600 text-xs rounded-full">
+          Started{" "}
+          {startDate
+            ? new Date(startDate).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            : "—"}
+        </span>
+      </div>
+
       <ShowChallengeHabits id={Number(id)} />
 
-      <div className="max-w-md mx-auto">
+      <div className="max-w-md mx-auto mt-8">
         <button
           onClick={handleClick}
           className="px-4 py-2 bg-red-50 text-red-500 text-sm rounded-lg hover:bg-red-100 transition-colors mb-4"

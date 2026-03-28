@@ -47,12 +47,36 @@ function ShowChallenges() {
     fetchChallenges();
   }, []);
 
-  if (!isLoading && challenges.length === 0) {
+  if (isLoading) {
     return (
       <div className="max-w-md mx-auto">
-        <div className="text-center py-12">
-          <div className="text-4xl mb-3">🌱</div>
-          <p className="text-calm-500">No challenges yet</p>
+        <div className="flex items-center justify-center py-12">
+          <div className="w-6 h-6 border-2 border-calm-300 border-t-calm-600 rounded-full animate-spin"></div>
+          <span className="ml-3 text-stone-400 text-sm">Loading challenges...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-md mx-auto">
+        <div className="bg-red-50 rounded-xl p-4 text-center">
+          <p className="text-red-500 text-sm">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (challenges.length === 0) {
+    return (
+      <div className="max-w-md mx-auto">
+        <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-accent-100 flex items-center justify-center">
+            <span className="text-3xl">&#x1F331;</span>
+          </div>
+          <h3 className="font-heading text-xl text-stone-900 mb-2">No challenges yet</h3>
+          <p className="text-stone-400 text-sm">Create your first challenge to push your limits</p>
         </div>
       </div>
     );
@@ -60,18 +84,11 @@ function ShowChallenges() {
 
   return (
     <div className="max-w-md mx-auto">
-      {isLoading && (
-        <p className="text-center text-calm-500 mt-6">Loading challenges...</p>
-      )}
-      {error && <p className="text-center text-red-500 mt-4">{error}</p>}
-
-      {challenges.length > 0 && (
-        <ul className="space-y-3">
-          {challenges.map((challenge) => (
-            <ChallengeListItem key={challenge.id} challenge={challenge} />
-          ))}
-        </ul>
-      )}
+      <ul className="space-y-3">
+        {challenges.map((challenge) => (
+          <ChallengeListItem key={challenge.id} challenge={challenge} />
+        ))}
+      </ul>
     </div>
   );
 }

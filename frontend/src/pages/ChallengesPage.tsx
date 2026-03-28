@@ -14,12 +14,15 @@ function ChallengesPage() {
       <Header title="Challenges" body="Push your limits" />
       <ShowChallenges />
 
-      <button
-        onClick={handleClick}
-        className="w-full mt-4 py-3 text-calm-500 hover:text-calm-700 text-sm transition-colors"
-      >
-        + Add challenge
-      </button>
+      <div className="max-w-md mx-auto mt-8 text-center">
+        <button
+          onClick={handleClick}
+          className="text-calm-600 hover:text-calm-500 text-sm font-medium transition-colors"
+        >
+          + New challenge
+        </button>
+      </div>
+
       <BottomNav />
     </div>
   );
