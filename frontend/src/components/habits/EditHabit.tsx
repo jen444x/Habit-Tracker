@@ -1,16 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+type Challenge = {
+  id: number;
+  title: string;
+};
 
 interface EditHabitProps {
   id: string | undefined;
   habitName: string;
   habitDesc: string;
+  habitChallenge: null | number;
   onSave: () => void;
 }
 
-function EditHabit({ id, habitName, habitDesc, onSave }: EditHabitProps) {
+function EditHabit({
+  id,
+  habitName,
+  habitDesc,
+  habitChallenge,
+  onSave,
+}: EditHabitProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState(habitName);
   const [desc, setDesc] = useState(habitDesc);
+  const [challenge, setChallenge] = useState(habitChallenge);
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [error, setError] = useState("");
 
   async function handleSave() {
@@ -22,23 +36,51 @@ function EditHabit({ id, habitName, habitDesc, onSave }: EditHabitProps) {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ title: name, body: desc }),
+        body: JSON.stringify({ title: name, body: desc, challenge: challenge }),
       });
 
       if (!res.ok) {
         const data = await res.json();
         setError(data.error);
+        return;
       }
 
       onSave();
+      console.log("Saving:", name, desc);
+      setIsOpen(false);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "An unknown error occurred",
       );
     }
-    console.log("Saving:", name, desc);
-    setIsOpen(false);
   }
+
+  async function fetchChallenges() {
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/challenges/`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error);
+        return;
+      }
+      setChallenges(data.challenges);
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "An unknown error occurred",
+      );
+    }
+  }
+
+  useEffect(() => {
+    fetchChallenges();
+  }, []);
 
   return (
     <>
@@ -78,6 +120,22 @@ function EditHabit({ id, habitName, habitDesc, onSave }: EditHabitProps) {
                   className="w-full px-4 py-3 bg-white border border-calm-200 rounded-xl focus:outline-none focus:border-calm-500"
                 />
               </div>
+            </div>
+            <div>
+              <label>Challenge</label>
+              <select
+                value={challenge ?? ""}
+                onChange={(e) =>
+                  setChallenge(e.target.value ? Number(e.target.value) : null)
+                }
+              >
+                <option value="">No challenge</option>
+                {challenges.map((challenge) => (
+                  <option key={challenge.id} value={challenge.id}>
+                    {challenge.title}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {error && <p>{error}</p>}

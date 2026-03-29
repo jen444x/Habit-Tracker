@@ -8,6 +8,7 @@ function HabitPage() {
   const { id } = useParams();
   const [habitName, setHabitName] = useState("");
   const [habitDesc, setHabitDesc] = useState("");
+  const [habitChallenge, setHabitChallenge] = useState(null);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -38,6 +39,9 @@ function HabitPage() {
       setHabitName(habit.title);
       if (habit.body) {
         setHabitDesc(habit.body);
+      }
+      if (habit.challenge_id) {
+        setHabitChallenge(habit.challenge_id);
       }
 
       // Get streak data
@@ -112,6 +116,7 @@ function HabitPage() {
             id={id}
             habitName={habitName}
             habitDesc={habitDesc}
+            habitChallenge={habitChallenge}
             onSave={fetchHabit}
           />
         )}

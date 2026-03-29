@@ -27,7 +27,10 @@ function AddItemForm({ item }: AddItemFormProps) {
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     }
@@ -155,9 +158,12 @@ function AddItemForm({ item }: AddItemFormProps) {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="w-full px-4 py-4 bg-white border border-calm-200 rounded-xl text-left text-calm-900 flex items-center justify-between hover:border-calm-300 transition-colors"
                 >
-                  <span className={challengeId ? "text-calm-900" : "text-calm-400"}>
+                  <span
+                    className={challengeId ? "text-calm-900" : "text-calm-400"}
+                  >
                     {challengeId
-                      ? challenges.find((c) => String(c.id) === challengeId)?.title
+                      ? challenges.find((c) => String(c.id) === challengeId)
+                          ?.title
                       : "Link to a challenge"}
                   </span>
                   <svg
@@ -166,7 +172,12 @@ function AddItemForm({ item }: AddItemFormProps) {
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </button>
 

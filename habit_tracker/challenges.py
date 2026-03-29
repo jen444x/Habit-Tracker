@@ -13,7 +13,7 @@ bp = Blueprint('challenges', __name__, url_prefix='/challenges')
 
 @bp.route('/')  
 @login_required                                                          
-def index():                                                          
+def challenges():                                                          
     db = get_db()
     cur = db.cursor()
 

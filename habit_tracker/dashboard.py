@@ -432,20 +432,17 @@ def view(id):
 @bp.route('/<int:id>', methods=('PUT',))
 @login_required
 def update(id):
+    print("in update")
     # make sure it exists
-    habit = get_habit(id)
-
+    get_habit(id)
 
     data = request.get_json()                                                                                                                                                                             
     title = data.get('title') 
-    challenge = data.get('challengeId')                                                                                                                                                                            
+    challenge = data.get('challenge')                                                                                                                                                                            
     body = data.get('body')   
     
     if not title:
-        error = 'Title is required.'
-
-    if challenge == 'None':
-        challenge = None
+        return jsonify({"error": "Title is required."}), 400   
 
     db = get_db()
     cur = db.cursor()
