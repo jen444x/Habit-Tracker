@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 
 interface Habit {
   id: number;
@@ -14,6 +15,7 @@ function ShowChallengeHabits({ id }: ShowChallengeHabitsProps) {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   async function fetchHabits() {
     const url = `${import.meta.env.VITE_API_URL}/challenges/${id}/habits`;
@@ -64,12 +66,10 @@ function ShowChallengeHabits({ id }: ShowChallengeHabitsProps) {
         {habits.map((habit) => (
           <li
             key={habit.id}
+            onClick={() => navigate(`/${habit.id}`)}
             className="bg-white border border-calm-200 rounded-xl p-4"
           >
             <p className="text-calm-900 font-medium">{habit.title}</p>
-            {habit.body && (
-              <p className="text-calm-500 text-sm mt-1">{habit.body}</p>
-            )}
           </li>
         ))}
       </ul>

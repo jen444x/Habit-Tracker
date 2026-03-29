@@ -8,6 +8,7 @@ import HabitPage from "./pages/HabitPage.tsx";
 import ChallengesPage from "./pages/ChallengesPage.tsx";
 import AddChallengePage from "./pages/AddChallengePage.tsx";
 import ChallengePage from "./pages/ChallengePage.tsx";
+import Layout from "./components/layout/Layout.tsx";
 
 function App() {
   return (
@@ -16,12 +17,14 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/login" element={<LogInPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/challenges" element={<ChallengesPage />} />
-        <Route path="/create" element={<AddHabitPage />} />
-        <Route path="/:id" element={<HabitPage />} />
-        <Route path="/challenges/create" element={<AddChallengePage />} />
-        <Route path="/challenges/:id" element={<ChallengePage />} />
+        <Route element={<Layout />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/challenges" element={<ChallengesPage />} />
+          <Route path="/create" element={<AddHabitPage />} />
+          <Route path="/challenges/create" element={<AddChallengePage />} />
+          <Route path="/:id" element={<HabitPage />} />
+          <Route path="/challenges/:id" element={<ChallengePage />} />
+        </Route>
       </Routes>
     </>
   );
