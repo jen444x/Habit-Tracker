@@ -4,7 +4,11 @@ import BottomNav from "./BottomNav";
 function Layout() {
   return (
     <>
-      <Outlet />
+      <div className="pb-20">
+        {" "}
+        {/* padding-bottom for nav height */}
+        <Outlet />
+      </div>
       <BottomNav />
     </>
   );

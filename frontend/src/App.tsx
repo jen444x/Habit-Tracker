@@ -9,10 +9,12 @@ import ChallengesPage from "./pages/ChallengesPage.tsx";
 import AddChallengePage from "./pages/AddChallengePage.tsx";
 import ChallengePage from "./pages/ChallengePage.tsx";
 import Layout from "./components/layout/Layout.tsx";
+import ScrollToTop from "./components/ScrollToTop.tsx";
 
 function App() {
   return (
     <>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/signup" element={<SignUpPage />} />

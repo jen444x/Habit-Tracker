@@ -15,7 +15,7 @@ function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-calm-50 px-6 py-12 pb-24">
+    <div className="min-h-screen bg-calm-50 px-6 py-12">
       <Header title="Your Habits" body="1% better everyday" />
       <ShowHabits selectedDate={selectedDate} />
       <button
