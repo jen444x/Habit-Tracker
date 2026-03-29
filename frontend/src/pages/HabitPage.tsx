@@ -183,26 +183,6 @@ function HabitPage() {
           </div>
         </div>
 
-        {/* Progress toward record */}
-        {currentStreak > 0 && currentStreak < longestStreak && (
-          <div className="bg-white rounded-2xl p-5 mb-6 shadow-sm">
-            <div className="flex justify-between text-sm text-calm-600 mb-2">
-              <span>Progress to record</span>
-              <span>
-                {currentStreak} / {longestStreak} days
-              </span>
-            </div>
-            <div className="h-2 bg-calm-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-calm-500 rounded-full transition-all duration-500"
-                style={{
-                  width: `${(currentStreak / longestStreak) * 100}%`,
-                }}
-              />
-            </div>
-          </div>
-        )}
-
         {/* Delete */}
         <div className="pt-8 text-center">
           <button
