@@ -180,7 +180,7 @@ def get_habit(id):
     cur = db.cursor()
 
     cur.execute(
-        'SELECT h.id, title, body, creator_id'
+        'SELECT h.id, title, body, creator_id, challenge_id'
         ' FROM habits h'
         ' JOIN users u'
         ' ON h.creator_id = u.id'
@@ -395,8 +395,21 @@ def view(id):
     #     )
     #     challenge = cur.fetchone()
 
+    # Get all challenges for dropdown
+    cur = db.cursor()
+    cur.execute(
+        'SELECT id, title FROM challenges WHERE creator_id = %s ORDER BY title',
+        (g.user['id'],)
+    )
+    challenges = cur.fetchall()
     cur.close()
-    return jsonify({"habit":habit, "current_streak":current_streak, "longest_streak":longest_streak}), 200
+
+    return jsonify({
+        "habit": habit,
+        "current_streak": current_streak,
+        "longest_streak": longest_streak,
+        "challenges": challenges
+    }), 200
 
     # return render_template(
     #     'dashboard/view.jinja',
@@ -413,6 +426,41 @@ def view(id):
     #     selected_week_monday=selected_week_monday,
     #     selected_week_sunday=selected_week_sunday
     # )
+
+
+
+@bp.route('/<int:id>', methods=('PUT',))
+@login_required
+def update(id):
+    # make sure it exists
+    habit = get_habit(id)
+
+
+    data = request.get_json()                                                                                                                                                                             
+    title = data.get('title') 
+    challenge = data.get('challengeId')                                                                                                                                                                            
+    body = data.get('body')   
+    
+    if not title:
+        error = 'Title is required.'
+
+    if challenge == 'None':
+        challenge = None
+
+    db = get_db()
+    cur = db.cursor()
+    cur.execute(
+        'UPDATE habits'
+        ' SET title = %s, challenge_id = %s, body = %s'
+        ' WHERE id = %s',
+        (title, challenge, body, id)
+    )
+    db.commit()
+    cur.close()
+
+    return jsonify({}), 200
+
+
 
 
 @bp.route('/<int:id>/delete', methods=('POST',))
@@ -432,75 +480,6 @@ def delete(id):
 
 
 
-
-
-@bp.route('/<int:id>/update', methods=('GET', 'POST'))
-@login_required
-def update(id):
-    habit = get_habit(id)
-
-    # get challenges for drop down
-    db = get_db()
-    cur = db.cursor()
-    
-    if habit['challenge_id'] is None:                                                                                                         
-        cur.execute(                                                                                                                                       
-            'SELECT * ' \
-            'FROM challenges ' \
-            'WHERE creator_id = %s',                                                                                              
-            (g.user['id'],)                                                                                                                                
-        )  
-        habit['challenge_title'] = 'None'                                                                                                                                              
-    else:    
-        # get project name of challenge
-        cur.execute(
-            'SELECT title ' \
-            'FROM challenges ' \
-            'WHERE id = %s',
-            (habit['challenge_id'], )
-        )   
-        c_title = cur.fetchone()
-        habit['challenge_title'] = c_title['title'] 
-
-        cur.execute(                                                                                                                                       
-            'SELECT * FROM challenges WHERE creator_id = %s AND id != %s',                                                                                 
-            (g.user['id'], habit['challenge_id'])                                                                                                          
-        ) 
-
-    dropdown_options = cur.fetchall()
-
-    if habit['challenge_id'] == None:
-        habit['challenge_id'] = 'None'
-    
-
-    if request.method == 'POST':
-        title = request.form['title']
-        challenge = request.form['challenge']
-        body = request.form['body']
-        error = None
-       
-        if not title:
-            error = 'Title is required.'
-
-        if challenge == 'None':
-            challenge = None
-
-        if error is not None:
-            flash(error)
-        else:
-            db = get_db()
-            cur = db.cursor()
-            cur.execute(
-                'UPDATE habits'
-                ' SET title = %s, challenge_id = %s, body = %s'
-                ' WHERE id = %s',
-                (title, challenge, body, id)
-            )
-            db.commit()
-            cur.close()
-            return redirect(url_for('dashboard.index'))
-
-    return render_template('dashboard/update.jinja', habit=habit, dropdown_options=dropdown_options) # Here its passed like a dict reference
 
 
 

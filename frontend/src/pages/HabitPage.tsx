@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useParams } from "react-router";
 import Header from "../components/layout/Header";
+import EditHabit from "../components/habits/EditHabit";
 
 function HabitPage() {
   const { id } = useParams();
@@ -9,11 +10,13 @@ function HabitPage() {
   const [habitDesc, setHabitDesc] = useState("");
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
   async function fetchHabit() {
+    setDataLoaded(false);
     const url = `${import.meta.env.VITE_API_URL}/${id}`;
     const token = localStorage.getItem("token");
     try {
@@ -32,7 +35,6 @@ function HabitPage() {
       }
       // Get habit data
       const habit = data.habit;
-
       setHabitName(habit.title);
       if (habit.body) {
         setHabitDesc(habit.body);
@@ -41,6 +43,7 @@ function HabitPage() {
       // Get streak data
       setCurrentStreak(data.current_streak);
       setLongestStreak(data.longest_streak);
+      setDataLoaded(true);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "An unknown error occurred",
@@ -103,6 +106,15 @@ function HabitPage() {
             <p className="text-calm-500 text-sm">Longest Streak</p>
           </div>
         </div>
+
+        {dataLoaded && (
+          <EditHabit
+            id={id}
+            habitName={habitName}
+            habitDesc={habitDesc}
+            onSave={fetchHabit}
+          />
+        )}
 
         <button
           onClick={handleClick}
