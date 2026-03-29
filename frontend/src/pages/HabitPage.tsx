@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import EditHabit from "../components/habits/EditHabit";
+import UpgradeHabit from "../components/habits/UpgradeHabit";
 
 function HabitPage() {
   const { id } = useParams();
@@ -53,7 +54,7 @@ function HabitPage() {
 
   useEffect(() => {
     fetchHabit();
-  }, []);
+  }, [id]);
 
   async function handleDelete() {
     if (!confirm("Are you sure you want to delete this habit?")) return;
@@ -182,6 +183,8 @@ function HabitPage() {
             </p>
           </div>
         </div>
+
+        <UpgradeHabit id={Number(id)} />
 
         {/* Delete */}
         <div className="pt-8 text-center">

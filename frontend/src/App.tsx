@@ -10,6 +10,7 @@ import AddChallengePage from "./pages/AddChallengePage.tsx";
 import ChallengePage from "./pages/ChallengePage.tsx";
 import Layout from "./components/layout/Layout.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
+import UpgradeHabitPage from "./pages/UpgradeHabitPage.tsx";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/challenges" element={<ChallengesPage />} />
           <Route path="/create" element={<AddHabitPage />} />
+          <Route path="/habits/:id/upgrade" element={<UpgradeHabitPage />} />
           <Route path="/challenges/create" element={<AddChallengePage />} />
           <Route path="/:id" element={<HabitPage />} />
           <Route path="/challenges/:id" element={<ChallengePage />} />

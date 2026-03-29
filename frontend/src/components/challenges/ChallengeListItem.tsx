@@ -25,19 +25,6 @@ function ChallengeListItem({ challenge }: ChallengeListItemProps) {
       <div className="flex items-center gap-3">
         <div className="w-3 h-3 rounded-full bg-calm-400"></div>
         <h3 className="flex-1 font-medium text-stone-900">{challenge.title}</h3>
-        <svg
-          className="w-5 h-5 text-stone-300"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
       </div>
     </li>
   );

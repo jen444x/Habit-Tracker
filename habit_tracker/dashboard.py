@@ -17,10 +17,6 @@ def get_user_local_date():
 
 @bp.route('/')
 def index():
-    if g.user is None:
-        print("USER IS NONE")
-        return jsonify({}), 401
-
     db = get_db()
     cur = db.cursor()
 
@@ -141,6 +137,8 @@ def create():
         data = request.get_json()
         name = data.get('name')
         description = data.get('desc')
+        challenge_id = data.get('challengeId')
+        print(challenge_id)
    
         if not name:
             return jsonify({"error": "Name is missing"}), 400
@@ -150,7 +148,6 @@ def create():
 
         # create habit
         # check if challenge id was included
-        challenge_id = data.get('challengeId')
         if not challenge_id:
             cur.execute(
                 'INSERT INTO habits (title, body, creator_id, display_order)'
@@ -272,7 +269,6 @@ def undo_complete(id):
 @bp.route('/<int:id>')
 @login_required
 def view(id):
-    print("hi can u atleast reach here")
     habit = get_habit(id)
     db = get_db()
     cur = db.cursor()

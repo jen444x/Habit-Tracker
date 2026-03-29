@@ -18,7 +18,8 @@ CREATE TABLE habits (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),                                                                                                                        
     title VARCHAR(100) NOT NULL,                                                                                                                                          
     body TEXT NOT NULL,
-    display_order INTEGER
+    display_order INTEGER,
+    stage INTEGER NOT NULL DEFAULT 1
 );                                                                                                                                                                        
                                                                                                                                                                         
 CREATE TABLE habit_logs (                                                                                                                                                 
