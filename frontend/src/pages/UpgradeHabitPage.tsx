@@ -6,6 +6,7 @@ function UpgradeHabitPage() {
   const [habitName, setHabitName] = useState("");
   const [habitBody, setHabitBody] = useState("");
   const [habitChallenge, setHabitChallenge] = useState<number | null>(null);
+  const [habitStage, setHabitStage] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const { id } = useParams();
@@ -31,6 +32,7 @@ function UpgradeHabitPage() {
       setHabitName(habitData.title);
       setHabitBody(habitData.body);
       setHabitChallenge(habitData.challenge_id);
+      setHabitStage(habitData.stage ? habitData.stage + 1 : 1);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "An unknown error occurred",
@@ -46,7 +48,7 @@ function UpgradeHabitPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/create`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/upgrade`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -56,6 +58,7 @@ function UpgradeHabitPage() {
           name: habitName,
           desc: habitBody,
           challengeId: habitChallenge,
+          stage: habitStage,
         }),
       });
       const data = await res.json();
@@ -119,8 +122,18 @@ function UpgradeHabitPage() {
               <p className="text-calm-700 text-sm">{originalName}</p>
             </div>
             <div className="text-calm-300">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
               </svg>
             </div>
             <div className="flex-1">
@@ -163,9 +176,7 @@ function UpgradeHabitPage() {
             />
           </div>
 
-          {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
-          )}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
           <button
             disabled={isLoading}

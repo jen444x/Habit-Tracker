@@ -130,6 +130,46 @@ def index():
   })                                                                                                                                                                                                                                      
 
 
+@bp.route('/upgrade', methods=('POST',))
+def upgrade():
+    # get data
+    data = request.get_json()
+    name = data.get('name')
+    description = data.get('desc')
+    challenge_id = data.get('challengeId')
+    stage = data.get('stage')
+    print(challenge_id)
+
+    if not name:
+        return jsonify({"error": "Name is missing"}), 400
+
+    db = get_db()
+    cur = db.cursor()
+
+    # create habit
+    # check if challenge id was included
+    if not challenge_id:
+        cur.execute(
+            'INSERT INTO habits (title, body, stage, creator_id, display_order)'
+            ' VALUES (%s, %s, %s, %s, (' \
+            'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
+            'FROM habits WHERE creator_id = %s))',
+            (name, description, stage, g.user['id'], g.user['id'])
+        )
+    else:
+        cur.execute(
+            'INSERT INTO habits (title, body, stage, challenge_id, creator_id, display_order)'
+            ' VALUES (%s, %s, %s, %s, %s ,(' \
+            'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
+            'FROM habits WHERE creator_id = %s))',
+            (name, description, stage, int(challenge_id), g.user['id'], g.user['id'])
+        )
+
+    db.commit()
+    cur.close()
+
+    return jsonify({}),201
+
 @bp.route('/create', methods=('GET', 'POST'))
 def create():
     if request.method == 'POST':
@@ -177,7 +217,7 @@ def get_habit(id):
     cur = db.cursor()
 
     cur.execute(
-        'SELECT h.id, title, body, creator_id, challenge_id'
+        'SELECT h.id, title, body, creator_id, challenge_id, stage'
         ' FROM habits h'
         ' JOIN users u'
         ' ON h.creator_id = u.id'
