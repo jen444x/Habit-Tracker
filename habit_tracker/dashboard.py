@@ -404,8 +404,17 @@ def view(id):
     challenges = cur.fetchall()
     cur.close()
 
+    # Get challenge title if habit belongs to one
+    challenge_title = None
+    if habit['challenge_id']:
+        for c in challenges:
+            if c['id'] == habit['challenge_id']:
+                challenge_title = c['title']
+                break
+
     return jsonify({
         "habit": habit,
+        "challenge_title": challenge_title,
         "current_streak": current_streak,
         "longest_streak": longest_streak,
         "challenges": challenges
