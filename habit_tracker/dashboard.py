@@ -138,7 +138,7 @@ def upgrade():
     description = data.get('desc')
     challenge_id = data.get('challengeId')
     stage = data.get('stage')
-    print(challenge_id)
+    family = data.get('familyId')
 
     if not name:
         return jsonify({"error": "Name is missing"}), 400
@@ -150,25 +150,45 @@ def upgrade():
     # check if challenge id was included
     if not challenge_id:
         cur.execute(
-            'INSERT INTO habits (title, body, stage, creator_id, display_order)'
-            ' VALUES (%s, %s, %s, %s, (' \
+            'INSERT INTO habits (title, body, stage, family_id, creator_id, display_order)'
+            ' VALUES (%s, %s, %s, %s, %s, (' \
             'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
             'FROM habits WHERE creator_id = %s))',
-            (name, description, stage, g.user['id'], g.user['id'])
+            (name, description, stage, family, g.user['id'], g.user['id'])
         )
     else:
         cur.execute(
-            'INSERT INTO habits (title, body, stage, challenge_id, creator_id, display_order)'
-            ' VALUES (%s, %s, %s, %s, %s ,(' \
+            'INSERT INTO habits (title, body, stage, family_id, challenge_id, creator_id, display_order)'
+            ' VALUES (%s, %s, %s, %s, %s , %s, (' \
             'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
             'FROM habits WHERE creator_id = %s))',
-            (name, description, stage, int(challenge_id), g.user['id'], g.user['id'])
+            (name, description, stage, family, int(challenge_id), g.user['id'], g.user['id'])
         )
 
     db.commit()
     cur.close()
 
     return jsonify({}),201
+
+@bp.route('/family/<int:family_id>', methods=('GET',))
+def get_family(family_id):
+    db = get_db()
+    cur = db.cursor()
+    print("init")
+
+    # Get habits from this family
+    cur.execute(
+        'SELECT *' \
+        ' FROM habits' \
+        ' WHERE family_id = %s AND creator_id = %s'
+        ' ORDER BY stage DESC',
+        (family_id, g.user['id'])
+    )   
+
+    habits = cur.fetchall()
+    cur.close()
+    return jsonify({"habits": habits}), 200
+
 
 @bp.route('/create', methods=('GET', 'POST'))
 def create():
@@ -217,7 +237,7 @@ def get_habit(id):
     cur = db.cursor()
 
     cur.execute(
-        'SELECT h.id, title, body, creator_id, challenge_id, stage'
+        'SELECT h.id, title, body, creator_id, challenge_id, stage, family_id'
         ' FROM habits h'
         ' JOIN users u'
         ' ON h.creator_id = u.id'

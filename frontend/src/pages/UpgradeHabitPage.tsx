@@ -7,6 +7,7 @@ function UpgradeHabitPage() {
   const [habitBody, setHabitBody] = useState("");
   const [habitChallenge, setHabitChallenge] = useState<number | null>(null);
   const [habitStage, setHabitStage] = useState<number | null>(null);
+  const [habitFamily, setHabitFamily] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const { id } = useParams();
@@ -33,6 +34,7 @@ function UpgradeHabitPage() {
       setHabitBody(habitData.body);
       setHabitChallenge(habitData.challenge_id);
       setHabitStage(habitData.stage ? habitData.stage + 1 : 1);
+      setHabitFamily(habitData.family_id);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "An unknown error occurred",
@@ -59,6 +61,7 @@ function UpgradeHabitPage() {
           desc: habitBody,
           challengeId: habitChallenge,
           stage: habitStage,
+          familyId: habitFamily,
         }),
       });
       const data = await res.json();

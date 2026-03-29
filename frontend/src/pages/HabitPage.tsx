@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import EditHabit from "../components/habits/EditHabit";
-import UpgradeHabit from "../components/habits/UpgradeHabit";
+import ShowHabitFamily from "../components/habits/ShowHabitFamily";
 
 function HabitPage() {
   const { id } = useParams();
@@ -11,6 +11,7 @@ function HabitPage() {
   const [habitDesc, setHabitDesc] = useState("");
   const [habitChallenge, setHabitChallenge] = useState<number | null>(null);
   const [challengeName, setChallengeName] = useState<string | null>(null);
+  const [familyId, setFamilyId] = useState<number | null>(null);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -41,6 +42,7 @@ function HabitPage() {
       setHabitName(habit.title);
       setHabitDesc(habit.body || "");
       setHabitChallenge(habit.challenge_id || null);
+      setFamilyId(habit.family_id);
       setChallengeName(data.challenge_title || null);
       setCurrentStreak(data.current_streak);
       setLongestStreak(data.longest_streak);
@@ -184,8 +186,9 @@ function HabitPage() {
           </div>
         </div>
 
-        <UpgradeHabit id={Number(id)} />
-
+        {familyId && id && (
+          <ShowHabitFamily familyId={familyId} id={Number(id)} />
+        )}
         {/* Delete */}
         <div className="pt-8 text-center">
           <button
