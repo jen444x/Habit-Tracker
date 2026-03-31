@@ -28,9 +28,7 @@ function EditHabit({
 }: EditHabitProps) {
   const [name, setName] = useState(habitName);
   const [desc, setDesc] = useState(habitDesc);
-  const [challenge, setChallenge] = useState(habitChallenge);
   const [level, setLevel] = useState(habitLevel);
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [error, setError] = useState("");
 
   async function handleSave() {
