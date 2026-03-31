@@ -99,17 +99,20 @@ def get_families():
 
     # Get habits that haven't been completed yet
     # will only get the newest habit in habit family
-    cur.execute(    
-        'SELECT DISTINCT ON (family_id)' \
-        ' h.id, h.title, h.body, h.created_at, h.family_id, stage, tier' \
-        ' FROM habits h' \
-        ' LEFT JOIN habit_logs hl' \
-        '   ON h.id = hl.habit_id' \
-        '   AND hl.log_date = %s'  \
-        ' WHERE h.creator_id = %s' \
-        ' AND hl.habit_id IS NULL' \
-        ' ORDER BY tier, family_id, stage ASC',
-        (selected_date, g.user['id'])
+    cur.execute(  
+        'SELECT * FROM (' \
+        '   SELECT DISTINCT ON (family_id)' \
+        '       h.id, h.title, h.body, h.created_at, h.family_id, stage, tier' \
+        '   FROM habits h' \
+        '   LEFT JOIN habit_logs hl' \
+        '       ON h.id = hl.habit_id' \
+        '       AND hl.log_date = %s'  \
+        '   WHERE h.creator_id = %s' \
+        '   AND hl.habit_id IS NULL' \
+        '   ORDER BY family_id, stage DESC' \
+        ') AS unique_habits' \
+        ' ORDER BY tier ASC',
+        (selected_date, g.user['id']) 
     )
     
     habits = [dict(row) for row in cur.fetchall()]
