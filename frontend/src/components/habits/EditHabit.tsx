@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react";
 
-type Challenge = {
-  id: number;
-  title: string;
-};
-
 interface EditHabitProps {
   id: string | undefined;
   habitName: string;
@@ -21,7 +16,6 @@ function EditHabit({
   habitName,
   habitDesc,
   habitLevel,
-  habitChallenge,
   isOpen,
   onClose,
   onSave,
@@ -40,7 +34,7 @@ function EditHabit({
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ title: name, body: desc, challenge: challenge }),
+        body: JSON.stringify({ title: name, body: desc, tier: level }),
       });
 
       if (!res.ok) {
@@ -73,7 +67,6 @@ function EditHabit({
         setError(data.error);
         return;
       }
-      setChallenges(data.challenges);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "An unknown error occurred",

@@ -515,7 +515,7 @@ def update(id):
 
     data = request.get_json()                                                                                                                                                                             
     title = data.get('title') 
-    challenge = data.get('challenge')                                                                                                                                                                            
+    tier = data.get('tier')                                                                                                                                                                            
     body = data.get('body')   
     
     if not title:
@@ -525,9 +525,9 @@ def update(id):
     cur = db.cursor()
     cur.execute(
         'UPDATE habits'
-        ' SET title = %s, challenge_id = %s, body = %s'
+        ' SET title = %s, tier = %s, body = %s'
         ' WHERE id = %s',
-        (title, challenge, body, id)
+        (title, tier, body, id)
     )
     db.commit()
     cur.close()
