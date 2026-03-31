@@ -5,6 +5,7 @@ import DateNavigator from "../common/DateNavigator";
 interface Habit {
   id: number;
   title: string;
+  stage: number;
 }
 
 interface ShowHabitsProps {

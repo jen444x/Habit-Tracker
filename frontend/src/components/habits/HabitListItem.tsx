@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 interface Habit {
   id: number;
   title: string;
+  stage: number;
 }
 
 interface DoneProps {
@@ -63,20 +64,33 @@ function HabitListItem({ habit, onComplete, done, selectedDate }: DoneProps) {
       >
         <span
           className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-            done
-              ? "bg-calm-500 border-calm-500 text-white"
-              : "border-calm-300"
+            done ? "bg-calm-500 border-calm-500 text-white" : "border-calm-300"
           }`}
         >
           {done && (
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={3}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           )}
         </span>
       </button>
-      <span className={`${done ? "text-calm-400 line-through" : "text-calm-900"}`}>
+      <span
+        className={`flex-1 ${done ? "text-calm-400 line-through" : "text-calm-900"}`}
+      >
         {habit.title}
+      </span>
+      <span className="text-xs font-medium text-calm-500 bg-calm-100 px-2 py-0.5 rounded-full">
+        Stage {habit.stage}
       </span>
     </li>
   );
