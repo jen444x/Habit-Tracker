@@ -9,22 +9,17 @@ from datetime import datetime, timedelta
 from habit_tracker.auth import login_required
 from habit_tracker.db import get_db
 
-bp = Blueprint('dashboard', __name__)
+bp = Blueprint('habits', __name__)
 
 def get_user_local_date():
     tz = ZoneInfo(g.user['timezone'])
     return datetime.now(tz).date()
 
-@bp.route('/')
-def index():
-    db = get_db()
-    cur = db.cursor()
-
-    # Get query params
-    challenge_filter = request.args.get('challenge', type=int)
+# get complete and incomplete habits for date
+@bp.route('/habits')
+def get_habits():
+    # Parse date if given, else use todays date
     date_str = request.args.get('date')
-
-    # Parse date or default to today
     today = get_user_local_date()
     if date_str:
         try:
@@ -37,88 +32,38 @@ def index():
     # Calculate prev/next dates
     prev_date = selected_date - timedelta(days=1)
     next_date = selected_date + timedelta(days=1)
-    is_today = selected_date == today
 
-    # Get all challenges for the filter dropdown
-    cur.execute(
-        'SELECT id, title FROM challenges WHERE creator_id = %s ORDER BY id',
-        (g.user['id'],)
-    )
-    all_challenges = cur.fetchall()
-
-    # Build challenge filter clause
-    if challenge_filter:
-        challenge_clause = ' AND h.challenge_id = %s'
-        challenge_param = (challenge_filter,)
-    else:
-        challenge_clause = ''
-        challenge_param = ()
-
-    # Get current week (Mon-Sun)
-    monday = today - timedelta(days=today.weekday())
+    db = get_db()
+    cur = db.cursor()
 
     # Get incomplete habits
-    cur.execute(
-        'SELECT h.id, h.title, h.body, h.created_at'
+    cur.execute(    
+        'SELECT h.id, h.title, h.body, h.created_at, h.family_id'
         ' FROM habits h'
         ' LEFT JOIN habit_logs hl'
         '   ON h.id = hl.habit_id'
         '   AND hl.log_date = %s'
         ' WHERE h.creator_id = %s'
         ' AND hl.habit_id IS NULL'
-        + challenge_clause +
         ' ORDER BY display_order DESC',
-        (selected_date, g.user['id']) + challenge_param
+        (selected_date, g.user['id']) 
     )
     habits = [dict(row) for row in cur.fetchall()]
+    
+    
 
     # Get completed habits
     cur.execute(
-        'SELECT h.id, title, body, h.created_at'
+        'SELECT h.id, title, body, h.created_at, h.family_id'
         ' FROM habits h'
         ' INNER JOIN habit_logs hl'
         '   ON h.id = hl.habit_id'
         '   AND hl.log_date = %s'
-        ' WHERE h.creator_id = %s'
-        + challenge_clause,
-        (selected_date, g.user['id']) + challenge_param
+        ' WHERE h.creator_id = %s',
+        (selected_date, g.user['id'])
     )
     habits_done = [dict(row) for row in cur.fetchall()]
-
-    # Get all habit IDs
-    all_habit_ids = [h['id'] for h in habits] + [h['id'] for h in habits_done]
-
-    # Get week's completion logs for all habits
-    week_logs = {}
-    if all_habit_ids:
-        cur.execute(
-            'SELECT habit_id, log_date FROM habit_logs '
-            'WHERE habit_id = ANY(%s) AND log_date >= %s AND log_date <= %s',
-            (all_habit_ids, monday, monday + timedelta(days=6))
-        )
-        for log in cur.fetchall():
-            if log['habit_id'] not in week_logs:
-                week_logs[log['habit_id']] = set()
-            week_logs[log['habit_id']].add(log['log_date'])
-
-    # Add week data to each habit
-    def add_week_data(habit_list):
-        for habit in habit_list:
-            habit_created = habit['created_at'].date() if habit['created_at'] else monday
-            completed_dates = week_logs.get(habit['id'], set())
-            habit['week'] = []
-            for i in range(7):
-                date = monday + timedelta(days=i)
-                habit['week'].append({
-                    'date': date,
-                    'completed': date in completed_dates,
-                    'in_future': date > today,
-                    'before_habit': date < habit_created
-                })
-
-    add_week_data(habits)
-    add_week_data(habits_done)
-
+    
     cur.close()
 
     return jsonify({                                                                                                                                                                                                                        
@@ -127,7 +72,94 @@ def index():
       "prev_date": prev_date.isoformat(),                                                                                                                                                                                                 
       "next_date": next_date.isoformat(),                                                                                                                                                                                                 
       "today": today.isoformat()                                                                                                                                                                                                          
-  })                                                                                                                                                                                                                                      
+  })   
+
+
+# group habits by family id
+@bp.route('/habits/families', methods=('GET',))
+def get_families():
+    # parse date if give, else use todays date
+    date_str = request.args.get('date')
+    today = get_user_local_date()
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+             selected_date = today
+    else:
+        selected_date = today
+
+
+    # Calculate prev/next dates
+    prev_date = selected_date - timedelta(days=1)
+    next_date = selected_date + timedelta(days=1)
+
+    db = get_db()
+    cur = db.cursor()
+
+    # Get habits that haven't been completed yet
+    # will only get the newest habit in habit family
+    cur.execute(    
+        'SELECT DISTINCT ON (family_id)' \
+        ' h.id, h.title, h.body, h.created_at, h.family_id' \
+        ' FROM habits h' \
+        ' LEFT JOIN habit_logs hl' \
+        '   ON h.id = hl.habit_id' \
+        '   AND hl.log_date = %s'  \
+        ' WHERE h.creator_id = %s' \
+        ' AND hl.habit_id IS NULL' \
+        ' ORDER BY family_id, stage ASC',
+        (selected_date, g.user['id'])
+    )
+    
+    habits = [dict(row) for row in cur.fetchall()]
+
+    # Get completed habits
+    cur.execute(
+        'SELECT DISTINCT ON (family_id)' \
+        ' h.id, title, body, h.created_at, h.family_id'
+        ' FROM habits h'
+        ' INNER JOIN habit_logs hl'
+        '   ON h.id = hl.habit_id'
+        '   AND hl.log_date = %s'
+        ' WHERE h.creator_id = %s'
+        ' ORDER BY family_id, stage DESC',
+        (selected_date, g.user['id'])
+    )
+
+    habits_done = [dict(row) for row in cur.fetchall()]
+    
+    cur.close()
+
+    return jsonify({                                                                                                                                                                                                                        
+      "habits": habits,                                                                                                                                                                                                                   
+      "habits_done": habits_done,                                                                                                                                                                                                         
+      "prev_date": prev_date.isoformat(),                                                                                                                                                                                                 
+      "next_date": next_date.isoformat(),                                                                                                                                                                                                 
+      "today": today.isoformat()                                                                                                                                                                                                          
+    })  
+
+
+
+
+
+@bp.route('/family/<int:family_id>', methods=('GET',))
+def get_family(family_id):
+    db = get_db()
+    cur = db.cursor()
+
+    # Get habits from this family
+    cur.execute(
+        'SELECT *' \
+        ' FROM habits' \
+        ' WHERE family_id = %s AND creator_id = %s'
+        ' ORDER BY stage DESC',
+        (family_id, g.user['id'])
+    )   
+
+    habits = cur.fetchall()
+    cur.close()
+    return jsonify({"habits": habits}), 200
 
 
 @bp.route('/upgrade', methods=('POST',))
@@ -169,25 +201,6 @@ def upgrade():
     cur.close()
 
     return jsonify({}),201
-
-@bp.route('/family/<int:family_id>', methods=('GET',))
-def get_family(family_id):
-    db = get_db()
-    cur = db.cursor()
-    print("init")
-
-    # Get habits from this family
-    cur.execute(
-        'SELECT *' \
-        ' FROM habits' \
-        ' WHERE family_id = %s AND creator_id = %s'
-        ' ORDER BY stage DESC',
-        (family_id, g.user['id'])
-    )   
-
-    habits = cur.fetchall()
-    cur.close()
-    return jsonify({"habits": habits}), 200
 
 
 @bp.route('/create', methods=('GET', 'POST'))
@@ -497,7 +510,6 @@ def view(id):
 @bp.route('/<int:id>', methods=('PUT',))
 @login_required
 def update(id):
-    print("in update")
     # make sure it exists
     get_habit(id)
 
@@ -588,3 +600,122 @@ def move(id, direction):
     cur.close()
     return redirect(url_for('dashboard.index'))
 
+
+
+@bp.route('/')
+def index():
+    db = get_db()
+    cur = db.cursor()
+
+    # Get query params
+    challenge_filter = request.args.get('challenge', type=int)
+    # print(f"challenge_filter: {challenge_filter}")
+    date_str = request.args.get('date')
+    # print(f"date_str: {date_str}")
+    
+
+    # Parse date or default to today
+    today = get_user_local_date()
+    # print(f"today: {today}")
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            selected_date = today
+    else:
+        selected_date = today
+
+    # Calculate prev/next dates
+    prev_date = selected_date - timedelta(days=1)
+    next_date = selected_date + timedelta(days=1)
+    is_today = selected_date == today
+
+    # Get all challenges for the filter dropdown
+    cur.execute(
+        'SELECT id, title FROM challenges WHERE creator_id = %s ORDER BY id',
+        (g.user['id'],)
+    )
+    all_challenges = cur.fetchall()
+
+    # Build challenge filter clause
+    if challenge_filter:
+        challenge_clause = ' AND h.challenge_id = %s'
+        challenge_param = (challenge_filter,)
+    else:
+        challenge_clause = ''
+        challenge_param = ()
+
+    # Get current week (Mon-Sun)
+    monday = today - timedelta(days=today.weekday())
+
+    # Get incomplete habits
+    cur.execute(
+        'SELECT h.id, h.title, h.body, h.created_at'
+        ' FROM habits h'
+        ' LEFT JOIN habit_logs hl'
+        '   ON h.id = hl.habit_id'
+        '   AND hl.log_date = %s'
+        ' WHERE h.creator_id = %s'
+        ' AND hl.habit_id IS NULL'
+        + challenge_clause +
+        ' ORDER BY display_order DESC',
+        (selected_date, g.user['id']) + challenge_param
+    )
+    habits = [dict(row) for row in cur.fetchall()]
+
+    # Get completed habits
+    cur.execute(
+        'SELECT h.id, title, body, h.created_at'
+        ' FROM habits h'
+        ' INNER JOIN habit_logs hl'
+        '   ON h.id = hl.habit_id'
+        '   AND hl.log_date = %s'
+        ' WHERE h.creator_id = %s'
+        + challenge_clause,
+        (selected_date, g.user['id']) + challenge_param
+    )
+    habits_done = [dict(row) for row in cur.fetchall()]
+
+    # Get all habit IDs
+    all_habit_ids = [h['id'] for h in habits] + [h['id'] for h in habits_done]
+
+    # Get week's completion logs for all habits
+    week_logs = {}
+    if all_habit_ids:
+        cur.execute(
+            'SELECT habit_id, log_date FROM habit_logs '
+            'WHERE habit_id = ANY(%s) AND log_date >= %s AND log_date <= %s',
+            (all_habit_ids, monday, monday + timedelta(days=6))
+        )
+        for log in cur.fetchall():
+            if log['habit_id'] not in week_logs:
+                week_logs[log['habit_id']] = set()
+            week_logs[log['habit_id']].add(log['log_date'])
+
+    # Add week data to each habit
+    def add_week_data(habit_list):
+        for habit in habit_list:
+            habit_created = habit['created_at'].date() if habit['created_at'] else monday
+            completed_dates = week_logs.get(habit['id'], set())
+            habit['week'] = []
+            for i in range(7):
+                date = monday + timedelta(days=i)
+                habit['week'].append({
+                    'date': date,
+                    'completed': date in completed_dates,
+                    'in_future': date > today,
+                    'before_habit': date < habit_created
+                })
+
+    add_week_data(habits)
+    add_week_data(habits_done)
+
+    cur.close()
+
+    return jsonify({                                                                                                                                                                                                                        
+      "habits": habits,                                                                                                                                                                                                                   
+      "habits_done": habits_done,                                                                                                                                                                                                         
+      "prev_date": prev_date.isoformat(),                                                                                                                                                                                                 
+      "next_date": next_date.isoformat(),                                                                                                                                                                                                 
+      "today": today.isoformat()                                                                                                                                                                                                          
+  })                                                                                                                                                                                                                                      

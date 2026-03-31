@@ -20,7 +20,8 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
   const [nextDate, setNextDate] = useState("");
 
   async function fetchHabits() {
-    const url = import.meta.env.VITE_API_URL;
+    // const url = import.meta.env.VITE_API_URL;
+    const url = `${import.meta.env.VITE_API_URL}/habits/families`;
     const fetchUrl = selectedDate ? `${url}?date=${selectedDate}` : url;
     const token = localStorage.getItem("token");
 
@@ -46,6 +47,8 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
       setHabitsDone(data.habits_done);
       setPrevDate(data.prev_date);
       setNextDate(data.next_date);
+      console.log(data.habits);
+      console.log(data.habits_done);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "An unknown error occurred",

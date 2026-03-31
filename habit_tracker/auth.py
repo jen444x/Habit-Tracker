@@ -57,7 +57,6 @@ def login():
     if not, shows error and stays on login
     """
     if request.method == 'POST':
-        print("do i get here")
         # Get data
         data = request.get_json()
         username = data.get('username')
@@ -109,14 +108,10 @@ def load_logged_in_user():
     secret_key = current_app.config['SECRET_KEY'] 
 
     # decode token
-    print("before printing token")
     token = jwt.decode(encoded_token, secret_key, algorithms=["HS256"])
-    print(token)
-    print("printed token")
 
     # get userid
     user_id = token['user_id']
-    print(user_id)
 
     if not user_id:
         g.user = None
@@ -154,7 +149,6 @@ def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
-            print("USER IS NONE")
             return jsonify({"error": "Authentication required"}), 401  
  
         
