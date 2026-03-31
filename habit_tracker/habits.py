@@ -76,7 +76,7 @@ def get_habits():
 
 
 # group habits by family id
-@bp.route('/habits/families', methods=('GET',))
+@bp.route('/habits/tiers', methods=('GET',))
 def get_families():
     # parse date if give, else use todays date
     date_str = request.args.get('date')
@@ -101,7 +101,7 @@ def get_families():
     # will only get the newest habit in habit family
     cur.execute(    
         'SELECT DISTINCT ON (family_id)' \
-        ' h.id, h.title, h.body, h.created_at, h.family_id, stage tier' \
+        ' h.id, h.title, h.body, h.created_at, h.family_id, stage, tier' \
         ' FROM habits h' \
         ' LEFT JOIN habit_logs hl' \
         '   ON h.id = hl.habit_id' \

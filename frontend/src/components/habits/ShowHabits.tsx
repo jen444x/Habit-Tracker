@@ -6,6 +6,7 @@ interface Habit {
   id: number;
   title: string;
   stage: number;
+  tier: number;
 }
 
 interface ShowHabitsProps {
@@ -22,7 +23,7 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
 
   async function fetchHabits() {
     // const url = import.meta.env.VITE_API_URL;
-    const url = `${import.meta.env.VITE_API_URL}/habits/families`;
+    const url = `${import.meta.env.VITE_API_URL}/habits/tiers`;
     const fetchUrl = selectedDate ? `${url}?date=${selectedDate}` : url;
     const token = localStorage.getItem("token");
 
@@ -93,15 +94,30 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
       {error && <p className="text-center text-red-500 mt-4">{error}</p>}
       {habits.length > 0 && (
         <ul className="space-y-3">
-          {habits.map((habit: Habit) => (
-            <HabitListItem
-              key={habit.id}
-              habit={habit}
-              onComplete={fetchHabits}
-              done={false}
-              selectedDate={selectedDate}
-            />
-          ))}
+          {habits.map((habit: Habit, index: number) => {
+            const prevHabit: Habit = habits[index - 1];
+            const isNewLevel = index === 0 || habit.tier !== prevHabit.tier;
+            return (
+              <>
+                {isNewLevel && (
+                  <div className="flex items-center gap-3 my-4">
+                    <div className="flex-1 h-px bg-calm-200"></div>
+                    <span className="text-calm-400 text-sm">
+                      Tier {habit.tier}
+                    </span>
+                    <div className="flex-1 h-px bg-calm-200"></div>
+                  </div>
+                )}
+                <HabitListItem
+                  key={habit.id}
+                  habit={habit}
+                  onComplete={fetchHabits}
+                  done={false}
+                  selectedDate={selectedDate}
+                />
+              </>
+            );
+          })}
         </ul>
       )}
 
