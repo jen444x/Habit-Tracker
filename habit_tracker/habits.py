@@ -101,14 +101,14 @@ def get_families():
     # will only get the newest habit in habit family
     cur.execute(    
         'SELECT DISTINCT ON (family_id)' \
-        ' h.id, h.title, h.body, h.created_at, h.family_id, stage' \
+        ' h.id, h.title, h.body, h.created_at, h.family_id, stage tier' \
         ' FROM habits h' \
         ' LEFT JOIN habit_logs hl' \
         '   ON h.id = hl.habit_id' \
         '   AND hl.log_date = %s'  \
         ' WHERE h.creator_id = %s' \
         ' AND hl.habit_id IS NULL' \
-        ' ORDER BY family_id, stage ASC',
+        ' ORDER BY family_id, stage, tier ASC',
         (selected_date, g.user['id'])
     )
     
@@ -117,13 +117,13 @@ def get_families():
     # Get completed habits
     cur.execute(
         'SELECT DISTINCT ON (family_id)' \
-        ' h.id, title, body, h.created_at, h.family_id, stage'
+        ' h.id, title, body, h.created_at, h.family_id, stage, tier'
         ' FROM habits h'
         ' INNER JOIN habit_logs hl'
         '   ON h.id = hl.habit_id'
         '   AND hl.log_date = %s'
         ' WHERE h.creator_id = %s'
-        ' ORDER BY family_id, stage DESC',
+        ' ORDER BY family_id, stage DESC, tier ASC',
         (selected_date, g.user['id'])
     )
 
