@@ -250,7 +250,7 @@ def get_habit(id):
     cur = db.cursor()
 
     cur.execute(
-        'SELECT h.id, title, body, creator_id, challenge_id, stage, family_id'
+        'SELECT h.id, title, body, creator_id, challenge_id, stage, family_id, tier'
         ' FROM habits h'
         ' JOIN users u'
         ' ON h.creator_id = u.id'

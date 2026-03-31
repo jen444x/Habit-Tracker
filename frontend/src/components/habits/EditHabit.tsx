@@ -9,6 +9,7 @@ interface EditHabitProps {
   id: string | undefined;
   habitName: string;
   habitDesc: string;
+  habitLevel: number;
   habitChallenge: null | number;
   isOpen: boolean;
   onClose: () => void;
@@ -19,6 +20,7 @@ function EditHabit({
   id,
   habitName,
   habitDesc,
+  habitLevel,
   habitChallenge,
   isOpen,
   onClose,
@@ -27,6 +29,7 @@ function EditHabit({
   const [name, setName] = useState(habitName);
   const [desc, setDesc] = useState(habitDesc);
   const [challenge, setChallenge] = useState(habitChallenge);
+  const [level, setLevel] = useState(habitLevel);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [error, setError] = useState("");
 
@@ -118,21 +121,22 @@ function EditHabit({
               className="w-full px-4 py-3 border border-calm-200 rounded-xl focus:outline-none focus:border-calm-500"
             />
           </div>
+          <div></div>
           <div>
-            <label className="block text-calm-700 text-sm mb-2">Challenge</label>
+            <label className="block text-calm-700 text-sm mb-2">Level</label>
             <select
-              value={challenge ?? ""}
-              onChange={(e) =>
-                setChallenge(e.target.value ? Number(e.target.value) : null)
-              }
+              value={level ?? ""}
+              onChange={(e) => setLevel(Number(e.target.value))}
               className="w-full px-4 py-3 border border-calm-200 rounded-xl focus:outline-none focus:border-calm-500"
             >
-              <option value="">No challenge</option>
-              {challenges.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title}
-                </option>
-              ))}
+              <option value={level}>{level}</option>
+              {[1, 2, 3]
+                .filter((num) => num !== level)
+                .map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
             </select>
           </div>
         </div>

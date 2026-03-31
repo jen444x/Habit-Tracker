@@ -9,6 +9,7 @@ function HabitPage() {
 
   const [habitName, setHabitName] = useState("");
   const [habitDesc, setHabitDesc] = useState("");
+  const [habitLevel, setHabitLevel] = useState<number | null>(null);
   const [habitChallenge, setHabitChallenge] = useState<number | null>(null);
   const [challengeName, setChallengeName] = useState<string | null>(null);
   const [familyId, setFamilyId] = useState<number | null>(null);
@@ -41,6 +42,7 @@ function HabitPage() {
       const habit = data.habit;
       setHabitName(habit.title);
       setHabitDesc(habit.body || "");
+      setHabitLevel(habit.tier);
       setHabitChallenge(habit.challenge_id || null);
       setFamilyId(habit.family_id);
       setChallengeName(data.challenge_title || null);
@@ -201,11 +203,12 @@ function HabitPage() {
       </div>
 
       {/* Edit Modal */}
-      {dataLoaded && (
+      {habitLevel && dataLoaded && (
         <EditHabit
           id={id}
           habitName={habitName}
           habitDesc={habitDesc}
+          habitLevel={habitLevel}
           habitChallenge={habitChallenge}
           isOpen={isEditOpen}
           onClose={() => setIsEditOpen(false)}
