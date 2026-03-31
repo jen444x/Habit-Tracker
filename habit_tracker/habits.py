@@ -108,7 +108,7 @@ def get_families():
         '   AND hl.log_date = %s'  \
         ' WHERE h.creator_id = %s' \
         ' AND hl.habit_id IS NULL' \
-        ' ORDER BY family_id, stage, tier ASC',
+        ' ORDER BY family_id, tier, stage ASC',
         (selected_date, g.user['id'])
     )
     
