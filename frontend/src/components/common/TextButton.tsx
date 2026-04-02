@@ -6,8 +6,8 @@ interface TextButtonProps {
 }
 
 function TextButton({ to, label }: TextButtonProps) {
+  const navigate = useNavigate();
   function handleClick() {
-    const navigate = useNavigate();
     navigate(to);
   }
   return (
