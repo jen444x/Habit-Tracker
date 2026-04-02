@@ -40,8 +40,8 @@ function HabitPage() {
       }
 
       const habit = data.habit;
-      setHabitName(habit.title);
-      setHabitDesc(habit.body || "");
+      setHabitName(habit.name);
+      setHabitDesc(habit.notes || "");
       setHabitLevel(habit.tier);
       setHabitChallenge(habit.challenge_id || null);
       setFamilyId(habit.family_id);

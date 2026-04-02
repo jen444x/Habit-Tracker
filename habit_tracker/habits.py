@@ -11,9 +11,21 @@ from habit_tracker.db import get_db
 
 bp = Blueprint('habits', __name__)
 
+# # create habit
+# @bp.route('/habits', methods=('POST',))
+# @login_required
+# def create_habit():
+    
+
+#     # name must be string, less than 100, req
+#     # body - string
+#     # tier - num btwn 1-3, req
+
+
 def get_user_local_date():
     tz = ZoneInfo(g.user['timezone'])
     return datetime.now(tz).date()
+
 
 # get complete and incomplete habits for date
 @bp.route('/habits')
@@ -38,7 +50,7 @@ def get_habits():
 
     # Get incomplete habits
     cur.execute(    
-        'SELECT h.id, h.title, h.body, h.created_at, h.family_id'
+        'SELECT h.id, h.name, h.notes, h.created_at, h.family_id'
         ' FROM habits h'
         ' LEFT JOIN habit_logs hl'
         '   ON h.id = hl.habit_id'
@@ -54,7 +66,7 @@ def get_habits():
 
     # Get completed habits
     cur.execute(
-        'SELECT h.id, title, body, h.created_at, h.family_id'
+        'SELECT h.id, h.name, h.notes, h.created_at, h.family_id'
         ' FROM habits h'
         ' INNER JOIN habit_logs hl'
         '   ON h.id = hl.habit_id'
@@ -63,15 +75,15 @@ def get_habits():
         (selected_date, g.user['id'])
     )
     habits_done = [dict(row) for row in cur.fetchall()]
-    
+
     cur.close()
 
-    return jsonify({                                                                                                                                                                                                                        
-      "habits": habits,                                                                                                                                                                                                                   
-      "habits_done": habits_done,                                                                                                                                                                                                         
-      "prev_date": prev_date.isoformat(),                                                                                                                                                                                                 
-      "next_date": next_date.isoformat(),                                                                                                                                                                                                 
-      "today": today.isoformat()                                                                                                                                                                                                          
+    return jsonify({
+      "habits": habits,
+      "habits_done": habits_done,
+      "prev_date": prev_date.isoformat(),
+      "next_date": next_date.isoformat(),
+      "today": today.isoformat()
   })   
 
 
@@ -122,7 +134,7 @@ def get_families():
     cur.execute(  
         'SELECT * FROM (' \
         '   SELECT DISTINCT ON (family_id)' \
-        '       h.id, h.title, h.body, h.created_at, h.family_id, stage, tier' \
+        '       h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier' \
         '   FROM habits h' \
         '   LEFT JOIN habit_logs hl' \
         '       ON h.id = hl.habit_id' \
@@ -140,7 +152,7 @@ def get_families():
     # Get completed habits
     cur.execute(
         'SELECT DISTINCT ON (family_id)' \
-        ' h.id, title, body, h.created_at, h.family_id, stage, tier'
+        ' h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier'
         ' FROM habits h'
         ' INNER JOIN habit_logs hl'
         '   ON h.id = hl.habit_id'
@@ -205,7 +217,7 @@ def upgrade():
     # check if challenge id was included
     if not challenge_id:
         cur.execute(
-            'INSERT INTO habits (title, body, stage, family_id, creator_id, display_order)'
+            'INSERT INTO habits (name, notes, stage, family_id, creator_id, display_order)'
             ' VALUES (%s, %s, %s, %s, %s, (' \
             'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
             'FROM habits WHERE creator_id = %s))',
@@ -213,7 +225,7 @@ def upgrade():
         )
     else:
         cur.execute(
-            'INSERT INTO habits (title, body, stage, family_id, challenge_id, creator_id, display_order)'
+            'INSERT INTO habits (name, notes, stage, family_id, challenge_id, creator_id, display_order)'
             ' VALUES (%s, %s, %s, %s, %s , %s, (' \
             'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
             'FROM habits WHERE creator_id = %s))',
@@ -243,7 +255,7 @@ def create():
 
         # create habit
         cur.execute(
-            'INSERT INTO habits (title, body, tier, creator_id, display_order)'
+            'INSERT INTO habits (name, notes, tier, creator_id, display_order)'
             ' VALUES (%s, %s, %s, %s, (' \
             'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
             'FROM habits WHERE creator_id = %s))',
@@ -262,7 +274,7 @@ def get_habit_(id):
     cur = db.cursor()
 
     cur.execute(
-        'SELECT h.id, title, body, creator_id, challenge_id, stage, family_id, tier'
+        'SELECT h.id, h.name, h.notes, creator_id, challenge_id, stage, family_id, tier'
         ' FROM habits h'
         ' JOIN users u'
         ' ON h.creator_id = u.id'
@@ -525,21 +537,21 @@ def update(id):
     # make sure it exists
     get_habit_(id)
 
-    data = request.get_json()                                                                                                                                                                             
-    title = data.get('title') 
-    tier = data.get('tier')                                                                                                                                                                            
-    body = data.get('body')   
-    
-    if not title:
-        return jsonify({"error": "Title is required."}), 400   
+    data = request.get_json()
+    name = data.get('name')
+    tier = data.get('tier')
+    notes = data.get('notes')
+
+    if not name:
+        return jsonify({"error": "Name is required."}), 400
 
     db = get_db()
     cur = db.cursor()
     cur.execute(
         'UPDATE habits'
-        ' SET title = %s, tier = %s, body = %s'
+        ' SET name = %s, tier = %s, notes = %s'
         ' WHERE id = %s',
-        (title, tier, body, id)
+        (name, tier, notes, id)
     )
     db.commit()
     cur.close()
@@ -662,7 +674,7 @@ def index():
 
     # Get incomplete habits
     cur.execute(
-        'SELECT h.id, h.title, h.body, h.created_at'
+        'SELECT h.id, h.name, h.notes, h.created_at'
         ' FROM habits h'
         ' LEFT JOIN habit_logs hl'
         '   ON h.id = hl.habit_id'
@@ -677,7 +689,7 @@ def index():
 
     # Get completed habits
     cur.execute(
-        'SELECT h.id, title, body, h.created_at'
+        'SELECT h.id, h.name, h.notes, h.created_at'
         ' FROM habits h'
         ' INNER JOIN habit_logs hl'
         '   ON h.id = hl.habit_id'

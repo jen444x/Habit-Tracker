@@ -2,7 +2,7 @@ import { useNavigate } from "react-router";
 
 interface Habit {
   id: number;
-  title: string;
+  name: string;
   stage: number;
 }
 
@@ -87,7 +87,7 @@ function HabitListItem({ habit, onComplete, done, selectedDate }: DoneProps) {
       <span
         className={`flex-1 ${done ? "text-calm-400 line-through" : "text-calm-900"}`}
       >
-        {habit.title}
+        {habit.name}
       </span>
       <span className="text-xs font-medium text-calm-500 bg-calm-100 px-2 py-0.5 rounded-full">
         Stage {habit.stage}

@@ -29,9 +29,9 @@ function UpgradeHabitPage() {
       }
 
       const habitData = data.habit;
-      setOriginalName(habitData.title);
-      setHabitName(habitData.title);
-      setHabitBody(habitData.body);
+      setOriginalName(habitData.name);
+      setHabitName(habitData.name);
+      setHabitBody(habitData.notes);
       setHabitChallenge(habitData.challenge_id);
       setHabitStage(habitData.stage ? habitData.stage + 1 : 1);
       setHabitFamily(habitData.family_id);

@@ -3,8 +3,8 @@ import { useNavigate } from "react-router";
 
 interface Habit {
   id: number;
-  title: string;
-  body: string;
+  name: string;
+  notes: string;
 }
 
 interface ShowChallengeHabitsProps {
@@ -69,7 +69,7 @@ function ShowChallengeHabits({ id }: ShowChallengeHabitsProps) {
             onClick={() => navigate(`/${habit.id}`)}
             className="bg-white border border-calm-200 rounded-xl p-4"
           >
-            <p className="text-calm-900 font-medium">{habit.title}</p>
+            <p className="text-calm-900 font-medium">{habit.name}</p>
           </li>
         ))}
       </ul>

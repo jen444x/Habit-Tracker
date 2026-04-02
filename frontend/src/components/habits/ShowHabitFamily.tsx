@@ -9,7 +9,7 @@ interface ShowHabitFamilyProps {
 
 type Habit = {
   id: number;
-  title: string;
+  name: string;
   stage: number;
 };
 function ShowHabitFamily({ familyId, id }: ShowHabitFamilyProps) {
@@ -62,7 +62,7 @@ function ShowHabitFamily({ familyId, id }: ShowHabitFamilyProps) {
                   : "bg-calm-100 text-calm-600 hover:bg-calm-200"
               }`}
             >
-              <p className="text-sm font-medium">{habit.title}</p>
+              <p className="text-sm font-medium">{habit.name}</p>
               <p className="text-xs opacity-75">Stage {habit.stage}</p>
             </li>
           ))}

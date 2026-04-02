@@ -34,7 +34,7 @@ function EditHabit({
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ title: name, body: desc, tier: level }),
+        body: JSON.stringify({ name: name, notes: desc, tier: level }),
       });
 
       if (!res.ok) {
