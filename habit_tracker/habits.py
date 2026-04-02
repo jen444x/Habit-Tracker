@@ -75,6 +75,26 @@ def get_habits():
   })   
 
 
+# get single habit data
+@bp.route('/habits/<int:id>')
+@login_required
+def get_habit(id):
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute(
+        'SELECT tier' \
+        ' FROM habits' \
+        ' WHERE id = %s' \
+        ' AND creator_id = %s',
+        (id, g.user['id'])
+    )
+
+    habit = cur.fetchone()
+    cur.close
+
+    return jsonify({"habit": habit})
+
 # group habits by family id
 @bp.route('/habits/tiers', methods=('GET',))
 def get_families():
@@ -213,8 +233,7 @@ def create():
         data = request.get_json()
         name = data.get('name')
         description = data.get('desc')
-        challenge_id = data.get('challengeId')
-        print(challenge_id)
+        tier = data.get('tier')
    
         if not name:
             return jsonify({"error": "Name is missing"}), 400
@@ -223,23 +242,13 @@ def create():
         cur = db.cursor()
 
         # create habit
-        # check if challenge id was included
-        if not challenge_id:
-            cur.execute(
-                'INSERT INTO habits (title, body, creator_id, display_order)'
-                ' VALUES (%s, %s, %s, (' \
-                'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
-                'FROM habits WHERE creator_id = %s))',
-                (name, description, g.user['id'], g.user['id'])
-            )
-        else:
-            cur.execute(
-                'INSERT INTO habits (title, body, challenge_id, creator_id, display_order)'
-                ' VALUES (%s, %s, %s, %s ,(' \
-                'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
-                'FROM habits WHERE creator_id = %s))',
-                (name, description, int(challenge_id), g.user['id'], g.user['id'])
-            )
+        cur.execute(
+            'INSERT INTO habits (title, body, tier, creator_id, display_order)'
+            ' VALUES (%s, %s, %s, %s, (' \
+            'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
+            'FROM habits WHERE creator_id = %s))',
+            (name, description, tier, g.user['id'], g.user['id'])
+        )
 
         db.commit()
         cur.close()
@@ -248,7 +257,7 @@ def create():
 
     return render_template('dashboard/create.jinja')
 
-def get_habit(id):
+def get_habit_(id):
     db = get_db()
     cur = db.cursor()
 
@@ -278,7 +287,7 @@ def get_habit(id):
 @login_required
 def complete(id):
     # make sure it exists
-    get_habit(id)
+    get_habit_(id)
 
     # Get the date from form (for logging past days)
     date_str = request.form.get('date')
@@ -345,7 +354,7 @@ def undo_complete(id):
 @bp.route('/<int:id>')
 @login_required
 def view(id):
-    habit = get_habit(id)
+    habit = get_habit_(id)
     db = get_db()
     cur = db.cursor()
 
@@ -514,7 +523,7 @@ def view(id):
 @login_required
 def update(id):
     # make sure it exists
-    get_habit(id)
+    get_habit_(id)
 
     data = request.get_json()                                                                                                                                                                             
     title = data.get('title') 
@@ -543,7 +552,7 @@ def update(id):
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required
 def delete(id):
-    get_habit(id)
+    get_habit_(id)
     db = get_db()
     cur = db.cursor()
     cur.execute('DELETE FROM habits WHERE id = %s', (id,))
@@ -563,7 +572,7 @@ def delete(id):
 @bp.route('/<int:id>/move/<direction>', methods=('POST',))
 @login_required
 def move(id, direction):
-    habit = get_habit(id)
+    habit = get_habit_(id)
     db = get_db()
     cur = db.cursor()
 
