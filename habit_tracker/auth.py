@@ -107,6 +107,7 @@ def load_logged_in_user():
     bearer, encoded_token = auth_header.split()
     secret_key = current_app.config['SECRET_KEY'] 
 
+    print(auth_header)
     # decode token
     token = jwt.decode(encoded_token, secret_key, algorithms=["HS256"])
 

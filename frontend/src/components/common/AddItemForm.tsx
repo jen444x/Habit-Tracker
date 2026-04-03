@@ -23,7 +23,7 @@ function AddItemForm({ item }: AddItemFormProps) {
     let url = `${import.meta.env.VITE_API_URL}`;
 
     if (item === "habit") {
-      url = url + "/create";
+      url = url + "/habits";
     } else if (item === "challenge") {
       url = url + "/challenges/create";
     } else {
@@ -31,9 +31,9 @@ function AddItemForm({ item }: AddItemFormProps) {
       return;
     }
 
-    const payload: { name: string; desc: string; tier: number } = {
+    const payload: { name: string; notes: string; tier: number } = {
       name: habitName,
-      desc: habitDesc,
+      notes: habitDesc,
       tier: habitTier,
     };
 

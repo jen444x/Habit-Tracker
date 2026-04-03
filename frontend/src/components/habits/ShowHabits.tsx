@@ -7,6 +7,7 @@ interface Habit {
   title: string;
   stage: number;
   tier: number;
+  name: string;
 }
 
 interface ShowHabitsProps {

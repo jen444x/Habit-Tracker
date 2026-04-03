@@ -11,15 +11,46 @@ from habit_tracker.db import get_db
 
 bp = Blueprint('habits', __name__)
 
-# # create habit
-# @bp.route('/habits', methods=('POST',))
-# @login_required
-# def create_habit():
-    
+# create habit
+@bp.route('/habits', methods=('POST',))
+@login_required
+def create_habit():
+    # Get data
+    data = request.get_json()
+    name = data.get('name')
+    notes = data.get('notes')
+    tier = data.get('tier')
 
-#     # name must be string, less than 100, req
-#     # body - string
-#     # tier - num btwn 1-3, req
+    # Validate data
+    if not name:
+        return jsonify({"error": "Name is missing"}), 400
+    if not isinstance(name, str):
+        return jsonify({"error": "Name must be a string"}), 400
+    if name.isspace():
+        return jsonify({"error": "Name cannot be only whitespace"}), 400  
+    if len(name) > 100:
+        return jsonify({"error": "Name must be 100 or less characters"}), 400
+
+    # make sure tier is in [1,3]
+    if tier not in [1, 2, 3]:
+        return jsonify({"error": "Tier must be 1, 2, or 3"}), 400
+    
+    # create habit
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute(
+        'INSERT INTO habits(name, notes, tier, creator_id)' \
+        ' VALUES (%s, %s, %s, %s)'
+        ' RETURNING id',
+        (name, notes, tier, g.user['id'])
+    )
+    new_id = cur.fetchone()['id']
+    db.commit()
+    cur.close()
+
+    return jsonify({"id": new_id}), 201
+
 
 
 def get_user_local_date():
