@@ -23,7 +23,7 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/challenges" element={<ChallengesPage />} />
-          <Route path="/create" element={<AddHabitPage />} />
+          <Route path="/habits/new" element={<AddHabitPage />} />
           <Route path="/habits/:id/upgrade" element={<UpgradeHabitPage />} />
           <Route path="/challenges/create" element={<AddChallengePage />} />
           <Route path="/:id" element={<HabitPage />} />

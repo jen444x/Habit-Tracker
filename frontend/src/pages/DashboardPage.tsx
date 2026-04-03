@@ -12,7 +12,7 @@ function DashboardPage() {
     <div className="min-h-screen bg-calm-50 px-6 py-12">
       <Header title="Your Habits" body="1% better everyday" />
       <ShowHabits selectedDate={selectedDate} />
-      <TextButton to="/create" label="+ Add habit" />
+      <TextButton to="/habits/new" label="+ Add habit" />
       <BottomNav />
     </div>
   );

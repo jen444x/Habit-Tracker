@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { Link } from "react-router";
 
 interface TextButtonProps {
   to: string;
@@ -6,17 +6,13 @@ interface TextButtonProps {
 }
 
 function TextButton({ to, label }: TextButtonProps) {
-  const navigate = useNavigate();
-  function handleClick() {
-    navigate(to);
-  }
   return (
-    <button
-      onClick={handleClick}
-      className="w-full mt-4 py-3 text-calm-500 hover:text-calm-700 text-sm transition-colors"
+    <Link
+      to={to}
+      className="block text-center w-full mt-4 py-3 text-calm-500 hover:text-calm-700 text-sm transition-colors"
     >
       {label}
-    </button>
+    </Link>
   );
 }
 

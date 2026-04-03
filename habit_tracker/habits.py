@@ -17,19 +17,25 @@ bp = Blueprint('habits', __name__)
 def create_habit():
     # Get data
     data = request.get_json()
+    if not data:
+        return jsonify({"error": "Request body is required"}), 400
+     
     name = data.get('name')
     notes = data.get('notes')
     tier = data.get('tier')
 
     # Validate data
     if not name:
-        return jsonify({"error": "Name is missing"}), 400
+        return jsonify({"error": "Name is required"}), 400
     if not isinstance(name, str):
         return jsonify({"error": "Name must be a string"}), 400
     if name.isspace():
-        return jsonify({"error": "Name cannot be only whitespace"}), 400  
+        return jsonify({"error": "Name cannot be empty"}), 400  
     if len(name) > 100:
         return jsonify({"error": "Name must be 100 or less characters"}), 400
+    
+    if notes and not isinstance(notes, str):                                                                                   
+      return jsonify({"error": "Notes must be a string"}), 400   
 
     # make sure tier is in [1,3]
     if tier not in [1, 2, 3]:
