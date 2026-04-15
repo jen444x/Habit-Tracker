@@ -62,7 +62,7 @@ function SkipHabit({ id, selectedDate, onComplete }: SkipHabitProps) {
               />
 
               <button className="w-full bg-calm-600 text-white capitalize py-4 rounded-xl font-medium hover:bg-calm-700 transition-colors disabled:bg-calm-300 disabled:cursor-not-allowed">
-                Submit
+                Skip Habit
               </button>
             </form>
           </div>

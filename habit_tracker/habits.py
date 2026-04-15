@@ -444,6 +444,9 @@ def undo_complete(id):
 @bp.route('/<int:id>/undo_skip', methods=('POST',))
 @login_required
 def undo_skip(id):
+    # make sure it exists
+    get_habit_(id)
+
     # Get the date from form
     date_str = request.form.get('date')
     if date_str:
@@ -456,11 +459,39 @@ def undo_skip(id):
 
     db = get_db()
     cur = db.cursor()
+
+    # get family id and stage of habit to unskip prev
     cur.execute(
-        'DELETE FROM habit_logs '
-        'WHERE habit_id = %s AND log_date = %s',
-        (id, log_date)
+        "SELECT family_id, stage" \
+        " FROM habits" \
+        " WHERE id = %s", 
+        (id,)
     )
+    habit = cur.fetchone()
+    family_id = habit['family_id']
+    habit_stage = habit['stage']
+
+    # get all the habits in the same family
+    cur.execute(
+        "SELECT id FROM habit_logs hl" \
+        " LEFT JOIN habits h" \
+        " ON h.id = hl.habit_id" \
+        " WHERE hl.status = %s"
+        " AND family_id = %s"
+        " AND hl.log_date = %s"
+        " AND stage <= %s",
+        ('skipped', family_id, log_date, habit_stage)
+    )
+    habits = cur.fetchall()
+    
+    for habit in habits:
+        habit_id = habit['id']
+        cur.execute(
+            'DELETE FROM habit_logs '
+            'WHERE habit_id = %s AND log_date = %s',
+            (habit_id, log_date)
+        )
+
     db.commit()
     cur.close()
     return jsonify({}), 200
