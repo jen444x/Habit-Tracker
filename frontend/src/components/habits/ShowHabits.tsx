@@ -8,6 +8,7 @@ interface Habit {
   stage: number;
   tier: number;
   name: string;
+  status?: "completed" | "skipped";
 }
 
 interface ShowHabitsProps {
@@ -23,7 +24,6 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
   const [nextDate, setNextDate] = useState("");
 
   async function fetchHabits() {
-    // const url = import.meta.env.VITE_API_URL;
     const url = `${import.meta.env.VITE_API_URL}/habits/tiers`;
     const fetchUrl = selectedDate ? `${url}?date=${selectedDate}` : url;
     const token = localStorage.getItem("token");
@@ -113,7 +113,7 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
                   key={habit.id}
                   habit={habit}
                   onComplete={fetchHabits}
-                  done={false}
+                  status="incomplete"
                   selectedDate={selectedDate}
                 />
               </>
@@ -137,7 +137,7 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
                 key={habit.id}
                 habit={habit}
                 onComplete={fetchHabits}
-                done={true}
+                status={habit.status || "completed"}
                 selectedDate={selectedDate}
               />
             ))}

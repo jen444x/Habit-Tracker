@@ -10,7 +10,7 @@ function ChallengesPage() {
     navigate("/challenges/create");
   }
   return (
-    <div className="min-h-screen bg-calm-50 px-6 py-12">
+    <>
       <Header title="Challenges" body="Push your limits" />
       <ShowChallenges />
 
@@ -24,7 +24,7 @@ function ChallengesPage() {
       </div>
 
       <BottomNav />
-    </div>
+    </>
   );
 }
 

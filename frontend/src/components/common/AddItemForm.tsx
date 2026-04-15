@@ -66,7 +66,7 @@ function AddItemForm({ item }: AddItemFormProps) {
   }
 
   return (
-    <div className="min-h-screen bg-calm-50 px-6 py-12">
+    <>
       <Header title={`New ${item}`} body="Start something meaningful" />
 
       {/* Form */}
@@ -140,7 +140,7 @@ function AddItemForm({ item }: AddItemFormProps) {
           ← Back to {item}s
         </button>
       </div>
-    </div>
+    </>
   );
 }
 

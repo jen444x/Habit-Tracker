@@ -78,7 +78,7 @@ function ChallengePage() {
   }
 
   return (
-    <div className="min-h-screen bg-calm-50 px-6 py-12">
+    <>
       <Header title={challengeName} body={challengeDesc} />
 
       {error && (
@@ -117,7 +117,7 @@ function ChallengePage() {
           ← Go back
         </button>
       </div>
-    </div>
+    </>
   );
 }
 

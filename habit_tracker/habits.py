@@ -189,7 +189,7 @@ def get_families():
     # Get completed habits
     cur.execute(
         'SELECT DISTINCT ON (family_id)' \
-        ' h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier'
+        ' h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier, hl.status'
         ' FROM habits h'
         ' INNER JOIN habit_logs hl'
         '   ON h.id = hl.habit_id'
@@ -330,7 +330,37 @@ def get_habit_(id):
     return habit
 
 
+@bp.route('/habits/<int:id>/skip', methods=('POST',))
+@login_required
+def skip_habit(id):
+    # make sure it exists
+    get_habit_(id)
 
+    # get date of habit being skipped
+    date_str = request.form.get('date')
+    if date_str:
+        try:
+            log_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            log_date = get_user_local_date()
+    else:
+        log_date = get_user_local_date()
+
+    # check if reason was included
+    reason = request.form.get('reason')
+
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute(
+        "INSERT INTO habit_logs (log_date, habit_id, status, reason) VALUES (%s, %s, %s, %s)",
+        (log_date, id, 'skipped', reason)
+    )
+    db.commit()
+    cur.close()
+
+    return jsonify({}), 200
+    
 
 @bp.route('/<int:id>/complete', methods=('POST',))
 @login_required
@@ -360,11 +390,6 @@ def complete(id):
 
     return jsonify({}), 200
 
-    # # Redirect back to same date view
-    # if date_str:
-    #     return redirect(url_for('dashboard.index', date=date_str))
-    # return redirect(url_for('dashboard.index'))
-
 
 
 @bp.route('/<int:id>/undo_complete', methods=('POST',))
@@ -391,10 +416,29 @@ def undo_complete(id):
     cur.close()
     return jsonify({}), 200
 
-    # Redirect back to same date view
-    # if date_str:
-    #     return redirect(url_for('dashboard.index', date=date_str))
-    # return redirect(url_for('dashboard.index'))
+@bp.route('/<int:id>/undo_skip', methods=('POST',))
+@login_required
+def undo_skip(id):
+    # Get the date from form
+    date_str = request.form.get('date')
+    if date_str:
+        try:
+            log_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            log_date = get_user_local_date()
+    else:
+        log_date = get_user_local_date()
+
+    db = get_db()
+    cur = db.cursor()
+    cur.execute(
+        'DELETE FROM habit_logs '
+        'WHERE habit_id = %s AND log_date = %s',
+        (id, log_date)
+    )
+    db.commit()
+    cur.close()
+    return jsonify({}), 200
 
 
 
