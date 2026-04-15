@@ -352,10 +352,35 @@ def skip_habit(id):
     db = get_db()
     cur = db.cursor()
 
+    # get family id and stage of habit
     cur.execute(
-        "INSERT INTO habit_logs (log_date, habit_id, status, reason) VALUES (%s, %s, %s, %s)",
-        (log_date, id, 'skipped', reason)
+        "SELECT family_id, stage" \
+        " FROM habits" \
+        " WHERE id = %s", 
+        (id,)
     )
+    habit = cur.fetchone()
+    print(habit)
+    family_id = habit['family_id']
+    habit_stage = habit['stage']
+
+    # get all the habits in the same family
+    cur.execute(
+        "SELECT id FROM habits" \
+        " WHERE family_id = %s"
+        " AND stage >= %s",
+        (family_id, habit_stage)
+    )
+    habits = cur.fetchall()
+   
+    for habit in habits:
+        habit_id = habit['id']
+        
+        cur.execute(
+            "INSERT INTO habit_logs (log_date, habit_id, status, reason) VALUES (%s, %s, %s, %s)",
+            (log_date, habit_id, 'skipped', reason)
+        )
+
     db.commit()
     cur.close()
 
