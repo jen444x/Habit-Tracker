@@ -91,7 +91,7 @@ def get_families():
     cur.execute(  
         'SELECT * FROM (' \
         '   SELECT DISTINCT ON (family_id)' \
-        '       h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier' \
+        '       h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier, time_of_day' \
         '   FROM habits h' \
         '   LEFT JOIN habit_logs hl' \
         '       ON h.id = hl.habit_id' \
@@ -131,7 +131,7 @@ def get_families():
         habit['curr_streak'] = curr_streak
 
     # sort them by streak
-    habits.sort(key=lambda habit: habit['curr_streak'], reverse=True)
+    habits.sort(key=lambda habit: (habit['tier'], habit['time_of_day'] or 0, -habit['curr_streak']))
 
     # Get completed habits
     cur.execute(
@@ -752,10 +752,6 @@ def view(id):
             if c['id'] == habit['challenge_id']:
                 challenge_title = c['title']
                 break
-
-    print(habit)
-    # print(f"id: {habit['id']}")
-    # print(f"tod: {habit['time_of_day']}")
 
     return jsonify({
         "habit": habit,

@@ -128,18 +128,13 @@ function EditHabit({
           <div>
             <label className="block text-calm-700 text-sm mb-2">Level</label>
             <select
-              value={level ?? ""}
+              value={level}
               onChange={(e) => setLevel(Number(e.target.value))}
               className="w-full px-4 py-3 border border-calm-200 rounded-xl focus:outline-none focus:border-calm-500"
             >
-              <option value={level}>{level}</option>
-              {[1, 2, 3]
-                .filter((num) => num !== level)
-                .map((level) => (
-                  <option key={level} value={level}>
-                    {level}
-                  </option>
-                ))}
+              <option value={1}>1</option>
+              <option value={2}>2</option>
+              <option value={3}>3</option>
             </select>
           </div>
 
@@ -147,7 +142,6 @@ function EditHabit({
           <div>
             <label className="block text-calm-700 text-sm mb-2">
               Time of Day
-              {typeof timeOfDay}
             </label>
             <select
               value={timeOfDay ?? ""}
