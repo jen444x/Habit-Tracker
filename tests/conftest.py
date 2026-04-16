@@ -7,7 +7,7 @@ def app():
     app = create_app({
         'TESTING': True,
         'DB_NAME': 'habit_tracker_test',
-        'SECRET_KEY': 'test-secret-key-thats-long-enough-for-jwt', 
+        
     })
     return app
 
@@ -24,5 +24,10 @@ def client(app):              # ← asks for app fixture
         cur.execute("DELETE FROM challenges")                                    
         cur.execute("DELETE FROM users")                                         
         db.commit()                                                              
-        cur.close()    
+        cur.close()   
 
+# returns token to user
+@pytest.fixture
+def auth_token(client):
+    res = client.post("/auth/register", json={"username": "test", "password": "pw123"})                                                                        
+    return res.get_json()['token']

@@ -5,6 +5,7 @@ interface Habit {
   id: number;
   name: string;
   stage: number;
+  curr_streak: number;
 }
 
 interface HabitListItemProps {
@@ -133,6 +134,28 @@ function HabitListItem({
       <span className="text-xs font-medium text-calm-500 bg-calm-100 px-2 py-0.5 rounded-full">
         Stage {habit.stage}
       </span>
+
+      {/* Streak - only show if > 0 */}
+      {habit.curr_streak > 0 && (
+        <span
+          className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+            habit.curr_streak >= 7
+              ? "text-red-600 bg-red-50"
+              : habit.curr_streak >= 3
+              ? "text-orange-500 bg-orange-50"
+              : "text-calm-400 bg-calm-50"
+          }`}
+        >
+          <svg
+            className="w-3.5 h-3.5"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+          >
+            <path d="M12 23c-3.866 0-7-3.358-7-7.5 0-4.142 4-8.5 7-12.5 3 4 7 8.358 7 12.5 0 4.142-3.134 7.5-7 7.5zm0-3c1.933 0 3.5-1.567 3.5-3.5S13.933 13 12 13s-3.5 1.567-3.5 3.5S10.067 20 12 20z" />
+          </svg>
+          {habit.curr_streak}
+        </span>
+      )}
 
       {/* Skip button - only show for incomplete */}
       {status === "incomplete" && (

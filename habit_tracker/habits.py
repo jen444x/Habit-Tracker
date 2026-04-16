@@ -67,6 +67,7 @@ def get_user_local_date():
 # get complete and incomplete habits for date
 @bp.route('/habits')
 def get_habits():
+    print("coming in")
     # Parse date if given, else use todays date
     date_str = request.args.get('date')
     today = get_user_local_date()
@@ -98,7 +99,33 @@ def get_habits():
         (selected_date, g.user['id']) 
     )
     habits = [dict(row) for row in cur.fetchall()]
-    
+
+    # get habits current streaks
+    for habit in habits:
+        # get all completion dates
+        cur.execute('' \
+        'SELECT log_date' \
+        ' FROM habit_logs' \
+        ' WHERE habit_id = %s' \
+        ' AND status = %s' \
+        ' ORDER BY log_date',
+        (habit['id']), 'completed')
+        all_logs = cur.fetchall()
+        all_completed_dates = set()
+        for log in all_logs:
+            all_completed_dates.add(log['log_date'])
+        
+        # calculate curr streak
+        curr_streak = 0
+        check_date = today - timedelta(days=1) # starting yesterday since it hasnt been completed td
+        while check_date in all_completed_dates:
+            curr_streak += 1
+            check_date -= timedelta(days=1)
+
+        # add curr streak to habit
+        habit['curr_streak'] = curr_streak
+        print("hi")
+        print(habit)
     
 
     # Get completed habits
@@ -112,6 +139,31 @@ def get_habits():
         (selected_date, g.user['id'])
     )
     habits_done = [dict(row) for row in cur.fetchall()]
+
+    # get habits current streaks
+    for habit in habits_done:
+        # get all completion dates
+        cur.execute('' \
+        'SELECT log_date' \
+        ' FROM habit_logs' \
+        ' WHERE habit_id = %s' \
+        ' AND status = %s' \
+        ' ORDER BY log_date',
+        (habit['id']), 'completed')
+        all_logs = cur.fetchall()
+        all_completed_dates = set()
+        for log in all_logs:
+            all_completed_dates.add(log['log_date'])
+        
+        # calculate curr streak
+        curr_streak = 0
+        check_date = today # starting today since it's been completed td
+        while check_date in all_completed_dates:
+            curr_streak += 1
+            check_date -= timedelta(days=1)
+
+        # add curr streak to habit
+        habit['curr_streak'] = curr_streak
 
     cur.close()
 
@@ -185,6 +237,33 @@ def get_families():
     )
     
     habits = [dict(row) for row in cur.fetchall()]
+    # get habits current streaks
+    for habit in habits:
+        # get all completion dates
+        cur.execute(
+            'SELECT log_date' \
+            ' FROM habit_logs' \
+            ' WHERE habit_id = %s' \
+            ' AND status = %s' \
+            ' ORDER BY log_date',
+            (habit['id'], 'completed')
+        )
+        all_logs = cur.fetchall()
+        all_completed_dates = set()
+        for log in all_logs:
+            all_completed_dates.add(log['log_date'])
+        print(all_logs)
+        # calculate curr streak
+        curr_streak = 0
+        check_date = today - timedelta(days=1) # starting yesterday since it hasnt been completed td
+        while check_date in all_completed_dates:
+            curr_streak += 1
+            check_date -= timedelta(days=1)
+
+        # add curr streak to habit
+        habit['curr_streak'] = curr_streak
+        print("hi")
+        # print(habit)
 
     # Get completed habits
     cur.execute(
@@ -200,6 +279,32 @@ def get_families():
     )
 
     habits_done = [dict(row) for row in cur.fetchall()]
+
+    # get habits current streaks
+    for habit in habits_done:
+        # get all completion dates
+        cur.execute(
+            'SELECT log_date' \
+            ' FROM habit_logs' \
+            ' WHERE habit_id = %s' \
+            ' AND status = %s' \
+            ' ORDER BY log_date',
+            (habit['id'], 'completed')
+        )
+        all_logs = cur.fetchall()
+        all_completed_dates = set()
+        for log in all_logs:
+            all_completed_dates.add(log['log_date'])
+        
+        # calculate curr streak
+        curr_streak = 0
+        check_date = today # starting today since it's been completed td
+        while check_date in all_completed_dates:
+            curr_streak += 1
+            check_date -= timedelta(days=1)
+
+        # add curr streak to habit
+        habit['curr_streak'] = curr_streak
     
     cur.close()
 
