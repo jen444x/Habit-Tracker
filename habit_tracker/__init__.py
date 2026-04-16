@@ -15,14 +15,13 @@ def create_app(test_config=None):
     # 'dev' to provide a convenient value during development, but it should be
     # overridden with a random value when deploying.
     app.config.from_mapping(                                                                                  
-        SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),                                                       
+        SECRET_KEY=os.environ.get('SECRET_KEY', 'test-secret-key-thats-long-enough-for-jwt'),                                                       
         DB_NAME=os.environ.get('DB_NAME', 'habit_tracker'),                                                   
         DB_USER=os.environ.get('DB_USER', 'jennifermiranda'),                                                 
         DB_HOST=os.environ.get('DB_HOST', 'localhost'),                                                                                   
         DB_PORT=os.environ.get('DB_PORT', '5432'),                                                
         DB_PASSWORD=os.environ.get('DB_PASSWORD'),                                                            
     )                                                                                                         
-      
 
     if test_config is None:
         # load the instance config, if it exists, when not testing

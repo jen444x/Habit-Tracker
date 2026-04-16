@@ -33,8 +33,8 @@ CREATE TABLE habits (
     display_order INTEGER,
     stage INTEGER NOT NULL DEFAULT 1,
     family_id INTEGER NOT NULL DEFAULT nextval('habit_family_seq'),                                                     
-    parent_id INTEGER REFERENCES habits(id)
-    tier INTEGER NOT NULL DEFAULT 1 CHECK (level IN (1, 2, 3));  
+    parent_id INTEGER REFERENCES habits(id),
+    tier INTEGER NOT NULL DEFAULT 1 CHECK (tier IN (1, 2, 3))
 );                                                                                                                                                                        
                                                                                                                                                                         
 CREATE TABLE habit_logs (
