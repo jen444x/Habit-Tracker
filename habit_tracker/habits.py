@@ -64,6 +64,132 @@ def get_user_local_date():
     return datetime.now(tz).date()
 
 
+# group habits by family id
+@bp.route('/habits/tiers', methods=('GET',))
+def get_families():
+    # parse date if give, else use todays date
+    date_str = request.args.get('date')
+    today = get_user_local_date()
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+             selected_date = today
+    else:
+        selected_date = today
+
+
+    # Calculate prev/next dates
+    prev_date = selected_date - timedelta(days=1)
+    next_date = selected_date + timedelta(days=1)
+
+    db = get_db()
+    cur = db.cursor()
+
+    # Get habits that haven't been completed yet
+    # will only get the newest habit in habit family
+    cur.execute(  
+        'SELECT * FROM (' \
+        '   SELECT DISTINCT ON (family_id)' \
+        '       h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier' \
+        '   FROM habits h' \
+        '   LEFT JOIN habit_logs hl' \
+        '       ON h.id = hl.habit_id' \
+        '       AND hl.log_date = %s'  \
+        '   WHERE h.creator_id = %s' \
+        '   AND hl.habit_id IS NULL' \
+        '   ORDER BY family_id, stage ASC' \
+        ') AS unique_habits' \
+        ' ORDER BY tier ASC',
+        (selected_date, g.user['id']) 
+    )
+    
+    habits = [dict(row) for row in cur.fetchall()]
+    # get habits current streaks
+    for habit in habits:
+        # get all completion dates
+        cur.execute(
+            'SELECT log_date' \
+            ' FROM habit_logs' \
+            ' WHERE habit_id = %s' \
+            ' AND status = %s' \
+            ' ORDER BY log_date',
+            (habit['id'], 'completed')
+        )
+        all_logs = cur.fetchall()
+        all_completed_dates = set()
+        for log in all_logs:
+            all_completed_dates.add(log['log_date'])
+        print(all_logs)
+        # calculate curr streak
+        curr_streak = 0
+        check_date = today - timedelta(days=1) # starting yesterday since it hasnt been completed td
+        while check_date in all_completed_dates:
+            curr_streak += 1
+            check_date -= timedelta(days=1)
+
+        # add curr streak to habit
+        habit['curr_streak'] = curr_streak
+
+    # sort them by streak
+    habits.sort(key=lambda habit: habit['curr_streak'], reverse=True)
+
+    # Get completed habits
+    cur.execute(
+        'SELECT DISTINCT ON (family_id)' \
+        ' h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier, hl.status'
+        ' FROM habits h'
+        ' INNER JOIN habit_logs hl'
+        '   ON h.id = hl.habit_id'
+        '   AND hl.log_date = %s'
+        ' WHERE h.creator_id = %s'
+        ' ORDER BY family_id, stage DESC, tier ASC',
+        (selected_date, g.user['id'])
+    )
+
+    habits_done = [dict(row) for row in cur.fetchall()]
+
+    # get habits current streaks
+    for habit in habits_done:
+        # get all completion dates
+        cur.execute(
+            'SELECT log_date' \
+            ' FROM habit_logs' \
+            ' WHERE habit_id = %s' \
+            ' AND status = %s' \
+            ' ORDER BY log_date',
+            (habit['id'], 'completed')
+        )
+        all_logs = cur.fetchall()
+        all_completed_dates = set()
+        for log in all_logs:
+            all_completed_dates.add(log['log_date'])
+        
+        # calculate curr streak
+        curr_streak = 0
+        check_date = today # starting today since it's been completed td
+        while check_date in all_completed_dates:
+            curr_streak += 1
+            check_date -= timedelta(days=1)
+
+        # add curr streak to habit
+        habit['curr_streak'] = curr_streak
+
+    # sort them by streak
+    habits_done.sort(key=lambda habit: habit['curr_streak'], reverse=True)
+    
+    cur.close()
+
+    return jsonify({                                                                                                                                                                                                                        
+      "habits": habits,                                                                                                                                                                                                                   
+      "habits_done": habits_done,                                                                                                                                                                                                         
+      "prev_date": prev_date.isoformat(),                                                                                                                                                                                                 
+      "next_date": next_date.isoformat(),                                                                                                                                                                                                 
+      "today": today.isoformat()                                                                                                                                                                                                          
+    })  
+
+
+
 # get complete and incomplete habits for date
 @bp.route('/habits')
 def get_habits():
@@ -196,125 +322,6 @@ def get_habit(id):
 
     return jsonify({"habit": habit})
 
-# group habits by family id
-@bp.route('/habits/tiers', methods=('GET',))
-def get_families():
-    # parse date if give, else use todays date
-    date_str = request.args.get('date')
-    today = get_user_local_date()
-    if date_str:
-        try:
-            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        except ValueError:
-             selected_date = today
-    else:
-        selected_date = today
-
-
-    # Calculate prev/next dates
-    prev_date = selected_date - timedelta(days=1)
-    next_date = selected_date + timedelta(days=1)
-
-    db = get_db()
-    cur = db.cursor()
-
-    # Get habits that haven't been completed yet
-    # will only get the newest habit in habit family
-    cur.execute(  
-        'SELECT * FROM (' \
-        '   SELECT DISTINCT ON (family_id)' \
-        '       h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier' \
-        '   FROM habits h' \
-        '   LEFT JOIN habit_logs hl' \
-        '       ON h.id = hl.habit_id' \
-        '       AND hl.log_date = %s'  \
-        '   WHERE h.creator_id = %s' \
-        '   AND hl.habit_id IS NULL' \
-        '   ORDER BY family_id, stage ASC' \
-        ') AS unique_habits' \
-        ' ORDER BY tier ASC',
-        (selected_date, g.user['id']) 
-    )
-    
-    habits = [dict(row) for row in cur.fetchall()]
-    # get habits current streaks
-    for habit in habits:
-        # get all completion dates
-        cur.execute(
-            'SELECT log_date' \
-            ' FROM habit_logs' \
-            ' WHERE habit_id = %s' \
-            ' AND status = %s' \
-            ' ORDER BY log_date',
-            (habit['id'], 'completed')
-        )
-        all_logs = cur.fetchall()
-        all_completed_dates = set()
-        for log in all_logs:
-            all_completed_dates.add(log['log_date'])
-        print(all_logs)
-        # calculate curr streak
-        curr_streak = 0
-        check_date = today - timedelta(days=1) # starting yesterday since it hasnt been completed td
-        while check_date in all_completed_dates:
-            curr_streak += 1
-            check_date -= timedelta(days=1)
-
-        # add curr streak to habit
-        habit['curr_streak'] = curr_streak
-        print("hi")
-        # print(habit)
-
-    # Get completed habits
-    cur.execute(
-        'SELECT DISTINCT ON (family_id)' \
-        ' h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier, hl.status'
-        ' FROM habits h'
-        ' INNER JOIN habit_logs hl'
-        '   ON h.id = hl.habit_id'
-        '   AND hl.log_date = %s'
-        ' WHERE h.creator_id = %s'
-        ' ORDER BY family_id, stage DESC, tier ASC',
-        (selected_date, g.user['id'])
-    )
-
-    habits_done = [dict(row) for row in cur.fetchall()]
-
-    # get habits current streaks
-    for habit in habits_done:
-        # get all completion dates
-        cur.execute(
-            'SELECT log_date' \
-            ' FROM habit_logs' \
-            ' WHERE habit_id = %s' \
-            ' AND status = %s' \
-            ' ORDER BY log_date',
-            (habit['id'], 'completed')
-        )
-        all_logs = cur.fetchall()
-        all_completed_dates = set()
-        for log in all_logs:
-            all_completed_dates.add(log['log_date'])
-        
-        # calculate curr streak
-        curr_streak = 0
-        check_date = today # starting today since it's been completed td
-        while check_date in all_completed_dates:
-            curr_streak += 1
-            check_date -= timedelta(days=1)
-
-        # add curr streak to habit
-        habit['curr_streak'] = curr_streak
-    
-    cur.close()
-
-    return jsonify({                                                                                                                                                                                                                        
-      "habits": habits,                                                                                                                                                                                                                   
-      "habits_done": habits_done,                                                                                                                                                                                                         
-      "prev_date": prev_date.isoformat(),                                                                                                                                                                                                 
-      "next_date": next_date.isoformat(),                                                                                                                                                                                                 
-      "today": today.isoformat()                                                                                                                                                                                                          
-    })  
 
 
 
