@@ -9,6 +9,7 @@ interface Habit {
   tier: number;
   name: string;
   status?: "completed" | "skipped";
+  curr_streak: number;
 }
 
 interface ShowHabitsProps {
