@@ -10,8 +10,7 @@ function HabitPage() {
   const [habitName, setHabitName] = useState("");
   const [habitDesc, setHabitDesc] = useState("");
   const [habitLevel, setHabitLevel] = useState<number | null>(null);
-  const [habitChallenge, setHabitChallenge] = useState<number | null>(null);
-  const [challengeName, setChallengeName] = useState<string | null>(null);
+  const [habitTimeOfDay, setHabitTimeOfDay] = useState<number | null>(null);
   const [familyId, setFamilyId] = useState<number | null>(null);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
@@ -43,9 +42,8 @@ function HabitPage() {
       setHabitName(habit.name);
       setHabitDesc(habit.notes || "");
       setHabitLevel(habit.tier);
-      setHabitChallenge(habit.challenge_id || null);
+      setHabitTimeOfDay(habit.time_of_day);
       setFamilyId(habit.family_id);
-      setChallengeName(data.challenge_title || null);
       setCurrentStreak(data.current_streak);
       setLongestStreak(data.longest_streak);
       setDataLoaded(true);
@@ -153,14 +151,6 @@ function HabitPage() {
               {habitDesc}
             </p>
           )}
-          {challengeName && habitChallenge && (
-            <button
-              onClick={() => navigate(`/challenges/${habitChallenge}`)}
-              className="mt-3 inline-block px-3 py-1 bg-teal-50 text-teal-600 text-xs rounded-full hover:bg-teal-100 transition-colors"
-            >
-              {challengeName}
-            </button>
-          )}
         </div>
 
         {error && (
@@ -209,7 +199,7 @@ function HabitPage() {
           habitName={habitName}
           habitDesc={habitDesc}
           habitLevel={habitLevel}
-          habitChallenge={habitChallenge}
+          habitTimeOfDay={habitTimeOfDay}
           isOpen={isEditOpen}
           onClose={() => setIsEditOpen(false)}
           onSave={fetchHabit}

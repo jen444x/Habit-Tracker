@@ -5,7 +5,7 @@ interface EditHabitProps {
   habitName: string;
   habitDesc: string;
   habitLevel: number;
-  habitChallenge: null | number;
+  habitTimeOfDay: number | null;
   isOpen: boolean;
   onClose: () => void;
   onSave: () => void;
@@ -16,6 +16,7 @@ function EditHabit({
   habitName,
   habitDesc,
   habitLevel,
+  habitTimeOfDay,
   isOpen,
   onClose,
   onSave,
@@ -23,6 +24,7 @@ function EditHabit({
   const [name, setName] = useState(habitName);
   const [desc, setDesc] = useState(habitDesc);
   const [level, setLevel] = useState(habitLevel);
+  const [timeOfDay, setTimeOfDay] = useState(habitTimeOfDay);
   const [error, setError] = useState("");
 
   async function handleSave() {
@@ -34,7 +36,12 @@ function EditHabit({
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name: name, notes: desc, tier: level }),
+        body: JSON.stringify({
+          name: name,
+          notes: desc,
+          tier: level,
+          time_of_day: timeOfDay,
+        }),
       });
 
       if (!res.ok) {
@@ -92,6 +99,7 @@ function EditHabit({
         <h2 className="font-heading text-2xl text-calm-900 mb-4">Edit Habit</h2>
 
         <div className="space-y-4">
+          {/* Name */}
           <div>
             <label className="block text-calm-700 text-sm mb-2">Name</label>
             <input
@@ -101,6 +109,8 @@ function EditHabit({
               className="w-full px-4 py-3 border border-calm-200 rounded-xl focus:outline-none focus:border-calm-500"
             />
           </div>
+
+          {/* Description */}
           <div>
             <label className="block text-calm-700 text-sm mb-2">
               Description
@@ -113,6 +123,8 @@ function EditHabit({
             />
           </div>
           <div></div>
+
+          {/* Level */}
           <div>
             <label className="block text-calm-700 text-sm mb-2">Level</label>
             <select
@@ -128,6 +140,27 @@ function EditHabit({
                     {level}
                   </option>
                 ))}
+            </select>
+          </div>
+
+          {/* Time of day */}
+          <div>
+            <label className="block text-calm-700 text-sm mb-2">
+              Time of Day
+              {typeof timeOfDay}
+            </label>
+            <select
+              value={timeOfDay ?? ""}
+              onChange={(e) =>
+                setTimeOfDay(e.target.value ? Number(e.target.value) : null)
+              }
+              className="w-full px-4 py-3 border border-calm-200 rounded-xl focus:outline-none focus:border-calm-500"
+            >
+              <option value="">Any time</option>
+              <option value={1}>Morning</option>
+              <option value={2}>Afternoon</option>
+              <option value={3}>Evening</option>
+              <option value={4}>Night</option>
             </select>
           </div>
         </div>

@@ -26,7 +26,7 @@ CREATE HABIT TESTS
 def test_create_habit_without_login_returns_401(client):                         
       response = client.post('/habits', json={"name": "Exercise", "tier": 1})      
       assert response.status_code == 401  
-      
+
 def test_create_habit_with_valid_data(client, auth_token):  # will use same client
     res = client.post(                                                      
         '/habits',                                                               
@@ -51,3 +51,31 @@ def test_create_habit_with_empty_req_body(client, auth_token):
         headers={"Authorization": f"Bearer {auth_token}"}                             
     )     
     assert res.status_code == 415
+
+# test with no name
+def test_create_habit_with_name_missing(client, auth_token):
+    res = client.post(                                                      
+        '/habits',    
+        json={"notes": "notess", "tier": 1},                                                                                       
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )     
+    assert res.status_code == 400
+
+# test with name not str
+# single digit num
+def test_create_habit_with_name_as_int(client, auth_token):
+    res = client.post(                                                      
+        '/habits',    
+        json={"name": 1, "notes": "notess", "tier": 1},                                                                                       
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )     
+    assert res.status_code == 400
+
+# multiple digit num
+def test_create_habit_with_name_as_int(client, auth_token):
+    res = client.post(                                                      
+        '/habits',    
+        json={"name": 12, "notes": "notess", "tier": 1},                                                                                       
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )     
+    assert res.status_code == 400

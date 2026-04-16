@@ -120,7 +120,6 @@ def get_families():
         all_completed_dates = set()
         for log in all_logs:
             all_completed_dates.add(log['log_date'])
-        print(all_logs)
         # calculate curr streak
         curr_streak = 0
         check_date = today - timedelta(days=1) # starting yesterday since it hasnt been completed td
@@ -423,7 +422,7 @@ def get_habit_(id):
     cur = db.cursor()
 
     cur.execute(
-        'SELECT h.id, h.name, h.notes, creator_id, challenge_id, stage, family_id, tier'
+        'SELECT h.id, h.name, h.notes, creator_id, challenge_id, stage, family_id, tier, time_of_day'
         ' FROM habits h'
         ' JOIN users u'
         ' ON h.creator_id = u.id'
@@ -754,6 +753,10 @@ def view(id):
                 challenge_title = c['title']
                 break
 
+    print(habit)
+    # print(f"id: {habit['id']}")
+    # print(f"tod: {habit['time_of_day']}")
+
     return jsonify({
         "habit": habit,
         "challenge_title": challenge_title,
@@ -790,6 +793,7 @@ def update(id):
     name = data.get('name')
     tier = data.get('tier')
     notes = data.get('notes')
+    time_of_day = data.get('time_of_day')
 
     if not name:
         return jsonify({"error": "Name is required."}), 400
@@ -798,12 +802,13 @@ def update(id):
     cur = db.cursor()
     cur.execute(
         'UPDATE habits'
-        ' SET name = %s, tier = %s, notes = %s'
+        ' SET name = %s, tier = %s, notes = %s, time_of_day = %s'
         ' WHERE id = %s',
-        (name, tier, notes, id)
+        (name, tier, notes, time_of_day, id)
     )
     db.commit()
     cur.close()
+    
 
     return jsonify({}), 200
 
