@@ -17,10 +17,18 @@ interface ShowHabitsProps {
   selectedDate: string | null;
 }
 
-const tierLabels: Record<number, string> = {
-  1: "Roots",
-  2: "Growth",
-  3: "Flourish",
+const tierLabels: Record<number, { label: string; color: string }> = {
+  1: { label: "Roots", color: "text-amber-700" },
+  2: { label: "Growth", color: "text-green-600" },
+  3: { label: "Flourish", color: "text-purple-600" },
+};
+
+const timeLabels: Record<number, { label: string; icon?: string }> = {
+  0: { label: "Any Time" },
+  1: { label: "Morning", icon: "☀" },
+  2: { label: "Afternoon", icon: "◑" },
+  3: { label: "Evening", icon: "☾" },
+  4: { label: "Night", icon: "✦" },
 };
 
 function ShowHabits({ selectedDate }: ShowHabitsProps) {
@@ -115,30 +123,52 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
             {} as Record<number, Habit[]>,
           ),
         ).map(([tier, tierHabits]) => (
-          <div
-            key={tier}
-            className="bg-calm-50 border border-calm-200 rounded-2xl p-4 mb-4"
-          >
-            <h3 className="text-sm font-medium text-calm-600 mb-3">
-              Tier {tier}
-              {Number(tier) in tierLabels && (
-                <span className="text-calm-400 font-normal">
-                  {" "}
-                  · {tierLabels[Number(tier)]}
-                </span>
-              )}
-            </h3>
-            <ul className="space-y-3">
-              {(tierHabits as Habit[]).map((habit: Habit) => (
-                <HabitListItem
-                  key={habit.id}
-                  habit={habit}
-                  onComplete={fetchHabits}
-                  status="incomplete"
-                  selectedDate={selectedDate}
-                />
+          <div key={tier} className="mb-6">
+            <div className="flex items-center gap-3 mb-4">
+              <h3
+                className={`text-sm font-medium whitespace-nowrap ${
+                  tierLabels[Number(tier)]?.color || "text-calm-500"
+                }`}
+              >
+                {tierLabels[Number(tier)]?.label || `Tier ${tier}`}
+              </h3>
+              <div className="flex-1 h-px bg-calm-200"></div>
+            </div>
+            <div className="space-y-4">
+              {Object.entries(
+                (tierHabits as Habit[]).reduce(
+                  (acc: Record<number, Habit[]>, habit: Habit) => {
+                    const time = habit.time_of_day || 0;
+                    if (!acc[time]) acc[time] = [];
+                    acc[time].push(habit);
+                    return acc;
+                  },
+                  {} as Record<number, Habit[]>,
+                ),
+              ).map(([time, timeHabits]) => (
+                <div key={time}>
+                  {Number(time) in timeLabels && (
+                    <div className="flex items-center gap-1.5 mb-2 text-calm-400">
+                      {timeLabels[Number(time)].icon && (
+                        <span className="text-xs">{timeLabels[Number(time)].icon}</span>
+                      )}
+                      <span className="text-xs">{timeLabels[Number(time)].label}</span>
+                    </div>
+                  )}
+                  <ul className="space-y-2">
+                    {(timeHabits as Habit[]).map((habit: Habit) => (
+                      <HabitListItem
+                        key={habit.id}
+                        habit={habit}
+                        onComplete={fetchHabits}
+                        status="incomplete"
+                        selectedDate={selectedDate}
+                      />
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         ))}
 

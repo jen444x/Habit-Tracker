@@ -7,6 +7,7 @@ function DashboardPage() {
   const [searchParams] = useSearchParams();
   const selectedDate = searchParams.get("date"); // null if not set
 
+
   return (
     <>
       <Header title="Your Habits" body="1% better everyday" />

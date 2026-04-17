@@ -70,7 +70,7 @@ function SkipHabit({ id, selectedDate, onComplete }: SkipHabitProps) {
       )}
       <button
         onClick={() => setIsOpen(true)}
-        className="p-1.5 text-calm-400 hover:text-calm-600 cursor-pointer hover:bg-calm-100 rounded-lg transition-colors"
+        className="text-calm-300 hover:text-calm-500 cursor-pointer p-1 hover:bg-calm-100 rounded-lg transition-colors"
         aria-label="Skip today"
       >
         <svg
