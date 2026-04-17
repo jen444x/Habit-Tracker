@@ -8,6 +8,7 @@ interface Habit {
   stage: number;
   tier: number;
   name: string;
+  time_of_day: number;
   status?: "completed" | "skipped";
   curr_streak: number;
 }
@@ -15,6 +16,14 @@ interface Habit {
 interface ShowHabitsProps {
   selectedDate: string | null;
 }
+
+const timeLabels: Record<number, { label: string; icon: string }> = {
+  // 0: { label: "Any Time", icon: "◐" },
+  1: { label: "Morning", icon: "☀" },
+  2: { label: "Afternoon", icon: "◑" },
+  3: { label: "Evening", icon: "☾" },
+  4: { label: "Night", icon: "✦" },
+};
 
 function ShowHabits({ selectedDate }: ShowHabitsProps) {
   const [habits, setHabits] = useState([]);
@@ -94,13 +103,20 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
         <p className="text-center text-calm-500 mt-6">Loading habits...</p>
       )}
       {error && <p className="text-center text-red-500 mt-4">{error}</p>}
+
+      {/* Show habits that haven't been completed */}
       {habits.length > 0 && (
         <ul className="space-y-3">
           {habits.map((habit: Habit, index: number) => {
             const prevHabit: Habit = habits[index - 1];
             const isNewLevel = index === 0 || habit.tier !== prevHabit.tier;
+            const isNewTimeOfDay =
+              index === 0 ||
+              habit.time_of_day !== prevHabit.time_of_day ||
+              habit.tier !== prevHabit.tier;
             return (
               <>
+                {/* show tier seperator */}
                 {isNewLevel && (
                   <div className="flex items-center gap-3 my-4">
                     <div className="flex-1 h-px bg-calm-200"></div>
@@ -108,6 +124,21 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
                       Tier {habit.tier}
                     </span>
                     <div className="flex-1 h-px bg-calm-200"></div>
+                  </div>
+                )}
+                {/* show tod seperator - subtle, left-aligned */}
+                {isNewTimeOfDay && (
+                  <div
+                    className={`flex items-center gap-1.5 pl-1 mb-1.5 ${isNewLevel ? "mt-0" : "mt-3"}`}
+                  >
+                    {habit.time_of_day in timeLabels && (
+                      <span className="text-calm-400 text-[11px]">
+                        {timeLabels[habit.time_of_day ?? 0].icon}
+                      </span>
+                    )}
+                    {/* <span className="text-calm-400 text-[11px] tracking-wider uppercase">
+                      {timeLabels[habit.time_of_day ?? 0].label}
+                    </span> */}
                   </div>
                 )}
                 <HabitListItem
@@ -123,6 +154,7 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
         </ul>
       )}
 
+      {/* Show habits that have been completed */}
       {habitsDone.length > 0 && (
         <>
           {habits.length > 0 && (
