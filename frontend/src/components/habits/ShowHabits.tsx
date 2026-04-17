@@ -17,12 +17,10 @@ interface ShowHabitsProps {
   selectedDate: string | null;
 }
 
-const timeLabels: Record<number, { label: string; icon: string }> = {
-  // 0: { label: "Any Time", icon: "◐" },
-  1: { label: "Morning", icon: "☀" },
-  2: { label: "Afternoon", icon: "◑" },
-  3: { label: "Evening", icon: "☾" },
-  4: { label: "Night", icon: "✦" },
+const tierLabels: Record<number, string> = {
+  1: "Roots",
+  2: "Growth",
+  3: "Flourish",
 };
 
 function ShowHabits({ selectedDate }: ShowHabitsProps) {
@@ -104,43 +102,34 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
       )}
       {error && <p className="text-center text-red-500 mt-4">{error}</p>}
 
-      {/* Show habits that haven't been completed */}
-      {habits.length > 0 && (
-        <ul className="space-y-3">
-          {habits.map((habit: Habit, index: number) => {
-            const prevHabit: Habit = habits[index - 1];
-            const isNewLevel = index === 0 || habit.tier !== prevHabit.tier;
-            const isNewTimeOfDay =
-              index === 0 ||
-              habit.time_of_day !== prevHabit.time_of_day ||
-              habit.tier !== prevHabit.tier;
-            return (
-              <>
-                {/* show tier seperator */}
-                {isNewLevel && (
-                  <div className="flex items-center gap-3 my-4">
-                    <div className="flex-1 h-px bg-calm-200"></div>
-                    <span className="text-calm-400 text-sm">
-                      Tier {habit.tier}
-                    </span>
-                    <div className="flex-1 h-px bg-calm-200"></div>
-                  </div>
-                )}
-                {/* show tod seperator - subtle, left-aligned */}
-                {isNewTimeOfDay && (
-                  <div
-                    className={`flex items-center gap-1.5 pl-1 mb-1.5 ${isNewLevel ? "mt-0" : "mt-3"}`}
-                  >
-                    {habit.time_of_day in timeLabels && (
-                      <span className="text-calm-400 text-[11px]">
-                        {timeLabels[habit.time_of_day ?? 0].icon}
-                      </span>
-                    )}
-                    {/* <span className="text-calm-400 text-[11px] tracking-wider uppercase">
-                      {timeLabels[habit.time_of_day ?? 0].label}
-                    </span> */}
-                  </div>
-                )}
+      {/* Show habits grouped by tier */}
+      {habits.length > 0 &&
+        Object.entries(
+          habits.reduce(
+            (acc: Record<number, Habit[]>, habit: Habit) => {
+              const tier = habit.tier;
+              if (!acc[tier]) acc[tier] = [];
+              acc[tier].push(habit);
+              return acc;
+            },
+            {} as Record<number, Habit[]>,
+          ),
+        ).map(([tier, tierHabits]) => (
+          <div
+            key={tier}
+            className="bg-calm-50 border border-calm-200 rounded-2xl p-4 mb-4"
+          >
+            <h3 className="text-sm font-medium text-calm-600 mb-3">
+              Tier {tier}
+              {Number(tier) in tierLabels && (
+                <span className="text-calm-400 font-normal">
+                  {" "}
+                  · {tierLabels[Number(tier)]}
+                </span>
+              )}
+            </h3>
+            <ul className="space-y-3">
+              {(tierHabits as Habit[]).map((habit: Habit) => (
                 <HabitListItem
                   key={habit.id}
                   habit={habit}
@@ -148,11 +137,10 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
                   status="incomplete"
                   selectedDate={selectedDate}
                 />
-              </>
-            );
-          })}
-        </ul>
-      )}
+              ))}
+            </ul>
+          </div>
+        ))}
 
       {/* Show habits that have been completed */}
       {habitsDone.length > 0 && (

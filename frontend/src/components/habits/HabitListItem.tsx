@@ -6,7 +6,15 @@ interface Habit {
   name: string;
   stage: number;
   curr_streak: number;
+  time_of_day?: number;
 }
+
+const timeLabels: Record<number, string> = {
+  1: "☀",
+  2: "◑",
+  3: "☾",
+  4: "✦",
+};
 
 interface HabitListItemProps {
   habit: Habit;
@@ -122,11 +130,14 @@ function HabitListItem({
         </span>
       </button>
 
-      {/* Habit name */}
+      {/* Habit name with time icon */}
       <span
         onClick={handleClick}
-        className={`flex-1 -my-4 py-4 cursor-pointer ${textStyle}`}
+        className={`flex-1 -my-4 py-4 cursor-pointer flex items-center gap-2 ${textStyle}`}
       >
+        {habit.time_of_day && habit.time_of_day in timeLabels && (
+          <span className="text-calm-400 text-sm">{timeLabels[habit.time_of_day]}</span>
+        )}
         {habit.name}
       </span>
 
