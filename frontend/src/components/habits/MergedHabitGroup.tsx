@@ -49,9 +49,6 @@ function MergedHabitGroup({
     }
   }
 
-  // Get the first habit (has lowest streak since sorted)
-  const firstHabit = familyMembers[0];
-
   // Get the last habit (newest, highest stage)
   const newestHabit = familyMembers[familyMembers.length - 1];
 
