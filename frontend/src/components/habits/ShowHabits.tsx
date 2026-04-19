@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import HabitListItem from "./HabitListItem";
 import DateNavigator from "../common/DateNavigator";
-import MergedHabitListItem from "./MergedHabitListItem";
+import MergedHabitGroup from "./MergedHabitGroup";
 
 interface Habit {
   id: number;
@@ -212,14 +212,14 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
                 );
               }
 
-              // Set up family
               // Skip if its not the first in family bc first handled it
-              if (
-                timeHabits[index - 1] &&
-                timeHabits[index - 1].family_id === habit.family_id
-              ) {
-                return null;
+              const previousHabit = timeHabits[index - 1];
+              if (previousHabit !== undefined) {
+                if (previousHabit.family_id === habit.family_id) {
+                  return null;
+                }
               }
+
               // If first habit, get rest of family
               const familyMembers: Habit[] = [habit];
 
@@ -257,63 +257,12 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
 
               // Render merged group with a wrapper
               return (
-                <div key={habit.id}>
-                  {/* Create a merged habit using the newest one's stats */}
-                  {(function () {
-                    // Get the newest habit (last in the array)
-                    const newestHabit = familyMembers[familyMembers.length - 1];
-
-                    // Build the combined name
-                    let combinedName = "";
-                    for (let j = 0; j < familyMembers.length; j++) {
-                      if (j === 0) {
-                        combinedName = familyMembers[j].name;
-                      } else {
-                        combinedName =
-                          combinedName + " + " + familyMembers[j].name;
-                      }
-                    }
-
-                    // Create a new habit object with combined name but newest stats
-                    const mergedHabit: Habit = {
-                      id: newestHabit.id,
-                      name: combinedName,
-                      title: combinedName,
-                      stage: newestHabit.stage,
-                      tier: newestHabit.tier,
-                      time_of_day: newestHabit.time_of_day,
-                      curr_streak: newestHabit.curr_streak,
-                      family_id: newestHabit.family_id,
-                      merged: true,
-                    };
-
-                    return (
-                      <MergedHabitListItem
-                        key={mergedHabit.id}
-                        habit={mergedHabit}
-                        onComplete={fetchHabits}
-                        status="incomplete"
-                        selectedDate={selectedDate}
-                        familyMembers={familyMembers}
-                      />
-                    );
-                  })()}
-
-                  {/* Individual habits below */}
-                  <div className="space-y-1 mt-2 pl-4">
-                    {familyMembers.map(function (member) {
-                      return (
-                        <HabitListItem
-                          key={member.id}
-                          habit={member}
-                          onComplete={fetchHabits}
-                          status="incomplete"
-                          selectedDate={selectedDate}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
+                <MergedHabitGroup
+                  key={habit.id}
+                  familyMembers={familyMembers}
+                  onComplete={fetchHabits}
+                  selectedDate={selectedDate}
+                />
               );
             })}
           </ul>

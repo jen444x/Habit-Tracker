@@ -140,7 +140,7 @@ function HabitListItem({
         onClick={handleClick}
         className={`flex-1 cursor-pointer leading-tight ${textStyle}`}
       >
-        {habit.name} {habit.family_id}
+        {habit.name}
       </span>
 
       {/* Skip button - only show for incomplete */}
