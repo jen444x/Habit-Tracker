@@ -35,8 +35,9 @@ CREATE TABLE habits (
     family_id INTEGER NOT NULL DEFAULT nextval('habit_family_seq'),                                                     
     parent_id INTEGER REFERENCES habits(id),
     tier INTEGER NOT NULL DEFAULT 1 CHECK (tier IN (1, 2, 3)),
-    time_of_day INTEGER DEFAULT NULL CHECK (time_of_day BETWEEN 1 AND 4)
-);                                                                                                                                                                        
+    time_of_day INTEGER DEFAULT NULL CHECK (time_of_day BETWEEN 1 AND 4),
+    merged BOOLEAN DEFAULT FALSE
+);       
                                                                                                                                                                         
 CREATE TABLE habit_logs (
     log_date DATE NOT NULL,                                                                                                                                                                                                                                                                    

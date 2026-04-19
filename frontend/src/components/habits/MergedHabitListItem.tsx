@@ -21,48 +21,50 @@ function StageIcon({ stage }: { stage: number }) {
   return <span className="text-sm">{icon}</span>;
 }
 
-interface HabitListItemProps {
+interface MergedHabitListItemProps {
   habit: Habit;
   onComplete: () => void;
   status: "incomplete" | "completed" | "skipped";
   selectedDate: string | null;
+  familyMembers: Habit[];
 }
 
-function HabitListItem({
+function MergedHabitListItem({
   habit,
   onComplete,
   status,
   selectedDate,
-}: HabitListItemProps) {
+  familyMembers,
+}: MergedHabitListItemProps) {
   const navigate = useNavigate();
+  // Get the first habit (has the lowest streak since sorted)
+  const firstHabit = familyMembers[0];
   async function handleClick() {
-    // go to single habit page
-    navigate(`/${habit.id}`);
+    // go to first habit page
+    navigate(`/${firstHabit.id}`);
   }
 
   async function handleChange() {
-    const url = `${import.meta.env.VITE_API_URL}/${habit.id}`;
-    let fetchUrl;
-    if (status === "completed") {
-      fetchUrl = `${url}/undo_complete`;
-    } else if (status === "skipped") {
-      fetchUrl = `${url}/undo_skip`;
-    } else {
-      fetchUrl = `${url}/complete`;
+    // Get all the habit IDs
+    const habitIds: number[] = [];
+    for (let i = 0; i < familyMembers.length; i++) {
+      habitIds.push(familyMembers[i].id);
     }
+
+    const url = `${import.meta.env.VITE_API_URL}/habits/complete-multiple`;
     const token = localStorage.getItem("token");
 
     try {
-      const formData = new FormData();
-      if (selectedDate) {
-        formData.append("date", selectedDate);
-      }
-      const res = await fetch(fetchUrl, {
+      const res = await fetch(url, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: formData,
+        body: JSON.stringify({
+          habit_ids: habitIds,
+          date: selectedDate,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -183,4 +185,4 @@ function HabitListItem({
   );
 }
 
-export default HabitListItem;
+export default MergedHabitListItem;

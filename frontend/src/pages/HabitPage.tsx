@@ -85,6 +85,32 @@ function HabitPage() {
     }
   }
 
+  async function handleMerge() {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/habits/${familyId}/merge`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error);
+        return;
+      }
+      navigate("/dashboard");
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "An unknown error occurred",
+      );
+    }
+  }
+
   return (
     <div className="min-h-screen bg-linear-to-b from-calm-50 to-calm-100 px-6 py-8">
       <div className="max-w-md mx-auto">
@@ -111,26 +137,54 @@ function HabitPage() {
             </svg>
           </button>
 
-          <button
-            onClick={() => setIsEditOpen(true)}
-            className="p-2 -mr-2 text-calm-600 hover:text-calm-800 transition-colors"
-            aria-label="Edit habit"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          <div className="flex items-center gap-2">
+            {/* merge habits */}
+            <button
+              onClick={handleMerge}
+              className="p-2 text-calm-600 hover:text-calm-800 transition-colors"
+              aria-label="Merge habits"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-              />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <circle cx="18" cy="5" r="2.5" strokeWidth={2} />
+                <circle cx="6" cy="5" r="2.5" strokeWidth={2} />
+                <circle cx="12" cy="19" r="2.5" strokeWidth={2} />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 7.5V10c0 2 1.5 3.5 3.5 5L12 16.5M18 7.5V10c0 2-1.5 3.5-3.5 5L12 16.5"
+                />
+              </svg>
+            </button>
+
+            {/* edit habit */}
+            <button
+              onClick={() => setIsEditOpen(true)}
+              className="p-2 -mr-2 text-calm-600 hover:text-calm-800 transition-colors"
+              aria-label="Edit habit"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Hero Section */}

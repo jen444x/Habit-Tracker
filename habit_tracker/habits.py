@@ -63,9 +63,40 @@ def get_user_local_date():
     tz = ZoneInfo(g.user['timezone'])
     return datetime.now(tz).date()
 
+# merge habits by family id
+@bp.route('/habits/<int:family_id>/merge', methods=('POST',))
+@login_required
+def merge_habits(family_id):
+    # set merged to true on all habits in habit
+    db = get_db()
+    cur = db.cursor()
+    
+    cur.execute(
+        'UPDATE habits' \
+        ' SET merged = %s'
+        ' WHERE family_id = %s'
+        ' AND merged = %s'
+        ' AND creator_id = %s',
+        (True, family_id, False, g.user['id'])
+    )
+    db.commit()
+
+    cur.execute(
+        'SELECT id, merged'
+        ' FROM habits' 
+        ' WHERE family_id = %s'
+        ' AND creator_id = %s',
+        (family_id, g.user['id'])
+    )
+    habits = cur.fetchall()
+    print(habits)
+    cur.close()
+    return jsonify({}), 200
+
 
 # group habits by family id
 @bp.route('/habits/tiers', methods=('GET',))
+@login_required
 def get_families():
     # parse date if give, else use todays date
     date_str = request.args.get('date')
@@ -87,24 +118,41 @@ def get_families():
     cur = db.cursor()
 
     # Get habits that haven't been completed yet
-    # will only get the newest habit in habit family
+    # will only get the newest habit in habit family if they arent suppose to be merged
     cur.execute(  
         'SELECT * FROM (' \
         '   SELECT DISTINCT ON (family_id)' \
-        '       h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier, time_of_day' \
+        '       h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier, time_of_day, merged' \
         '   FROM habits h' \
         '   LEFT JOIN habit_logs hl' \
         '       ON h.id = hl.habit_id' \
         '       AND hl.log_date = %s'  \
         '   WHERE h.creator_id = %s' \
+        '   AND merged = %s' \
         '   AND hl.habit_id IS NULL' \
         '   ORDER BY family_id, stage ASC' \
         ') AS unique_habits' \
         ' ORDER BY tier ASC',
-        (selected_date, g.user['id']) 
+        (selected_date, g.user['id'], False) 
     )
-    
     habits = [dict(row) for row in cur.fetchall()]
+    
+    # now we will get the merged ones and add to habits
+    cur.execute(
+        'SELECT h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier, time_of_day, merged' 
+        ' FROM habits h'
+        ' LEFT JOIN habit_logs hl'
+        '   ON h.id = hl.habit_id'
+        '   AND hl.log_date = %s'
+        ' WHERE h.creator_id = %s'
+        '   AND merged = %s' 
+        ' AND hl.habit_id IS NULL'
+        ' ORDER BY tier, family_id, stage ASC',
+        (selected_date, g.user['id'], True) 
+    )
+    merged_habits = [dict(row) for row in cur.fetchall()]
+    habits.extend(merged_habits)
+    
     # get habits current streaks
     for habit in habits:
         # get all completion dates
@@ -131,12 +179,53 @@ def get_families():
         habit['curr_streak'] = curr_streak
 
     # sort them by streak
-    habits.sort(key=lambda habit: (habit['tier'], habit['time_of_day'] or 0, -habit['curr_streak']))
+    # habits.sort(key=lambda habit: (habit['tier'], habit['time_of_day'] or 0, habit['family_id'], -habit['curr_streak'])) 
+                                                                                              
+    # For merged families, use the newest habit's streak for sorting                                                                                       
+    # First, find the newest habit's streak for each merged family                                                                                         
+    family_sort_streaks = {}                                                                                                                               
+                                                                                                                                                            
+    for habit in habits:                                                                                                                                   
+      if habit['merged'] == True:                                                                                                                        
+          family_id = habit['family_id']                                                                                                                 
+          streak = habit['curr_streak']                                                                                                                  
+                                                                                                                                                         
+          # Check if this family is already tracked                                                                                                      
+          if family_id not in family_sort_streaks:                                                                                                       
+              # First habit we've seen in this family                                                                                                    
+              family_sort_streaks[family_id] = streak                                                                                                    
+          else:                                                                                                                                          
+              # Keep the lower streak                                                                                                                    
+              if streak < family_sort_streaks[family_id]:                                                                                                
+                  family_sort_streaks[family_id] = streak 
 
+    # Now assign sort_streak to each habit                                                                                                                 
+    for habit in habits:                                                                                                                                   
+        if habit['merged'] == True:                                                                                                                        
+            family_id = habit['family_id']                                                                                                                 
+            # Use the lowest streak in the family for sorting                                                                                              
+            habit['sort_streak'] = family_sort_streaks[family_id]                                                                                          
+        else:                                                                                                                                              
+            # Non-merged habits use their own streak                                                                                                       
+            habit['sort_streak'] = habit['curr_streak']                                                                                                    
+                                                                                                                                                            
+    # Sort using sort_streak instead of curr_streak                                                                                                        
+    habits.sort(key=lambda habit: (habit['tier'], habit['time_of_day'] or 0, -habit['sort_streak'], habit['family_id'], habit['stage']))
+    
     # Get completed habits
+    # cur.execute(
+    #     'SELECT DISTINCT ON (family_id)' \
+    #     ' h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier, hl.status'
+    #     ' FROM habits h'
+    #     ' INNER JOIN habit_logs hl'
+    #     '   ON h.id = hl.habit_id'
+    #     '   AND hl.log_date = %s'
+    #     ' WHERE h.creator_id = %s'
+    #     ' ORDER BY family_id, stage DESC, tier ASC',
+    #     (selected_date, g.user['id'])
+    # )
     cur.execute(
-        'SELECT DISTINCT ON (family_id)' \
-        ' h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier, hl.status'
+        'SELECT h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier, hl.status'
         ' FROM habits h'
         ' INNER JOIN habit_logs hl'
         '   ON h.id = hl.habit_id'
@@ -993,3 +1082,53 @@ def index():
       "next_date": next_date.isoformat(),                                                                                                                                                                                                 
       "today": today.isoformat()                                                                                                                                                                                                          
   })                                                                                                                                                                                                                                      
+
+@bp.route('/habits/complete-multiple', methods=('POST',))                                                                  
+@login_required                                                                                                            
+def complete_multiple():                                                                                                   
+    # Get the data                                                                                                         
+    data = request.get_json()                                                                                              
+                                                                                                                            
+    if not data:                                                                                                           
+        return jsonify({"error": "Request body is required"}), 400                                                         
+                                                                                                                            
+    habit_ids = data.get('habit_ids')                                                                                      
+    date_str = data.get('date')                                                                                            
+                                                                                                                            
+    if not habit_ids:                                                                                                      
+        return jsonify({"error": "habit_ids is required"}), 400                                                            
+                                                                                                                            
+    # Parse date or use today                                                                                              
+    if date_str:                                                                                                           
+        try:                                                                                                               
+            log_date = datetime.strptime(date_str, '%Y-%m-%d').date()                                                      
+        except ValueError:                                                                                                 
+            log_date = get_user_local_date()                                                                               
+    else:                                                                                                                  
+        log_date = get_user_local_date()                                                                                   
+                                                                                                                            
+    db = get_db()                                                                                                          
+    cur = db.cursor()                                                                                                      
+                                                                                                                            
+    # Complete each habit                                                                                                  
+    for habit_id in habit_ids:                                                                                             
+        # Make sure this habit belongs to the user                                                                         
+        cur.execute(                                                                                                       
+            'SELECT id FROM habits WHERE id = %s AND creator_id = %s',                                                     
+            (habit_id, g.user['id'])                                                                                       
+        )                                                                                                                  
+        habit = cur.fetchone()                                                                                             
+                                                                                                                            
+        if habit is None:                                                                                                  
+            continue  # Skip if habit doesn't exist or doesn't belong to user                                              
+                                                                                                                            
+        # Insert completion log                                                                                            
+        cur.execute(                                                                                                       
+            'INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)',                                                 
+            (log_date, habit_id)                                                                                           
+        )                                                                                                                  
+                                                                                                                            
+    db.commit()                                                                                                            
+    cur.close()                                                                                                            
+                                                                                                                            
+    return jsonify({}), 200 
