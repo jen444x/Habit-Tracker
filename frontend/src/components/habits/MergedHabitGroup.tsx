@@ -155,42 +155,6 @@ function MergedHabitGroup({
             )}
           </span>
         </div>
-
-        {/* Arrow button */}
-        <button
-          onClick={toggleExpanded}
-          className="p-1 text-calm-400 hover:text-calm-600"
-        >
-          {isExpanded ? (
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          ) : (
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          )}
-        </button>
       </li>
 
       {/* Individual habits - only show when expanded */}
