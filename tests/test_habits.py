@@ -27,11 +27,11 @@ def test_create_habit_without_login_returns_401(client):
       response = client.post('/habits', json={"name": "Exercise", "tier": 1})      
       assert response.status_code == 401  
 
-# valid data
+# valid data - all fields filled in
 def test_create_habit_with_valid_data(client, auth_token):  # will use same client
     res = client.post(                                                      
         '/habits',                                                               
-        json={"name": "Exercise", "tier": 1},                                    
+        json={"name": "Exercise", "notes": "10 pushups", "tier": 2},                                    
         headers={"Authorization": f"Bearer {auth_token}"}                             
     )        
     assert res.status_code == 201
@@ -112,3 +112,71 @@ def test_create_habit_with_correct_chars_len(client, auth_token):
     )     
     assert res.status_code == 201
 
+# no notes
+def test_create_habit_with_no_notes(client, auth_token):
+    res = client.post(                                                      
+        '/habits',    
+        json={"name": "Exercise", "tier": 1}, 
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )     
+    assert res.status_code == 201
+
+# notes not str
+def test_create_habit_with_notes_not_str(client, auth_token):
+    res = client.post(                                                      
+        '/habits',    
+        json={"name": "Exercise", "notes": ["cat"], "tier": 1}, 
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )     
+    assert res.status_code == 400
+
+""" 
+tier
+"""
+def test_create_habit_with_tier_too_large(client, auth_token):
+    res = client.post(                                                      
+        '/habits',    
+        json={"name": "Exercise", "tier": 4}, 
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )     
+    assert res.status_code == 400
+
+def test_create_habit_with_tier_too_small(client, auth_token):
+    res = client.post(                                                      
+        '/habits',    
+        json={"name": "Exercise", "tier": 0}, 
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )     
+    assert res.status_code == 400
+
+def test_create_habit_with_no_tier(client, auth_token):
+    res = client.post(                                                      
+        '/habits',    
+        json={"name": "Exercise"}, 
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )     
+    assert res.status_code == 400
+
+def test_create_habit_with_tier_not_int(client, auth_token):
+    res = client.post(                                                      
+        '/habits',    
+        json={"name": "Exercise", "tier": "cat"}, 
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )     
+    assert res.status_code == 400
+
+def test_create_habit_with_tier_upper_range(client, auth_token):
+    res = client.post(                                                      
+        '/habits',    
+        json={"name": "Exercise", "tier": 3}, 
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )     
+    assert res.status_code == 201
+
+def test_create_habit_with_tier_lower_range(client, auth_token):
+    res = client.post(                                                      
+        '/habits',    
+        json={"name": "Exercise", "tier": 1}, 
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )     
+    assert res.status_code == 201

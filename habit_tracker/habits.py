@@ -11,6 +11,10 @@ from habit_tracker.db import get_db
 
 bp = Blueprint('habits', __name__)
 
+def get_user_local_date():
+    tz = ZoneInfo(g.user['timezone'])
+    return datetime.now(tz).date()
+
 # create habit
 @bp.route('/habits', methods=('POST',))
 @login_required
@@ -57,11 +61,6 @@ def create_habit():
 
     return jsonify({"id": new_id}), 201
 
-
-
-def get_user_local_date():
-    tz = ZoneInfo(g.user['timezone'])
-    return datetime.now(tz).date()
 
 # merge habits by family id
 @bp.route('/habits/<int:family_id>/merge', methods=('POST',))
