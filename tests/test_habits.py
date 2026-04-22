@@ -27,6 +27,7 @@ def test_create_habit_without_login_returns_401(client):
       response = client.post('/habits', json={"name": "Exercise", "tier": 1})      
       assert response.status_code == 401  
 
+# valid data
 def test_create_habit_with_valid_data(client, auth_token):  # will use same client
     res = client.post(                                                      
         '/habits',                                                               
@@ -45,13 +46,16 @@ def test_create_habit_with_empty_req_body(client, auth_token):
     assert res.status_code == 400
 
 # test with no data
-def test_create_habit_with_empty_req_body(client, auth_token):
+def test_create_habit_with_no_req_body(client, auth_token):
     res = client.post(                                                      
         '/habits',                                                                                           
         headers={"Authorization": f"Bearer {auth_token}"}                             
     )     
     assert res.status_code == 415
 
+"""
+Testing name being invalid
+"""
 # test with no name
 def test_create_habit_with_name_missing(client, auth_token):
     res = client.post(                                                      
@@ -62,8 +66,7 @@ def test_create_habit_with_name_missing(client, auth_token):
     assert res.status_code == 400
 
 # test with name not str
-# single digit num
-def test_create_habit_with_name_as_int(client, auth_token):
+def test_create_habit_with_name_as_sing_int(client, auth_token):
     res = client.post(                                                      
         '/habits',    
         json={"name": 1, "notes": "notess", "tier": 1},                                                                                       
@@ -71,11 +74,41 @@ def test_create_habit_with_name_as_int(client, auth_token):
     )     
     assert res.status_code == 400
 
-# multiple digit num
-def test_create_habit_with_name_as_int(client, auth_token):
+
+
+# empty str
+def test_create_habit_with_name_as_empty_str(client, auth_token):
     res = client.post(                                                      
         '/habits',    
-        json={"name": 12, "notes": "notess", "tier": 1},                                                                                       
+        json={"name": "", "notes": "notess", "tier": 1},                                                                                       
         headers={"Authorization": f"Bearer {auth_token}"}                             
     )     
     assert res.status_code == 400
+
+# whitespace
+def test_create_habit_with_name_as_whitespace(client, auth_token):
+    res = client.post(                                                      
+        '/habits',    
+        json={"name": " ", "notes": "notess", "tier": 1},                                                                                       
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )     
+    assert res.status_code == 400
+
+# str > 100 = 101
+def test_create_habit_with_name_too_long(client, auth_token):
+    res = client.post(                                                      
+        '/habits',    
+        json={"name": "a" * 101, "tier": 1},         
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )     
+    assert res.status_code == 400
+
+# str <= 100 
+def test_create_habit_with_correct_chars_len(client, auth_token):
+    res = client.post(                                                      
+        '/habits',    
+        json={"name": "a" * 100, "tier": 1}, 
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )     
+    assert res.status_code == 201
+
