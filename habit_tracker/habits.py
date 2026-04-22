@@ -909,7 +909,7 @@ def delete(id):
     cur.execute('DELETE FROM habits WHERE id = %s', (id,))
     db.commit()
     cur.close()
-    return redirect(url_for('dashboard.index'))
+    return jsonify({}),201
 
 
 

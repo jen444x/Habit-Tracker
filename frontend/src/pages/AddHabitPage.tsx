@@ -38,7 +38,7 @@ function AddHabitPage() {
         return;
       }
 
-      navigate(-1);
+      navigate("/dashboard");
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "An unknown error occurred",
