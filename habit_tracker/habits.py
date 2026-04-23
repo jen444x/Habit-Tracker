@@ -458,9 +458,9 @@ def upgrade():
     data = request.get_json()
     name = data.get('name')
     description = data.get('desc')
-    challenge_id = data.get('challengeId')
     stage = data.get('stage')
     family = data.get('familyId')
+    merged = data.get('merged')
 
     if not name:
         return jsonify({"error": "Name is missing"}), 400
@@ -469,23 +469,14 @@ def upgrade():
     cur = db.cursor()
 
     # create habit
-    # check if challenge id was included
-    if not challenge_id:
-        cur.execute(
-            'INSERT INTO habits (name, notes, stage, family_id, creator_id, display_order)'
-            ' VALUES (%s, %s, %s, %s, %s, (' \
-            'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
-            'FROM habits WHERE creator_id = %s))',
-            (name, description, stage, family, g.user['id'], g.user['id'])
-        )
-    else:
-        cur.execute(
-            'INSERT INTO habits (name, notes, stage, family_id, challenge_id, creator_id, display_order)'
-            ' VALUES (%s, %s, %s, %s, %s , %s, (' \
-            'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
-            'FROM habits WHERE creator_id = %s))',
-            (name, description, stage, family, int(challenge_id), g.user['id'], g.user['id'])
-        )
+    cur.execute(
+        'INSERT INTO habits (name, notes, stage, family_id, merged, creator_id, display_order)'
+        ' VALUES (%s, %s, %s, %s, %s, %s, (' \
+        'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
+        'FROM habits WHERE creator_id = %s))',
+        (name, description, stage, family, merged, g.user['id'], g.user['id'])
+    )
+  
 
     db.commit()
     cur.close()
@@ -529,7 +520,7 @@ def get_habit_(id):
     cur = db.cursor()
 
     cur.execute(
-        'SELECT h.id, h.name, h.notes, creator_id, challenge_id, stage, family_id, tier, time_of_day'
+        'SELECT h.id, h.name, h.notes, creator_id, challenge_id, stage, family_id, tier, time_of_day, merged'
         ' FROM habits h'
         ' JOIN users u'
         ' ON h.creator_id = u.id'
