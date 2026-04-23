@@ -36,6 +36,24 @@ def test_create_habit_with_valid_data(client, auth_token):  # will use same clie
     )        
     assert res.status_code == 201
 
+def test_create_habit_saves_correctly(client, auth_token):                                                                                             
+    res = client.post(                                                      
+        '/habits',                                                               
+        json={"name": "Exercise", "notes": "10 pushups", "tier": 2},                                    
+        headers={"Authorization": f"Bearer {auth_token}"}                             
+    )        
+
+    # Assert - fetch and verify it saved                                                                                                               
+    res = client.get('/habits', headers={"Authorization": f"Bearer {auth_token}"})                                                                     
+                                                                                                                                          
+    data = res.get_json()                                                                                                                                  
+    habits = data['habits']                                                                                                                                
+                                                                                                                                                            
+    assert len(habits) == 1                                                                                                                                
+    assert habits[0]['name'] == "Exercise"                                                                                                                 
+    assert habits[0]['notes'] == "10 pushups"                                                                                                              
+    assert habits[0]['tier'] == 2 
+
 # test with empty data
 def test_create_habit_with_empty_req_body(client, auth_token):
     res = client.post(                                                      
@@ -180,3 +198,4 @@ def test_create_habit_with_tier_lower_range(client, auth_token):
         headers={"Authorization": f"Bearer {auth_token}"}                             
     )     
     assert res.status_code == 201
+

@@ -17,6 +17,11 @@ function ShowHabitFamily({ familyId, id }: ShowHabitFamilyProps) {
   const [habits, setHabits] = useState<Habit[]>([]);
   const navigate = useNavigate();
 
+  const currentHabit = habits.find((h) => h.id === id);
+  const nextStageExists = habits.some(
+    (h) => h.stage === (currentHabit?.stage ?? 0) + 1,
+  );
+
   async function fetchFamily() {
     try {
       const res = await fetch(
@@ -48,7 +53,7 @@ function ShowHabitFamily({ familyId, id }: ShowHabitFamilyProps) {
     <>
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
-      {habits.length === 1 && <UpgradeHabit id={Number(id)} />}
+      {!nextStageExists && <UpgradeHabit id={Number(id)} />}
 
       {habits.length > 1 && (
         <ul className="flex flex-col gap-2 mt-4">

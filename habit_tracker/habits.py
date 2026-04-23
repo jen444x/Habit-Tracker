@@ -280,6 +280,18 @@ def get_families():
 # get complete and incomplete habits for date
 @bp.route('/habits')
 def get_habits():
+    db = get_db()
+    cur = db.cursor()
+    cur.execute(
+        'SELECT *'
+        ' FROM habits h'
+        ' WHERE h.creator_id = %s',
+        (g.user['id'],)
+    )
+    habits = cur.fetchall()
+    cur.close()
+    
+    return jsonify({"habits": habits}), 200 
     print("coming in")
     # Parse date if given, else use todays date
     date_str = request.args.get('date')
@@ -316,7 +328,7 @@ def get_habits():
     # get habits current streaks
     for habit in habits:
         # get all completion dates
-        cur.execute('' \
+        cur.execute(
         'SELECT log_date' \
         ' FROM habit_logs' \
         ' WHERE habit_id = %s' \
@@ -421,7 +433,7 @@ def get_family(family_id):
 
     # Get habits from this family
     cur.execute(
-        'SELECT *' \
+        'SELECT id, name, stage' \
         ' FROM habits' \
         ' WHERE family_id = %s AND creator_id = %s'
         ' ORDER BY stage DESC',
@@ -430,6 +442,13 @@ def get_family(family_id):
 
     habits = cur.fetchall()
     cur.close()
+    print()
+    print()
+    for habit in habits:
+        print(habit)
+        print()
+    print()
+    print()
     return jsonify({"habits": habits}), 200
 
 
