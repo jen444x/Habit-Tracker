@@ -8,6 +8,8 @@ function UpgradeHabitPage() {
   const [habitStage, setHabitStage] = useState<number | null>(null);
   const [habitFamily, setHabitFamily] = useState<number | null>(null);
   const [habitMerged, setHabitMerged] = useState<boolean>(false);
+  const [habitTier, setHabitTier] = useState<number | null>(null);
+  const [habitTimeOfDay, setHabitTimeOfDay] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const { id } = useParams();
@@ -35,6 +37,8 @@ function UpgradeHabitPage() {
       setHabitStage(habitData.stage ? habitData.stage + 1 : 1);
       setHabitFamily(habitData.family_id);
       setHabitMerged(habitData.merged);
+      setHabitTier(habitData.tier);
+      setHabitTimeOfDay(habitData.time_of_day);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "An unknown error occurred",
@@ -62,6 +66,8 @@ function UpgradeHabitPage() {
           stage: habitStage,
           familyId: habitFamily,
           merged: habitMerged,
+          tier: habitTier,
+          time_of_day: habitTimeOfDay,
         }),
       });
       const data = await res.json();

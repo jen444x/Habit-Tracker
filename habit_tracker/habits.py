@@ -461,6 +461,8 @@ def upgrade():
     stage = data.get('stage')
     family = data.get('familyId')
     merged = data.get('merged')
+    tier = data.get('tier')
+    time_of_day = data.get('time_of_day')
 
     if not name:
         return jsonify({"error": "Name is missing"}), 400
@@ -470,11 +472,11 @@ def upgrade():
 
     # create habit
     cur.execute(
-        'INSERT INTO habits (name, notes, stage, family_id, merged, creator_id, display_order)'
-        ' VALUES (%s, %s, %s, %s, %s, %s, (' \
+        'INSERT INTO habits (name, notes, stage, family_id, merged, tier, time_of_day, creator_id, display_order)'
+        ' VALUES (%s, %s, %s, %s, %s, %s, %s, %s, (' \
         'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
         'FROM habits WHERE creator_id = %s))',
-        (name, description, stage, family, merged, g.user['id'], g.user['id'])
+        (name, description, stage, family, merged, tier, time_of_day, g.user['id'], g.user['id'])
     )
   
 
