@@ -63,6 +63,9 @@ def create_app(test_config=None):
     from . import chat
     app.register_blueprint(chat.bp)
 
+    from . import insights
+    app.register_blueprint(insights.bp)
+
 
     return app
 
