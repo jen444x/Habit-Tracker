@@ -17,49 +17,49 @@ def get_user_local_date():
 
 
 def cascade_complete(cur, habit_id, log_date):
-    """Walk parent_id chain from habit_id and insert a completion log for each
+    """Walk cascades_to chain from habit_id and insert a completion log for each
     ancestor. Uses ON CONFLICT DO NOTHING so it's a no-op when the ancestor is
     already logged (completed or skipped) for that date."""
     visited = set()
     current_id = habit_id
     while True:
-        cur.execute('SELECT parent_id FROM habits WHERE id = %s', (current_id,))
+        cur.execute('SELECT cascades_to FROM habits WHERE id = %s', (current_id,))
         row = cur.fetchone()
-        if not row or not row['parent_id']:
+        if not row or not row['cascades_to']:
             break
-        parent_id = row['parent_id']
-        if parent_id in visited:
+        cascades_to = row['cascades_to']
+        if cascades_to in visited:
             break
-        visited.add(parent_id)
+        visited.add(cascades_to)
         cur.execute(
             "INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)"
             " ON CONFLICT (habit_id, log_date) DO NOTHING",
-            (log_date, parent_id)
+            (log_date, cascades_to)
         )
-        current_id = parent_id
+        current_id = cascades_to
 
 
 def cascade_undo_complete(cur, habit_id, log_date):
-    """Walk parent_id chain and delete completion logs for ancestors on the
+    """Walk cascades_to chain and delete completion logs for ancestors on the
     given date. Only deletes 'completed' logs so a manually-skipped ancestor
     isn't accidentally cleared."""
     visited = set()
     current_id = habit_id
     while True:
-        cur.execute('SELECT parent_id FROM habits WHERE id = %s', (current_id,))
+        cur.execute('SELECT cascades_to FROM habits WHERE id = %s', (current_id,))
         row = cur.fetchone()
-        if not row or not row['parent_id']:
+        if not row or not row['cascades_to']:
             break
-        parent_id = row['parent_id']
-        if parent_id in visited:
+        cascades_to = row['cascades_to']
+        if cascades_to in visited:
             break
-        visited.add(parent_id)
+        visited.add(cascades_to)
         cur.execute(
             "DELETE FROM habit_logs"
             " WHERE habit_id = %s AND log_date = %s AND status = 'completed'",
-            (parent_id, log_date)
+            (cascades_to, log_date)
         )
-        current_id = parent_id
+        current_id = cascades_to
 
 # create habit
 @bp.route('/habits', methods=('POST',))
@@ -385,7 +385,7 @@ def reorder_habits():
 
 
 # grow a habit horizontally: create a new habit in a different tier and link
-# the harder one's parent_id to the easier one
+# the harder one's cascades_to to the easier one
 @bp.route('/habits/<int:id>/grow-horizontal', methods=('POST',))
 @login_required
 def grow_horizontal(id):
@@ -434,17 +434,17 @@ def grow_horizontal(id):
     )
     new_id = cur.fetchone()['id']
 
-    # Wire up parent_id: parent always points to the easier (lower tier) one
+    # Wire up cascades_to: harder habit always points to the easier (lower tier) one
     if tier > current['tier']:
         # new is harder, points back to current
         cur.execute(
-            'UPDATE habits SET parent_id = %s WHERE id = %s',
+            'UPDATE habits SET cascades_to = %s WHERE id = %s',
             (current['id'], new_id)
         )
     else:
         # new is easier, current points back to new
         cur.execute(
-            'UPDATE habits SET parent_id = %s WHERE id = %s',
+            'UPDATE habits SET cascades_to = %s WHERE id = %s',
             (new_id, current['id'])
         )
 
@@ -487,14 +487,14 @@ def link_habit(id):
         cur.close()
         return jsonify({"error": "Linked habits must be in different tiers"}), 400
 
-    # The harder habit (higher tier) gets parent_id = easier habit's id
+    # The harder habit (higher tier) gets cascades_to = easier habit's id
     if other['tier'] > current['tier']:
         harder_id, easier_id = other['id'], current['id']
     else:
         harder_id, easier_id = current['id'], other['id']
 
     cur.execute(
-        'UPDATE habits SET parent_id = %s WHERE id = %s',
+        'UPDATE habits SET cascades_to = %s WHERE id = %s',
         (easier_id, harder_id)
     )
 
