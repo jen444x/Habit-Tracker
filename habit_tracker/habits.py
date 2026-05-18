@@ -697,15 +697,26 @@ def upgrade():
     db = get_db()
     cur = db.cursor()
 
+    # Find the previous stage in this family so the new stage cascades to it.
+    # That way, completing the new (harder) stage auto-completes the previous
+    # one, and any cross-tier link on the previous stage chains through too.
+    cur.execute(
+        'SELECT id FROM habits'
+        ' WHERE family_id = %s AND stage = %s AND creator_id = %s'
+        ' ORDER BY created_at DESC LIMIT 1',
+        (family, stage - 1, g.user['id'])
+    )
+    prev_row = cur.fetchone()
+    prev_id = prev_row['id'] if prev_row else None
+
     # create habit
     cur.execute(
-        'INSERT INTO habits (name, notes, stage, family_id, merged, tier, time_of_day, creator_id, display_order)'
-        ' VALUES (%s, %s, %s, %s, %s, %s, %s, %s, (' \
-        'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
+        'INSERT INTO habits (name, notes, stage, family_id, merged, tier, time_of_day, creator_id, cascades_to, display_order)'
+        ' VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, ('
+        'SELECT COALESCE(MAX(display_order), 0) + 1 '
         'FROM habits WHERE creator_id = %s))',
-        (name, description, stage, family, merged, tier, time_of_day, g.user['id'], g.user['id'])
+        (name, description, stage, family, merged, tier, time_of_day, g.user['id'], prev_id, g.user['id'])
     )
-  
 
     db.commit()
     cur.close()
