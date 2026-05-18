@@ -424,32 +424,27 @@ function SortableItem({ item, onComplete, selectedDate }: SortableItemProps) {
     <button
       {...attributes}
       {...listeners}
-      className="p-1 text-calm-300 hover:text-calm-500 cursor-grab active:cursor-grabbing touch-none shrink-0"
+      className="text-calm-300 hover:text-calm-500 cursor-grab active:cursor-grabbing touch-none shrink-0 -mr-0.5"
       aria-label="Drag to reorder"
       type="button"
     >
       <svg
-        className="w-4 h-4"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={2}
+        className="w-2.5 h-4"
+        viewBox="0 0 8 16"
+        fill="currentColor"
       >
-        <circle cx="9" cy="6" r="1" fill="currentColor" />
-        <circle cx="15" cy="6" r="1" fill="currentColor" />
-        <circle cx="9" cy="12" r="1" fill="currentColor" />
-        <circle cx="15" cy="12" r="1" fill="currentColor" />
-        <circle cx="9" cy="18" r="1" fill="currentColor" />
-        <circle cx="15" cy="18" r="1" fill="currentColor" />
+        <circle cx="4" cy="3" r="1" />
+        <circle cx="4" cy="8" r="1" />
+        <circle cx="4" cy="13" r="1" />
       </svg>
     </button>
   );
 
   if (item.habits.length === 1) {
     return (
-      <div ref={setNodeRef} style={style} className="flex items-center gap-1">
+      <div ref={setNodeRef} style={style} className="flex items-center">
         {dragHandle}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <HabitListItem
             habit={item.habits[0]}
             onComplete={onComplete}
@@ -462,9 +457,9 @@ function SortableItem({ item, onComplete, selectedDate }: SortableItemProps) {
   }
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center gap-1">
+    <div ref={setNodeRef} style={style} className="flex items-center">
       {dragHandle}
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <MergedHabitGroup
           familyMembers={item.habits}
           onComplete={onComplete}
