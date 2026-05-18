@@ -6,13 +6,14 @@ DROP SEQUENCE IF EXISTS habit_family_seq;
 
 CREATE SEQUENCE habit_family_seq;    
                                                                                                                                                                         
-CREATE TABLE users (                                                                                                                                                      
-    id SERIAL PRIMARY KEY,                                                                                                                                                
-    username VARCHAR(50) UNIQUE NOT NULL,                                                                                                                                 
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    list_view BOOLEAN DEFAULT TRUE,   
-    timezone VARCHAR(50) DEFAULT 'UTC'                                                                                                                         
-);     
+    list_view BOOLEAN DEFAULT TRUE,
+    timezone VARCHAR(50) DEFAULT 'UTC',
+    tier_order INTEGER[] NOT NULL DEFAULT '{1,2,3}'
+);
 
 CREATE TABLE challenges (
     id SERIAL PRIMARY KEY,

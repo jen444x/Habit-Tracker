@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import type { ReactNode } from "react";
 import {
   DndContext,
   closestCenter,
@@ -63,6 +64,7 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [prevDate, setPrevDate] = useState("");
   const [nextDate, setNextDate] = useState("");
+  const [tierOrder, setTierOrder] = useState<number[]>([1, 2, 3]);
 
   async function fetchHabits() {
     const url = `${import.meta.env.VITE_API_URL}/habits/tiers`;
@@ -92,6 +94,9 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
       setHabitsDone(data.habits_done);
       setPrevDate(data.prev_date);
       setNextDate(data.next_date);
+      if (Array.isArray(data.tier_order) && data.tier_order.length === 3) {
+        setTierOrder(data.tier_order);
+      }
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "An unknown error occurred",
@@ -182,6 +187,22 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
     }
   }
 
+  async function persistTierOrder(order: number[]) {
+    const token = localStorage.getItem("token");
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/habits/tier-order`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ tier_order: order }),
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   function handleDragEnd(
     event: DragEndEvent,
     tier: number,
@@ -227,35 +248,46 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
     persistOrder(reordered);
   }
 
+  function handleTierDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = tierOrder.findIndex((t) => `t-${t}` === active.id);
+    const newIndex = tierOrder.findIndex((t) => `t-${t}` === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(tierOrder, oldIndex, newIndex);
+    setTierOrder(reordered);
+    persistTierOrder(reordered);
+  }
+
   function renderHabitsByTier() {
     const habitsByTier = groupHabitsByTier(habits);
-    const tierEntries = Object.entries(habitsByTier);
+    const visibleTiers = tierOrder.filter(
+      (t) => habitsByTier[t] !== undefined,
+    );
 
-    return tierEntries.map(function (entry) {
-      const tier = entry[0];
-      const tierHabits = entry[1] as Habit[];
-
-      const tierInfo = tierLabels[Number(tier)];
-      const tierLabel = tierInfo ? tierInfo.label : `Tier ${tier}`;
-      const tierColor = tierInfo ? tierInfo.color : "text-calm-500";
-
-      return (
-        <div key={tier} className="mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <h3
-              className={`text-sm font-medium whitespace-nowrap ${tierColor}`}
+    return (
+      <TierSortableContext
+        tierKeys={visibleTiers.map((t) => `t-${t}`)}
+        onDragEnd={handleTierDragEnd}
+      >
+        {visibleTiers.map((tier) => {
+          const tierHabits = habitsByTier[tier];
+          const tierInfo = tierLabels[tier];
+          return (
+            <SortableTierSection
+              key={tier}
+              tier={tier}
+              label={tierInfo ? tierInfo.label : `Tier ${tier}`}
+              color={tierInfo ? tierInfo.color : "text-calm-500"}
             >
-              {tierLabel}
-            </h3>
-            <div className="flex-1 h-px bg-calm-200"></div>
-          </div>
-
-          <div className="space-y-4">
-            {renderHabitsByTime(Number(tier), tierHabits)}
-          </div>
-        </div>
-      );
-    });
+              <div className="space-y-4">
+                {renderHabitsByTime(tier, tierHabits)}
+              </div>
+            </SortableTierSection>
+          );
+        })}
+      </TierSortableContext>
+    );
   }
 
   function renderHabitsByTime(tier: number, tierHabits: Habit[]) {
@@ -344,6 +376,94 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
           </ul>
         </>
       )}
+    </div>
+  );
+}
+
+interface TierSortableContextProps {
+  tierKeys: string[];
+  onDragEnd: (event: DragEndEvent) => void;
+  children: ReactNode;
+}
+
+function TierSortableContext({
+  tierKeys,
+  onDragEnd,
+  children,
+}: TierSortableContextProps) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    }),
+  );
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={onDragEnd}
+    >
+      <SortableContext
+        items={tierKeys}
+        strategy={verticalListSortingStrategy}
+      >
+        {children}
+      </SortableContext>
+    </DndContext>
+  );
+}
+
+interface SortableTierSectionProps {
+  tier: number;
+  label: string;
+  color: string;
+  children: ReactNode;
+}
+
+function SortableTierSection({
+  tier,
+  label,
+  color,
+  children,
+}: SortableTierSectionProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: `t-${tier}` });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="mb-6">
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          {...attributes}
+          {...listeners}
+          className="p-1 -ml-1 text-calm-300 hover:text-calm-500 cursor-grab active:cursor-grabbing touch-none shrink-0"
+          aria-label={`Drag ${label} tier to reorder`}
+          type="button"
+        >
+          <svg className="w-3 h-4" viewBox="0 0 8 16" fill="currentColor">
+            <circle cx="4" cy="3" r="1" />
+            <circle cx="4" cy="8" r="1" />
+            <circle cx="4" cy="13" r="1" />
+          </svg>
+        </button>
+        <h3 className={`text-sm font-medium whitespace-nowrap ${color}`}>
+          {label}
+        </h3>
+        <div className="flex-1 h-px bg-calm-200"></div>
+      </div>
+      {children}
     </div>
   );
 }

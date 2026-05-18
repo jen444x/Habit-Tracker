@@ -327,13 +327,16 @@ def get_families():
     
     cur.close()
 
-    return jsonify({                                                                                                                                                                                                                        
-      "habits": habits,                                                                                                                                                                                                                   
-      "habits_done": habits_done,                                                                                                                                                                                                         
-      "prev_date": prev_date.isoformat(),                                                                                                                                                                                                 
-      "next_date": next_date.isoformat(),                                                                                                                                                                                                 
-      "today": today.isoformat()                                                                                                                                                                                                          
-    })  
+    tier_order = list(g.user['tier_order']) if g.user.get('tier_order') else [1, 2, 3]
+
+    return jsonify({
+      "habits": habits,
+      "habits_done": habits_done,
+      "prev_date": prev_date.isoformat(),
+      "next_date": next_date.isoformat(),
+      "today": today.isoformat(),
+      "tier_order": tier_order
+    })
 
 
 
@@ -378,6 +381,30 @@ def reorder_habits():
             (index, item, g.user['id'])
         )
 
+    db.commit()
+    cur.close()
+
+    return jsonify({}), 200
+
+
+# update the user's preferred tier order for the dashboard
+@bp.route('/habits/tier-order', methods=('PUT',))
+@login_required
+def update_tier_order():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Request body is required"}), 400
+
+    tier_order = data.get('tier_order')
+    if not isinstance(tier_order, list) or sorted(tier_order) != [1, 2, 3]:
+        return jsonify({"error": "tier_order must be a permutation of [1, 2, 3]"}), 400
+
+    db = get_db()
+    cur = db.cursor()
+    cur.execute(
+        'UPDATE users SET tier_order = %s WHERE id = %s',
+        (tier_order, g.user['id'])
+    )
     db.commit()
     cur.close()
 
@@ -697,26 +724,15 @@ def upgrade():
     db = get_db()
     cur = db.cursor()
 
-    # Find the previous stage in this family so the new stage cascades to it.
-    # That way, completing the new (harder) stage auto-completes the previous
-    # one, and any cross-tier link on the previous stage chains through too.
-    cur.execute(
-        'SELECT id FROM habits'
-        ' WHERE family_id = %s AND stage = %s AND creator_id = %s'
-        ' ORDER BY created_at DESC LIMIT 1',
-        (family, stage - 1, g.user['id'])
-    )
-    prev_row = cur.fetchone()
-    prev_id = prev_row['id'] if prev_row else None
-
     # create habit
     cur.execute(
-        'INSERT INTO habits (name, notes, stage, family_id, merged, tier, time_of_day, creator_id, cascades_to, display_order)'
-        ' VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, ('
-        'SELECT COALESCE(MAX(display_order), 0) + 1 '
+        'INSERT INTO habits (name, notes, stage, family_id, merged, tier, time_of_day, creator_id, display_order)'
+        ' VALUES (%s, %s, %s, %s, %s, %s, %s, %s, (' \
+        'SELECT COALESCE(MAX(display_order), 0) + 1 ' \
         'FROM habits WHERE creator_id = %s))',
-        (name, description, stage, family, merged, tier, time_of_day, g.user['id'], prev_id, g.user['id'])
+        (name, description, stage, family, merged, tier, time_of_day, g.user['id'], g.user['id'])
     )
+
 
     db.commit()
     cur.close()
@@ -856,7 +872,8 @@ def complete(id):
     cur = db.cursor()
 
     cur.execute(
-        "INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)",
+        "INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)"
+        " ON CONFLICT (habit_id, log_date) DO NOTHING",
         (log_date, id)
     )
     cascade_complete(cur, id, log_date)
@@ -1375,7 +1392,8 @@ def complete_multiple():
                                                                                                                             
         # Insert completion log
         cur.execute(
-            'INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)',
+            'INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)'
+            ' ON CONFLICT (habit_id, log_date) DO NOTHING',
             (log_date, habit_id)
         )
         cascade_complete(cur, habit_id, log_date)
