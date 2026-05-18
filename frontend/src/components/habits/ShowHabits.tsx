@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import type { ReactNode } from "react";
 import {
   DndContext,
   closestCenter,
@@ -65,6 +64,7 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
   const [prevDate, setPrevDate] = useState("");
   const [nextDate, setNextDate] = useState("");
   const [tierOrder, setTierOrder] = useState<number[]>([1, 2, 3]);
+  const [isReorderOpen, setIsReorderOpen] = useState(false);
 
   async function fetchHabits() {
     const url = `${import.meta.env.VITE_API_URL}/habits/tiers`;
@@ -248,46 +248,34 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
     persistOrder(reordered);
   }
 
-  function handleTierDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = tierOrder.findIndex((t) => `t-${t}` === active.id);
-    const newIndex = tierOrder.findIndex((t) => `t-${t}` === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
-    const reordered = arrayMove(tierOrder, oldIndex, newIndex);
-    setTierOrder(reordered);
-    persistTierOrder(reordered);
-  }
-
   function renderHabitsByTier() {
     const habitsByTier = groupHabitsByTier(habits);
     const visibleTiers = tierOrder.filter(
       (t) => habitsByTier[t] !== undefined,
     );
 
-    return (
-      <TierSortableContext
-        tierKeys={visibleTiers.map((t) => `t-${t}`)}
-        onDragEnd={handleTierDragEnd}
-      >
-        {visibleTiers.map((tier) => {
-          const tierHabits = habitsByTier[tier];
-          const tierInfo = tierLabels[tier];
-          return (
-            <SortableTierSection
-              key={tier}
-              tier={tier}
-              label={tierInfo ? tierInfo.label : `Tier ${tier}`}
-              color={tierInfo ? tierInfo.color : "text-calm-500"}
+    return visibleTiers.map((tier) => {
+      const tierHabits = habitsByTier[tier];
+      const tierInfo = tierLabels[tier];
+      const tierLabel = tierInfo ? tierInfo.label : `Tier ${tier}`;
+      const tierColor = tierInfo ? tierInfo.color : "text-calm-500";
+
+      return (
+        <div key={tier} className="mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <h3
+              className={`text-sm font-medium whitespace-nowrap ${tierColor}`}
             >
-              <div className="space-y-4">
-                {renderHabitsByTime(tier, tierHabits)}
-              </div>
-            </SortableTierSection>
-          );
-        })}
-      </TierSortableContext>
-    );
+              {tierLabel}
+            </h3>
+            <div className="flex-1 h-px bg-calm-200"></div>
+          </div>
+          <div className="space-y-4">
+            {renderHabitsByTime(tier, tierHabits)}
+          </div>
+        </div>
+      );
+    });
   }
 
   function renderHabitsByTime(tier: number, tierHabits: Habit[]) {
@@ -352,7 +340,30 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
       )}
       {error && <p className="text-center text-red-500 mt-4">{error}</p>}
 
+      {habits.length > 0 && (
+        <div className="flex justify-end mb-3">
+          <button
+            type="button"
+            onClick={() => setIsReorderOpen(true)}
+            className="text-xs text-calm-500 hover:text-calm-700 underline-offset-2 hover:underline"
+          >
+            Reorder tiers
+          </button>
+        </div>
+      )}
+
       {habits.length > 0 && renderHabitsByTier()}
+
+      {isReorderOpen && (
+        <TierOrderModal
+          tierOrder={tierOrder}
+          onChange={(order) => {
+            setTierOrder(order);
+            persistTierOrder(order);
+          }}
+          onClose={() => setIsReorderOpen(false)}
+        />
+      )}
 
       {habitsDone.length > 0 && (
         <>
@@ -380,53 +391,72 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
   );
 }
 
-interface TierSortableContextProps {
-  tierKeys: string[];
-  onDragEnd: (event: DragEndEvent) => void;
-  children: ReactNode;
+interface TierOrderModalProps {
+  tierOrder: number[];
+  onChange: (order: number[]) => void;
+  onClose: () => void;
 }
 
-function TierSortableContext({
-  tierKeys,
-  onDragEnd,
-  children,
-}: TierSortableContextProps) {
+function TierOrderModal({ tierOrder, onChange, onClose }: TierOrderModalProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, {
-      activationConstraint: { delay: 200, tolerance: 5 },
+      activationConstraint: { delay: 150, tolerance: 5 },
     }),
   );
 
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = tierOrder.findIndex((t) => `t-${t}` === active.id);
+    const newIndex = tierOrder.findIndex((t) => `t-${t}` === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    onChange(arrayMove(tierOrder, oldIndex, newIndex));
+  }
+
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={onDragEnd}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      onClick={onClose}
     >
-      <SortableContext
-        items={tierKeys}
-        strategy={verticalListSortingStrategy}
+      <div
+        className="w-full max-w-xs bg-white rounded-lg shadow-lg p-4"
+        onClick={(e) => e.stopPropagation()}
       >
-        {children}
-      </SortableContext>
-    </DndContext>
+        <h2 className="text-sm font-medium text-calm-700 mb-3">
+          Reorder tiers
+        </h2>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={tierOrder.map((t) => `t-${t}`)}
+            strategy={verticalListSortingStrategy}
+          >
+            <ul className="space-y-2">
+              {tierOrder.map((tier) => (
+                <TierOrderRow key={tier} tier={tier} />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
+        <div className="flex justify-end mt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3 py-1.5 text-sm text-calm-600 hover:text-calm-800"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
-interface SortableTierSectionProps {
-  tier: number;
-  label: string;
-  color: string;
-  children: ReactNode;
-}
-
-function SortableTierSection({
-  tier,
-  label,
-  color,
-  children,
-}: SortableTierSectionProps) {
+function TierOrderRow({ tier }: { tier: number }) {
   const {
     attributes,
     listeners,
@@ -442,29 +472,31 @@ function SortableTierSection({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const info = tierLabels[tier];
+  const label = info ? info.label : `Tier ${tier}`;
+  const color = info ? info.color : "text-calm-500";
+
   return (
-    <div ref={setNodeRef} style={style} className="mb-6">
-      <div className="flex items-center gap-2 mb-4">
-        <button
-          {...attributes}
-          {...listeners}
-          className="p-1 -ml-1 text-calm-300 hover:text-calm-500 cursor-grab active:cursor-grabbing touch-none shrink-0"
-          aria-label={`Drag ${label} tier to reorder`}
-          type="button"
-        >
-          <svg className="w-3 h-4" viewBox="0 0 8 16" fill="currentColor">
-            <circle cx="4" cy="3" r="1" />
-            <circle cx="4" cy="8" r="1" />
-            <circle cx="4" cy="13" r="1" />
-          </svg>
-        </button>
-        <h3 className={`text-sm font-medium whitespace-nowrap ${color}`}>
-          {label}
-        </h3>
-        <div className="flex-1 h-px bg-calm-200"></div>
-      </div>
-      {children}
-    </div>
+    <li
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 px-3 py-2 border border-calm-200 rounded-md bg-white"
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="p-1 -ml-1 text-calm-300 hover:text-calm-500 cursor-grab active:cursor-grabbing touch-none shrink-0"
+        aria-label={`Drag ${label}`}
+        type="button"
+      >
+        <svg className="w-3 h-4" viewBox="0 0 8 16" fill="currentColor">
+          <circle cx="4" cy="3" r="1" />
+          <circle cx="4" cy="8" r="1" />
+          <circle cx="4" cy="13" r="1" />
+        </svg>
+      </button>
+      <span className={`text-sm font-medium ${color}`}>{label}</span>
+    </li>
   );
 }
 
