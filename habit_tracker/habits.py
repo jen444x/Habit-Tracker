@@ -681,29 +681,57 @@ def get_habit(id):
 
 
 @bp.route('/family/<int:family_id>', methods=('GET',))
+@login_required
 def get_family(family_id):
     db = get_db()
     cur = db.cursor()
 
-    # Get habits from this family
+    # Family members
     cur.execute(
-        'SELECT id, name, stage' \
-        ' FROM habits' \
+        'SELECT id, name, stage, tier, cascades_to'
+        ' FROM habits'
         ' WHERE family_id = %s AND creator_id = %s'
         ' ORDER BY stage DESC',
         (family_id, g.user['id'])
-    )   
+    )
+    family = [dict(row) for row in cur.fetchall()]
+    member_ids = [h['id'] for h in family]
 
-    habits = cur.fetchall()
+    # For each member, fetch the easier habit it cascades to (outgoing link)
+    cascade_target_ids = [h['cascades_to'] for h in family if h['cascades_to']]
+    targets_by_id = {}
+    if cascade_target_ids:
+        cur.execute(
+            'SELECT id, name, tier FROM habits'
+            ' WHERE id = ANY(%s) AND creator_id = %s',
+            (cascade_target_ids, g.user['id'])
+        )
+        for row in cur.fetchall():
+            targets_by_id[row['id']] = dict(row)
+
+    # Incoming links: harder habits whose cascades_to points at one of our members
+    incoming_by_target = {}
+    if member_ids:
+        cur.execute(
+            'SELECT id, name, tier, cascades_to FROM habits'
+            ' WHERE cascades_to = ANY(%s) AND creator_id = %s',
+            (member_ids, g.user['id'])
+        )
+        for row in cur.fetchall():
+            incoming_by_target.setdefault(row['cascades_to'], []).append(
+                {'id': row['id'], 'name': row['name'], 'tier': row['tier']}
+            )
+
+    # Attach linked_lower / linked_higher relative to each family member's tier
+    for h in family:
+        target = targets_by_id.get(h['cascades_to']) if h['cascades_to'] else None
+        incoming = incoming_by_target.get(h['id'], [])
+
+        h['linked_lower'] = target if target and target['tier'] < h['tier'] else None
+        h['linked_higher'] = [i for i in incoming if i['tier'] > h['tier']]
+
     cur.close()
-    print()
-    print()
-    for habit in habits:
-        print(habit)
-        print()
-    print()
-    print()
-    return jsonify({"habits": habits}), 200
+    return jsonify({"habits": family}), 200
 
 
 @bp.route('/upgrade', methods=('POST',))
