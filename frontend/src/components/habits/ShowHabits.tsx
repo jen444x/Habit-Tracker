@@ -1,4 +1,20 @@
 import { useState, useEffect } from "react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import type { DragEndEvent } from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import HabitListItem from "./HabitListItem";
 import DateNavigator from "../common/DateNavigator";
 import MergedHabitGroup from "./MergedHabitGroup";
@@ -12,12 +28,18 @@ interface Habit {
   time_of_day: number;
   status?: "completed" | "skipped";
   curr_streak: number;
-  family_id: number; // Add this
-  merged: boolean; // Add this
+  family_id: number;
+  merged: boolean;
 }
 
 interface ShowHabitsProps {
   selectedDate: string | null;
+}
+
+// One displayed row: either a single habit, or a merged family group
+interface DisplayItem {
+  key: string;
+  habits: Habit[];
 }
 
 const tierLabels: Record<number, { label: string; color: string }> = {
@@ -35,7 +57,7 @@ const timeLabels: Record<number, { label: string; icon?: string }> = {
 };
 
 function ShowHabits({ selectedDate }: ShowHabitsProps) {
-  const [habits, setHabits] = useState([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
   const [habitsDone, setHabitsDone] = useState([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -70,8 +92,6 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
       setHabitsDone(data.habits_done);
       setPrevDate(data.prev_date);
       setNextDate(data.next_date);
-      console.log(data.habits);
-      console.log(data.habits_done);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "An unknown error occurred",
@@ -86,73 +106,141 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
     fetchHabits();
   }, [selectedDate]);
 
-  // =============================================
-  // STEP 1: Group habits by tier
-  // =============================================
   function groupHabitsByTier(habitsToGroup: Habit[]) {
-    // Create an empty object to hold our groups
     const groups: Record<number, Habit[]> = {};
-
-    // Loop through each habit
     for (const habit of habitsToGroup) {
       const tier = habit.tier;
-
-      // If this tier doesn't have a bucket yet, create an empty array
-      if (groups[tier] === undefined) {
-        groups[tier] = [];
-      }
-
-      // Add this habit to its tier's bucket
+      if (groups[tier] === undefined) groups[tier] = [];
       groups[tier].push(habit);
     }
-
     return groups;
   }
 
-  // =============================================
-  // STEP 2: Group habits by time of day
-  // =============================================
   function groupHabitsByTime(habitsToGroup: Habit[]) {
     const groups: Record<number, Habit[]> = {};
-
     for (const habit of habitsToGroup) {
-      // Use 0 (Any Time) if time_of_day is not set
       const time = habit.time_of_day || 0;
-
-      if (groups[time] === undefined) {
-        groups[time] = [];
-      }
-
+      if (groups[time] === undefined) groups[time] = [];
       groups[time].push(habit);
     }
-
     return groups;
   }
 
-  // =============================================
-  // STEP 3: Render all habits organized by tier, then by time
-  // =============================================
-  function renderHabitsByTier() {
-    // Group all habits by tier
-    const habitsByTier = groupHabitsByTier(habits);
+  // Collapse a tier+time group's habits into displayed items, where merged
+  // family members count as a single draggable.
+  function buildDisplayItems(timeHabits: Habit[]): DisplayItem[] {
+    const items: DisplayItem[] = [];
+    const seenFamilies = new Set<number>();
 
-    // Convert { 1: [...], 2: [...] } into [["1", [...]], ["2", [...]]]
-    // so we can loop through it
+    for (let i = 0; i < timeHabits.length; i++) {
+      const habit = timeHabits[i];
+
+      if (habit.merged === false) {
+        items.push({ key: `h-${habit.id}`, habits: [habit] });
+        continue;
+      }
+
+      if (seenFamilies.has(habit.family_id)) continue;
+
+      const familyMembers: Habit[] = [];
+      for (let j = 0; j < timeHabits.length; j++) {
+        const other = timeHabits[j];
+        if (other.merged && other.family_id === habit.family_id) {
+          familyMembers.push(other);
+        }
+      }
+
+      seenFamilies.add(habit.family_id);
+
+      if (familyMembers.length < 2) {
+        items.push({ key: `h-${habit.id}`, habits: [habit] });
+      } else {
+        items.push({
+          key: `f-${habit.family_id}`,
+          habits: familyMembers,
+        });
+      }
+    }
+
+    return items;
+  }
+
+  async function persistOrder(items: DisplayItem[]) {
+    const payload = items.map((item) => item.habits.map((h) => h.id));
+    const token = localStorage.getItem("token");
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/habits/reorder`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ items: payload }),
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  function handleDragEnd(
+    event: DragEndEvent,
+    tier: number,
+    time: number,
+    items: DisplayItem[],
+  ) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = items.findIndex((it) => it.key === active.id);
+    const newIndex = items.findIndex((it) => it.key === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(items, oldIndex, newIndex);
+
+    // Splice the reordered group's habits back into the flat habits list,
+    // preserving habits in other tier+time groups.
+    const reorderedIds = new Set<number>();
+    for (const item of reordered) {
+      for (const h of item.habits) reorderedIds.add(h.id);
+    }
+
+    const newHabits: Habit[] = [];
+    const reorderedFlat: Habit[] = [];
+    for (const item of reordered) {
+      for (const h of item.habits) reorderedFlat.push(h);
+    }
+
+    let insertedReordered = false;
+    for (const h of habits) {
+      const inGroup = h.tier === tier && (h.time_of_day || 0) === time;
+      if (inGroup) {
+        if (!insertedReordered) {
+          newHabits.push(...reorderedFlat);
+          insertedReordered = true;
+        }
+      } else {
+        newHabits.push(h);
+      }
+    }
+
+    setHabits(newHabits);
+    persistOrder(reordered);
+  }
+
+  function renderHabitsByTier() {
+    const habitsByTier = groupHabitsByTier(habits);
     const tierEntries = Object.entries(habitsByTier);
 
-    // Loop through each tier and render it
     return tierEntries.map(function (entry) {
-      const tier = entry[0]; // The tier number (as a string)
-      const tierHabits = entry[1] as Habit[]; // The habits in this tier
+      const tier = entry[0];
+      const tierHabits = entry[1] as Habit[];
 
-      // Get the label and color for this tier
       const tierInfo = tierLabels[Number(tier)];
       const tierLabel = tierInfo ? tierInfo.label : `Tier ${tier}`;
       const tierColor = tierInfo ? tierInfo.color : "text-calm-500";
 
       return (
         <div key={tier} className="mb-6">
-          {/* Tier header */}
           <div className="flex items-center gap-3 mb-4">
             <h3
               className={`text-sm font-medium whitespace-nowrap ${tierColor}`}
@@ -162,31 +250,26 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
             <div className="flex-1 h-px bg-calm-200"></div>
           </div>
 
-          {/* Habits in this tier, grouped by time */}
-          <div className="space-y-4">{renderHabitsByTime(tierHabits)}</div>
+          <div className="space-y-4">
+            {renderHabitsByTime(Number(tier), tierHabits)}
+          </div>
         </div>
       );
     });
   }
 
-  // =============================================
-  // STEP 4: Render habits for a single tier, grouped by time
-  // =============================================
-  function renderHabitsByTime(tierHabits: Habit[]) {
-    // Group this tier's habits by time of day
+  function renderHabitsByTime(tier: number, tierHabits: Habit[]) {
     const habitsByTime = groupHabitsByTime(tierHabits);
-
-    // Convert to array so we can loop
     const timeEntries = Object.entries(habitsByTime);
 
     return timeEntries.map(function (entry) {
-      const time = entry[0]; // The time of day (as a string)
-      const timeHabits = entry[1] as Habit[]; // The habits at this time
-      const timeInfo = timeLabels[Number(time)]; // Get the label and icon for this time
+      const time = Number(entry[0]);
+      const timeHabits = entry[1] as Habit[];
+      const timeInfo = timeLabels[time];
+      const items = buildDisplayItems(timeHabits);
 
       return (
         <div key={time}>
-          {/* Time of day header (Morning, Evening, etc.) */}
           {timeInfo && (
             <div className="flex items-center gap-1.5 mb-2 text-calm-400">
               {timeInfo.icon && (
@@ -196,76 +279,14 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
             </div>
           )}
 
-          {/* List of habits at this time */}
-          <ul className="space-y-2">
-            {timeHabits.map(function (habit, index) {
-              // Render regularly if not merged
-              if (habit.merged === false) {
-                return (
-                  <HabitListItem
-                    key={habit.id}
-                    habit={habit}
-                    onComplete={fetchHabits}
-                    status="incomplete"
-                    selectedDate={selectedDate}
-                  />
-                );
-              }
-
-              // Skip if its not the first in family bc first handled it
-              const previousHabit = timeHabits[index - 1];
-              if (previousHabit !== undefined) {
-                if (previousHabit.family_id === habit.family_id) {
-                  return null;
-                }
-              }
-
-              // If first habit, get rest of family
-              const familyMembers: Habit[] = [habit];
-
-              // Look at the next habits
-              let i = index + 1;
-
-              while (i < timeHabits.length) {
-                const laterHabit = timeHabits[i];
-
-                // Stop if we hit a different family
-                if (laterHabit.family_id !== habit.family_id) {
-                  break;
-                }
-
-                // Only include if also merged
-                if (laterHabit.merged === true) {
-                  familyMembers.push(laterHabit);
-                }
-
-                i = i + 1;
-              }
-
-              // Render regularly if theres only 1 habit in family
-              if (familyMembers.length < 2) {
-                return (
-                  <HabitListItem
-                    key={habit.id}
-                    habit={habit}
-                    onComplete={fetchHabits}
-                    status="incomplete"
-                    selectedDate={selectedDate}
-                  />
-                );
-              }
-
-              // Render merged group with a wrapper
-              return (
-                <MergedHabitGroup
-                  key={habit.id}
-                  familyMembers={familyMembers}
-                  onComplete={fetchHabits}
-                  selectedDate={selectedDate}
-                />
-              );
-            })}
-          </ul>
+          <SortableGroup
+            tier={tier}
+            time={time}
+            items={items}
+            onDragEnd={handleDragEnd}
+            onComplete={fetchHabits}
+            selectedDate={selectedDate}
+          />
         </div>
       );
     });
@@ -299,10 +320,8 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
       )}
       {error && <p className="text-center text-red-500 mt-4">{error}</p>}
 
-      {/* Show habits grouped by tier */}
       {habits.length > 0 && renderHabitsByTier()}
 
-      {/* Show habits that have been completed */}
       {habitsDone.length > 0 && (
         <>
           {habits.length > 0 && (
@@ -325,6 +344,133 @@ function ShowHabits({ selectedDate }: ShowHabitsProps) {
           </ul>
         </>
       )}
+    </div>
+  );
+}
+
+interface SortableGroupProps {
+  tier: number;
+  time: number;
+  items: DisplayItem[];
+  onDragEnd: (
+    event: DragEndEvent,
+    tier: number,
+    time: number,
+    items: DisplayItem[],
+  ) => void;
+  onComplete: () => void;
+  selectedDate: string | null;
+}
+
+function SortableGroup({
+  tier,
+  time,
+  items,
+  onDragEnd,
+  onComplete,
+  selectedDate,
+}: SortableGroupProps) {
+  // PointerSensor with small activation distance so taps still click through;
+  // TouchSensor with delay so scrolling on mobile isn't hijacked.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    }),
+  );
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={(event) => onDragEnd(event, tier, time, items)}
+    >
+      <SortableContext
+        items={items.map((it) => it.key)}
+        strategy={verticalListSortingStrategy}
+      >
+        <ul className="space-y-2">
+          {items.map((item) => (
+            <SortableItem
+              key={item.key}
+              item={item}
+              onComplete={onComplete}
+              selectedDate={selectedDate}
+            />
+          ))}
+        </ul>
+      </SortableContext>
+    </DndContext>
+  );
+}
+
+interface SortableItemProps {
+  item: DisplayItem;
+  onComplete: () => void;
+  selectedDate: string | null;
+}
+
+function SortableItem({ item, onComplete, selectedDate }: SortableItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: item.key });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const dragHandle = (
+    <button
+      {...attributes}
+      {...listeners}
+      className="p-1 text-calm-300 hover:text-calm-500 cursor-grab active:cursor-grabbing touch-none shrink-0"
+      aria-label="Drag to reorder"
+      type="button"
+    >
+      <svg
+        className="w-4 h-4"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <circle cx="9" cy="6" r="1" fill="currentColor" />
+        <circle cx="15" cy="6" r="1" fill="currentColor" />
+        <circle cx="9" cy="12" r="1" fill="currentColor" />
+        <circle cx="15" cy="12" r="1" fill="currentColor" />
+        <circle cx="9" cy="18" r="1" fill="currentColor" />
+        <circle cx="15" cy="18" r="1" fill="currentColor" />
+      </svg>
+    </button>
+  );
+
+  if (item.habits.length === 1) {
+    return (
+      <div ref={setNodeRef} style={style} className="flex items-center gap-1">
+        {dragHandle}
+        <div className="flex-1">
+          <HabitListItem
+            habit={item.habits[0]}
+            onComplete={onComplete}
+            status="incomplete"
+            selectedDate={selectedDate}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center gap-1">
+      {dragHandle}
+      <div className="flex-1">
+        <MergedHabitGroup
+          familyMembers={item.habits}
+          onComplete={onComplete}
+          selectedDate={selectedDate}
+        />
+      </div>
     </div>
   );
 }

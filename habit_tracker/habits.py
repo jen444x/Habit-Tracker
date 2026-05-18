@@ -118,10 +118,10 @@ def get_families():
 
     # Get habits that haven't been completed yet
     # will only get the newest habit in habit family if they arent suppose to be merged
-    cur.execute(  
+    cur.execute(
         'SELECT * FROM (' \
         '   SELECT DISTINCT ON (family_id)' \
-        '       h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier, time_of_day, merged' \
+        '       h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier, time_of_day, merged, display_order' \
         '   FROM habits h' \
         '   LEFT JOIN habit_logs hl' \
         '       ON h.id = hl.habit_id' \
@@ -132,22 +132,22 @@ def get_families():
         '   ORDER BY family_id, stage ASC' \
         ') AS unique_habits' \
         ' ORDER BY tier ASC',
-        (selected_date, g.user['id'], False) 
+        (selected_date, g.user['id'], False)
     )
     habits = [dict(row) for row in cur.fetchall()]
-    
+
     # now we will get the merged ones and add to habits
     cur.execute(
-        'SELECT h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier, time_of_day, merged' 
+        'SELECT h.id, h.name, h.notes, h.created_at, h.family_id, stage, tier, time_of_day, merged, display_order'
         ' FROM habits h'
         ' LEFT JOIN habit_logs hl'
         '   ON h.id = hl.habit_id'
         '   AND hl.log_date = %s'
         ' WHERE h.creator_id = %s'
-        '   AND merged = %s' 
+        '   AND merged = %s'
         ' AND hl.habit_id IS NULL'
         ' ORDER BY tier, family_id, stage ASC',
-        (selected_date, g.user['id'], True) 
+        (selected_date, g.user['id'], True)
     )
     merged_habits = [dict(row) for row in cur.fetchall()]
     habits.extend(merged_habits)
@@ -208,8 +208,22 @@ def get_families():
             # Non-merged habits use their own streak                                                                                                       
             habit['sort_streak'] = habit['curr_streak']                                                                                                    
                                                                                                                                                             
-    # Sort using sort_streak instead of curr_streak                                                                                                        
-    habits.sort(key=lambda habit: (habit['tier'], habit['time_of_day'] or 0, -habit['sort_streak'], habit['family_id'], habit['stage']))
+    # Habits with display_order set come first in user's chosen order, then
+    # fall back to streak. Merged family members share display_order, so they
+    # stay adjacent and sort by stage within the family.
+    def sort_key(habit):
+        has_order = habit['display_order'] is not None
+        return (
+            habit['tier'],
+            habit['time_of_day'] or 0,
+            0 if has_order else 1,
+            habit['display_order'] if has_order else 0,
+            -habit['sort_streak'],
+            habit['family_id'],
+            habit['stage'],
+        )
+
+    habits.sort(key=sort_key)
     
     # Get completed habits
     # cur.execute(
@@ -275,6 +289,53 @@ def get_families():
       "today": today.isoformat()                                                                                                                                                                                                          
     })  
 
+
+
+# reorder habits within a tier+time group
+@bp.route('/habits/reorder', methods=('PUT',))
+@login_required
+def reorder_habits():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Request body is required"}), 400
+
+    items = data.get('items')
+    if not isinstance(items, list) or not items:
+        return jsonify({"error": "items must be a non-empty list"}), 400
+
+    # Flatten and validate: every item is a list of habit ids that share an order
+    all_ids = []
+    for item in items:
+        if not isinstance(item, list) or not item:
+            return jsonify({"error": "each item must be a non-empty list of habit ids"}), 400
+        for habit_id in item:
+            if not isinstance(habit_id, int):
+                return jsonify({"error": "habit ids must be integers"}), 400
+            all_ids.append(habit_id)
+
+    db = get_db()
+    cur = db.cursor()
+
+    # Confirm every habit belongs to this user before writing
+    cur.execute(
+        'SELECT id FROM habits WHERE id = ANY(%s) AND creator_id = %s',
+        (all_ids, g.user['id'])
+    )
+    owned = {row['id'] for row in cur.fetchall()}
+    if owned != set(all_ids):
+        cur.close()
+        return jsonify({"error": "one or more habits not found"}), 404
+
+    for index, item in enumerate(items):
+        cur.execute(
+            'UPDATE habits SET display_order = %s WHERE id = ANY(%s) AND creator_id = %s',
+            (index, item, g.user['id'])
+        )
+
+    db.commit()
+    cur.close()
+
+    return jsonify({}), 200
 
 
 # get complete and incomplete habits for date
