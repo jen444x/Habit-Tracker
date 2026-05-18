@@ -6,6 +6,7 @@ interface Habit {
   name: string;
   tier: number;
   time_of_day: number | null;
+  cascades_to: number | null;
 }
 
 const tierLabels: Record<number, string> = {
@@ -158,7 +159,10 @@ function GrowHorizontalPage() {
 
   const eligibleExisting = currentHabit
     ? allHabits.filter(
-        (h) => h.tier > currentHabit.tier && h.id !== currentHabit.id,
+        (h) =>
+          h.tier > currentHabit.tier &&
+          h.id !== currentHabit.id &&
+          h.cascades_to === null,
       )
     : [];
 
