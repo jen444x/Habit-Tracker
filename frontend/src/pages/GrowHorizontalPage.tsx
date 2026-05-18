@@ -55,9 +55,9 @@ function GrowHorizontalPage() {
           return;
         }
         setCurrentHabit(data.habit);
-        // Default tier dropdown to the first option that isn't current tier
-        const otherTiers = [1, 2, 3].filter((t) => t !== data.habit.tier);
-        setTier(otherTiers[0]);
+        // Default tier dropdown to the first tier above the current one
+        const higherTiers = [1, 2, 3].filter((t) => t > data.habit.tier);
+        setTier(higherTiers[0] ?? null);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Unknown error");
       }
@@ -152,12 +152,14 @@ function GrowHorizontalPage() {
     }
   }
 
-  const otherTiers = currentHabit
-    ? [1, 2, 3].filter((t) => t !== currentHabit.tier)
+  const higherTiers = currentHabit
+    ? [1, 2, 3].filter((t) => t > currentHabit.tier)
     : [];
 
   const eligibleExisting = currentHabit
-    ? allHabits.filter((h) => h.tier !== currentHabit.tier && h.id !== currentHabit.id)
+    ? allHabits.filter(
+        (h) => h.tier > currentHabit.tier && h.id !== currentHabit.id,
+      )
     : [];
 
   return (
@@ -232,7 +234,14 @@ function GrowHorizontalPage() {
           </button>
         </div>
 
-        {mode === "create" && (
+        {currentHabit && higherTiers.length === 0 && (
+          <p className="text-center text-calm-500 text-sm py-8">
+            This habit is already at the highest tier — nothing wider to grow
+            into.
+          </p>
+        )}
+
+        {mode === "create" && higherTiers.length > 0 && (
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
               <label className="block text-calm-700 text-sm mb-2 font-medium">
@@ -270,7 +279,7 @@ function GrowHorizontalPage() {
                 onChange={(e) => setTier(Number(e.target.value))}
                 className="w-full px-4 py-4 bg-white border border-calm-200 rounded-xl focus:outline-none focus:border-calm-500 text-calm-900"
               >
-                {otherTiers.map((t) => (
+                {higherTiers.map((t) => (
                   <option key={t} value={t}>
                     {tierLabels[t]}
                   </option>
@@ -312,11 +321,11 @@ function GrowHorizontalPage() {
           </form>
         )}
 
-        {mode === "existing" && (
+        {mode === "existing" && higherTiers.length > 0 && (
           <div>
             {eligibleExisting.length === 0 ? (
               <p className="text-center text-calm-500 text-sm py-8">
-                No habits in other tiers to link to.
+                No habits at a higher tier to link to.
               </p>
             ) : (
               <ul className="space-y-2 mb-4">
