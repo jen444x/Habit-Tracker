@@ -26,6 +26,7 @@ interface HabitListItemProps {
   onComplete: () => void;
   status: "incomplete" | "completed" | "skipped";
   selectedDate: string | null;
+  dragHandle?: React.ReactNode;
 }
 
 function HabitListItem({
@@ -33,6 +34,7 @@ function HabitListItem({
   onComplete,
   status,
   selectedDate,
+  dragHandle,
 }: HabitListItemProps) {
   const navigate = useNavigate();
   async function handleClick() {
@@ -95,8 +97,9 @@ function HabitListItem({
 
   return (
     <li
-      className={`bg-white border rounded-xl pl-4 pr-1.5 py-1.5 flex items-center gap-3 transition-colors ${borderStyle}`}
+      className={`bg-white border rounded-xl pl-2 pr-1.5 py-1.5 flex items-center gap-2 transition-colors ${borderStyle}`}
     >
+      {dragHandle}
       {/* Complete button */}
       <button onClick={handleChange} className="p-1 -m-1 shrink-0">
         <span

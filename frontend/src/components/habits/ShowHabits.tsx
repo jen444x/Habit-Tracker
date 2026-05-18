@@ -424,15 +424,11 @@ function SortableItem({ item, onComplete, selectedDate }: SortableItemProps) {
     <button
       {...attributes}
       {...listeners}
-      className="text-calm-300 hover:text-calm-500 cursor-grab active:cursor-grabbing touch-none shrink-0 -mr-0.5"
+      className="p-1 -ml-1 text-calm-300 hover:text-calm-500 cursor-grab active:cursor-grabbing touch-none shrink-0"
       aria-label="Drag to reorder"
       type="button"
     >
-      <svg
-        className="w-2.5 h-4"
-        viewBox="0 0 8 16"
-        fill="currentColor"
-      >
+      <svg className="w-3 h-4" viewBox="0 0 8 16" fill="currentColor">
         <circle cx="4" cy="3" r="1" />
         <circle cx="4" cy="8" r="1" />
         <circle cx="4" cy="13" r="1" />
@@ -442,30 +438,26 @@ function SortableItem({ item, onComplete, selectedDate }: SortableItemProps) {
 
   if (item.habits.length === 1) {
     return (
-      <div ref={setNodeRef} style={style} className="flex items-center">
-        {dragHandle}
-        <div className="flex-1 min-w-0">
-          <HabitListItem
-            habit={item.habits[0]}
-            onComplete={onComplete}
-            status="incomplete"
-            selectedDate={selectedDate}
-          />
-        </div>
+      <div ref={setNodeRef} style={style}>
+        <HabitListItem
+          habit={item.habits[0]}
+          onComplete={onComplete}
+          status="incomplete"
+          selectedDate={selectedDate}
+          dragHandle={dragHandle}
+        />
       </div>
     );
   }
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center">
-      {dragHandle}
-      <div className="flex-1 min-w-0">
-        <MergedHabitGroup
-          familyMembers={item.habits}
-          onComplete={onComplete}
-          selectedDate={selectedDate}
-        />
-      </div>
+    <div ref={setNodeRef} style={style}>
+      <MergedHabitGroup
+        familyMembers={item.habits}
+        onComplete={onComplete}
+        selectedDate={selectedDate}
+        dragHandle={dragHandle}
+      />
     </div>
   );
 }

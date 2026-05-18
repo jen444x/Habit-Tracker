@@ -26,12 +26,14 @@ interface MergedHabitGroupProps {
   familyMembers: Habit[];
   onComplete: () => void;
   selectedDate: string | null;
+  dragHandle?: React.ReactNode;
 }
 
 function MergedHabitGroup({
   familyMembers,
   onComplete,
   selectedDate,
+  dragHandle,
 }: MergedHabitGroupProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -105,7 +107,8 @@ function MergedHabitGroup({
   return (
     <div className="space-y-1">
       {/* The merged habit card */}
-      <li className="bg-white border border-calm-200 hover:border-calm-300 rounded-xl pl-2 pr-1.5 py-1.5 flex items-center gap-3 transition-colors">
+      <li className="bg-white border border-calm-200 hover:border-calm-300 rounded-xl pl-2 pr-1.5 py-1.5 flex items-center gap-2 transition-colors">
+        {dragHandle}
         {/* Complete button */}
         <button onClick={handleComplete} className="p-1 -m-1 shrink-0">
           <span className="w-5 h-5 rounded-full border-2 border-calm-300 flex items-center justify-center transition-colors">
