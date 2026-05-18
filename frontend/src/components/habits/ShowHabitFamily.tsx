@@ -70,7 +70,7 @@ function ShowHabitFamily({ familyId, id }: ShowHabitFamilyProps) {
     <>
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
-      {!nextStageExists && <UpgradeHabit id={Number(id)} />}
+      <UpgradeHabit id={Number(id)} canGrowTaller={!nextStageExists} />
 
       {habits.some(
         (h) =>

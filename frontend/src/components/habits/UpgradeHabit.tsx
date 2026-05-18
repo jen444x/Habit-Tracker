@@ -3,9 +3,10 @@ import { useNavigate } from "react-router";
 
 interface UpgradeHabitProps {
   id: number;
+  canGrowTaller?: boolean;
 }
 
-function UpgradeHabit({ id }: UpgradeHabitProps) {
+function UpgradeHabit({ id, canGrowTaller = true }: UpgradeHabitProps) {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -55,10 +56,16 @@ function UpgradeHabit({ id }: UpgradeHabitProps) {
             <div className="space-y-3">
               <button
                 onClick={() => {
+                  if (!canGrowTaller) return;
                   setIsOpen(false);
                   navigate(`/habits/${id}/upgrade`);
                 }}
-                className="w-full flex items-center gap-3 p-4 bg-white border border-calm-200 rounded-xl hover:border-teal-400 hover:bg-teal-50/30 transition-all text-left"
+                disabled={!canGrowTaller}
+                className={`w-full flex items-center gap-3 p-4 bg-white border border-calm-200 rounded-xl transition-all text-left ${
+                  canGrowTaller
+                    ? "hover:border-teal-400 hover:bg-teal-50/30"
+                    : "opacity-50 cursor-not-allowed"
+                }`}
               >
                 <div className="flex items-center justify-center w-10 h-10 bg-teal-50 rounded-lg shrink-0">
                   <span className="text-lg">🌿</span>
@@ -68,7 +75,9 @@ function UpgradeHabit({ id }: UpgradeHabitProps) {
                     Grow taller
                   </p>
                   <p className="text-xs text-calm-500">
-                    Make it harder in the same tier
+                    {canGrowTaller
+                      ? "Make it harder in the same tier"
+                      : "Already grown taller from here"}
                   </p>
                 </div>
               </button>
