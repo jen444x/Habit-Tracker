@@ -63,6 +63,31 @@ function ShowHabitFamily({ familyId, id }: ShowHabitFamilyProps) {
     }
   }
 
+  async function unlink(harderId: number) {
+    if (!confirm("Unlink this habit?")) return;
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/habits/${harderId}/unlink`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error);
+        return;
+      }
+      fetchFamily();
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "An unknown error occurred",
+      );
+    }
+  }
+
   useEffect(() => {
     fetchFamily();
   }, [familyId]);
@@ -86,6 +111,7 @@ function ShowHabitFamily({ familyId, id }: ShowHabitFamilyProps) {
                   <LinkedCard
                     habit={habit.linked_lower}
                     onClick={() => navigate(`/${habit.linked_lower!.id}`)}
+                    onUnlink={() => unlink(habit.id)}
                   />
                 )}
               </div>
@@ -108,6 +134,7 @@ function ShowHabitFamily({ familyId, id }: ShowHabitFamilyProps) {
                     key={linked.id}
                     habit={linked}
                     onClick={() => navigate(`/${linked.id}`)}
+                    onUnlink={() => unlink(linked.id)}
                   />
                 ))}
               </div>
@@ -122,19 +149,41 @@ function ShowHabitFamily({ familyId, id }: ShowHabitFamilyProps) {
 function LinkedCard({
   habit,
   onClick,
+  onUnlink,
 }: {
   habit: LinkedHabit;
   onClick: () => void;
+  onUnlink: () => void;
 }) {
   return (
-    <div
-      onClick={onClick}
-      className="px-2 py-1.5 rounded-lg cursor-pointer bg-calm-50 border border-calm-200 hover:bg-calm-100 transition-colors text-center"
-    >
-      <p className="text-xs font-medium text-calm-700 leading-tight">
-        {habit.name}
-      </p>
-      <p className="text-[10px] text-calm-400">{tierLabels[habit.tier]}</p>
+    <div className="relative">
+      <div
+        onClick={onClick}
+        className="px-2 py-1.5 pr-5 rounded-lg cursor-pointer bg-calm-50 border border-calm-200 hover:bg-calm-100 transition-colors text-center"
+      >
+        <p className="text-xs font-medium text-calm-700 leading-tight">
+          {habit.name}
+        </p>
+        <p className="text-[10px] text-calm-400">{tierLabels[habit.tier]}</p>
+      </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onUnlink();
+        }}
+        aria-label="Unlink habit"
+        className="absolute top-0.5 right-0.5 w-4 h-4 flex items-center justify-center text-calm-400 hover:text-calm-700 hover:bg-calm-200 rounded"
+        type="button"
+      >
+        <svg className="w-2.5 h-2.5" viewBox="0 0 10 10" fill="none">
+          <path
+            d="M1 1l8 8M9 1l-8 8"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+        </svg>
+      </button>
     </div>
   );
 }

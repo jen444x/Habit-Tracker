@@ -481,6 +481,27 @@ def grow_horizontal(id):
     return jsonify({"id": new_id}), 201
 
 
+# clear a habit's cascades_to (unlink its horizontal grow link)
+@bp.route('/habits/<int:id>/unlink', methods=('PUT',))
+@login_required
+def unlink_habit(id):
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute(
+        'UPDATE habits SET cascades_to = NULL'
+        ' WHERE id = %s AND creator_id = %s',
+        (id, g.user['id'])
+    )
+    if cur.rowcount == 0:
+        cur.close()
+        return jsonify({"error": "Habit not found"}), 404
+
+    db.commit()
+    cur.close()
+    return jsonify({}), 200
+
+
 # link two existing habits in different tiers
 @bp.route('/habits/<int:id>/link', methods=('PUT',))
 @login_required
