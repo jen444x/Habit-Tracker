@@ -15,6 +15,52 @@ def get_user_local_date():
     tz = ZoneInfo(g.user['timezone'])
     return datetime.now(tz).date()
 
+
+def cascade_complete(cur, habit_id, log_date):
+    """Walk parent_id chain from habit_id and insert a completion log for each
+    ancestor. Uses ON CONFLICT DO NOTHING so it's a no-op when the ancestor is
+    already logged (completed or skipped) for that date."""
+    visited = set()
+    current_id = habit_id
+    while True:
+        cur.execute('SELECT parent_id FROM habits WHERE id = %s', (current_id,))
+        row = cur.fetchone()
+        if not row or not row['parent_id']:
+            break
+        parent_id = row['parent_id']
+        if parent_id in visited:
+            break
+        visited.add(parent_id)
+        cur.execute(
+            "INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)"
+            " ON CONFLICT (habit_id, log_date) DO NOTHING",
+            (log_date, parent_id)
+        )
+        current_id = parent_id
+
+
+def cascade_undo_complete(cur, habit_id, log_date):
+    """Walk parent_id chain and delete completion logs for ancestors on the
+    given date. Only deletes 'completed' logs so a manually-skipped ancestor
+    isn't accidentally cleared."""
+    visited = set()
+    current_id = habit_id
+    while True:
+        cur.execute('SELECT parent_id FROM habits WHERE id = %s', (current_id,))
+        row = cur.fetchone()
+        if not row or not row['parent_id']:
+            break
+        parent_id = row['parent_id']
+        if parent_id in visited:
+            break
+        visited.add(parent_id)
+        cur.execute(
+            "DELETE FROM habit_logs"
+            " WHERE habit_id = %s AND log_date = %s AND status = 'completed'",
+            (parent_id, log_date)
+        )
+        current_id = parent_id
+
 # create habit
 @bp.route('/habits', methods=('POST',))
 @login_required
@@ -331,6 +377,126 @@ def reorder_habits():
             'UPDATE habits SET display_order = %s WHERE id = ANY(%s) AND creator_id = %s',
             (index, item, g.user['id'])
         )
+
+    db.commit()
+    cur.close()
+
+    return jsonify({}), 200
+
+
+# grow a habit horizontally: create a new habit in a different tier and link
+# the harder one's parent_id to the easier one
+@bp.route('/habits/<int:id>/grow-horizontal', methods=('POST',))
+@login_required
+def grow_horizontal(id):
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Request body is required"}), 400
+
+    name = data.get('name')
+    notes = data.get('notes')
+    tier = data.get('tier')
+    time_of_day = data.get('time_of_day')
+
+    if not name or not isinstance(name, str) or name.isspace():
+        return jsonify({"error": "Name is required"}), 400
+    if len(name) > 100:
+        return jsonify({"error": "Name must be 100 or less characters"}), 400
+    if notes is not None and not isinstance(notes, str):
+        return jsonify({"error": "Notes must be a string"}), 400
+    if tier not in [1, 2, 3]:
+        return jsonify({"error": "Tier must be 1, 2, or 3"}), 400
+    if time_of_day is not None and time_of_day not in [1, 2, 3, 4]:
+        return jsonify({"error": "time_of_day must be 1-4 or null"}), 400
+
+    db = get_db()
+    cur = db.cursor()
+
+    # Confirm ownership and grab current tier
+    cur.execute(
+        'SELECT id, tier FROM habits WHERE id = %s AND creator_id = %s',
+        (id, g.user['id'])
+    )
+    current = cur.fetchone()
+    if not current:
+        cur.close()
+        return jsonify({"error": "Habit not found"}), 404
+    if current['tier'] == tier:
+        cur.close()
+        return jsonify({"error": "New habit must be in a different tier"}), 400
+
+    # Insert new habit (gets its own family_id from the sequence)
+    cur.execute(
+        'INSERT INTO habits (name, notes, tier, time_of_day, creator_id)'
+        ' VALUES (%s, %s, %s, %s, %s)'
+        ' RETURNING id',
+        (name, notes, tier, time_of_day, g.user['id'])
+    )
+    new_id = cur.fetchone()['id']
+
+    # Wire up parent_id: parent always points to the easier (lower tier) one
+    if tier > current['tier']:
+        # new is harder, points back to current
+        cur.execute(
+            'UPDATE habits SET parent_id = %s WHERE id = %s',
+            (current['id'], new_id)
+        )
+    else:
+        # new is easier, current points back to new
+        cur.execute(
+            'UPDATE habits SET parent_id = %s WHERE id = %s',
+            (new_id, current['id'])
+        )
+
+    db.commit()
+    cur.close()
+
+    return jsonify({"id": new_id}), 201
+
+
+# link two existing habits in different tiers
+@bp.route('/habits/<int:id>/link', methods=('PUT',))
+@login_required
+def link_habit(id):
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Request body is required"}), 400
+
+    other_id = data.get('other_id')
+    if not isinstance(other_id, int):
+        return jsonify({"error": "other_id must be an integer"}), 400
+    if other_id == id:
+        return jsonify({"error": "Cannot link a habit to itself"}), 400
+
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute(
+        'SELECT id, tier FROM habits WHERE id = ANY(%s) AND creator_id = %s',
+        ([id, other_id], g.user['id'])
+    )
+    rows = {row['id']: row for row in cur.fetchall()}
+    if id not in rows or other_id not in rows:
+        cur.close()
+        return jsonify({"error": "Habit not found"}), 404
+
+    current = rows[id]
+    other = rows[other_id]
+
+    if current['tier'] == other['tier']:
+        cur.close()
+        return jsonify({"error": "Linked habits must be in different tiers"}), 400
+
+    # The harder habit (higher tier) gets parent_id = easier habit's id
+    if other['tier'] > current['tier']:
+        harder_id, easier_id = other['id'], current['id']
+    else:
+        harder_id, easier_id = current['id'], other['id']
+
+    cur.execute(
+        'UPDATE habits SET parent_id = %s WHERE id = %s',
+        (easier_id, harder_id)
+    )
 
     db.commit()
     cur.close()
@@ -682,6 +848,7 @@ def complete(id):
         "INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)",
         (log_date, id)
     )
+    cascade_complete(cur, id, log_date)
     db.commit()
     cur.close()
 
@@ -709,6 +876,7 @@ def undo_complete(id):
         'WHERE habit_id = %s AND log_date = %s',
         (id, log_date)
     )
+    cascade_undo_complete(cur, id, log_date)
     db.commit()
     cur.close()
     return jsonify({}), 200
@@ -1194,13 +1362,14 @@ def complete_multiple():
         if habit is None:                                                                                                  
             continue  # Skip if habit doesn't exist or doesn't belong to user                                              
                                                                                                                             
-        # Insert completion log                                                                                            
-        cur.execute(                                                                                                       
-            'INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)',                                                 
-            (log_date, habit_id)                                                                                           
-        )                                                                                                                  
-                                                                                                                            
-    db.commit()                                                                                                            
-    cur.close()                                                                                                            
-                                                                                                                            
-    return jsonify({}), 200 
+        # Insert completion log
+        cur.execute(
+            'INSERT INTO habit_logs (log_date, habit_id) VALUES (%s, %s)',
+            (log_date, habit_id)
+        )
+        cascade_complete(cur, habit_id, log_date)
+
+    db.commit()
+    cur.close()
+
+    return jsonify({}), 200

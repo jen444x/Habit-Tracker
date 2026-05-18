@@ -11,6 +11,7 @@ import ChallengePage from "./pages/ChallengePage.tsx";
 import Layout from "./components/layout/Layout.tsx";
 import ScrollToTop from "./components/ScrollToTop.tsx";
 import UpgradeHabitPage from "./pages/UpgradeHabitPage.tsx";
+import GrowHorizontalPage from "./pages/GrowHorizontalPage.tsx";
 import InsightsPage from "./pages/InsightsPage.tsx";
 
 function App() {
@@ -26,6 +27,10 @@ function App() {
           <Route path="/challenges" element={<ChallengesPage />} />
           <Route path="/habits/new" element={<AddHabitPage />} />
           <Route path="/habits/:id/upgrade" element={<UpgradeHabitPage />} />
+          <Route
+            path="/habits/:id/grow-horizontal"
+            element={<GrowHorizontalPage />}
+          />
           <Route path="/challenges/create" element={<AddChallengePage />} />
           <Route path="/:id" element={<HabitPage />} />
           <Route path="/challenges/:id" element={<ChallengePage />} />
